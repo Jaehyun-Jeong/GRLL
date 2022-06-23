@@ -87,16 +87,24 @@ class REINFORCE():
 
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
+
             log_prob = torch.log(self.pi(s_t, a_t))
             G = log_prob + self.stepsize * G
+            loss = (-1.0) * G * torch.log(self.pi(s_t, a_t) + self.ups)
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
             
-            loss += (-1.0) * G * torch.log(self.pi(s_t, a_t) + self.ups)
-            
+        '''
         loss = loss/len_loss
+
+        print(loss)
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        '''
 
     def train(self, maxEpisodes):
         try:
@@ -175,7 +183,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
     REINFORCE_model = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(REINFORCE_model.parameters(), lr=ALPHA)
+    optimizer = optim.SGD(REINFORCE_model.parameters(), lr=ALPHA)
 
     parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
