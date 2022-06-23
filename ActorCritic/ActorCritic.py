@@ -10,12 +10,6 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
 
-# import model
-from models.ANN import ANN_V1
-
-# Environment 
-import gym
-
 class ActorCritic():
 
     '''
@@ -40,6 +34,7 @@ class ActorCritic():
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.stepsize = params_dict['stepsize']
+
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -171,6 +166,10 @@ class ActorCritic():
         self.env.close()
 
 if __name__ == "__main__":
+
+    from models import ANN_V1 # import model
+    import gym # Environment 
+
     MAX_EPISODES = 3000
     MAX_TIMESTEPS = 1000
 

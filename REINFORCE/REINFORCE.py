@@ -10,12 +10,6 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
 
-# import model
-from models.ANN import ANN_V1
-
-# Environment 
-import gym
-
 class REINFORCE():
 
     '''
@@ -158,6 +152,13 @@ class REINFORCE():
         env.close()
 
 if __name__ == "__main__":
+
+    # import model
+    from models.ANN import ANN_V1
+
+    # Environment 
+    import gym
+
     MAX_EPISODES = 3000
     MAX_TIMESTEPS = 1000
 

@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import torch
 import pygame
-import Maze_Generator as maze_generator
+import sys
+
+from . import Maze_Generator as maze_generator
 from os.path import exists
 from sys import exit
 

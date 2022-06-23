@@ -1,18 +1,16 @@
-import sys
 
 # PyTorch
 import torch
 import torch.optim as optim
 
-sys.path.append("../ActorCritic") # to import ActorCritic method, models
-sys.path.append("../") # to import Maze_Solver
+#sys.path.append("../") # to import Maze_Solver
 
 # import model
-from models.CNN import CNN_V1
-from ActorCritic import ActorCritic
+from ActorCritic.models import CNN_V1
+from ActorCritic.ActorCritic import ActorCritic
 
 # Environment 
-from Maze_Solver import MazeSolverEnv
+from envs.maze.Maze_Solver import MazeSolverEnv
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
