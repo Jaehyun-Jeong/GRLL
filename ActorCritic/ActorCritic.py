@@ -31,12 +31,15 @@ class ActorCritic():
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
 
+    # In Reinforcement learning, pi means the function from state space to action probability distribution
+    # Returns probability of taken action a from state s
     def pi(self, s, a):
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
         return probs[a]
     
+    # Returns the action from state s by using multinomial distribution
     def get_action(self, s):
         s = torch.tensor(s).to(self.device)
         _, probs = self.model.forward(s)
@@ -48,6 +51,7 @@ class ActorCritic():
         action = a[0]
         return action
     
+    # Returns the action by using epsilon greedy policy in Reinforcment learning
     def epsilon_greedy_action(self, s, epsilon = 0.1):
         s = torch.tensor(s).to(self.device)
         s = torch.unsqueeze(s, 0)
@@ -63,22 +67,26 @@ class ActorCritic():
         a = a.data
         action = a[0]
         return action
-    
+  
+    # Returns a value of the state (state value function in Reinforcement learning)
     def value(self, s):
         s = torch.tensor(s).to(self.device)
-        #s = torch.unsqueeze(s, 0)
         value, _ = self.model.forward(s)
         value = torch.squeeze(value, 0)
         
         return value    
 
+    # Update weights by using Actor Critic Method
     def update_weight(self, states, actions, rewards, last_state, entropy_term = 0):
+
         # compute Q values
         Qval = self.value(last_state)
         loss = 0
+
         # loss obtained when rewards are obtained
         len_loss = len(rewards)
 
+        # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
             log_prob = torch.log(self.pi(s_t, a_t))
             value = self.value(s_t)
@@ -108,9 +116,9 @@ class ActorCritic():
 
                 states = []
                 actions = []
-                rewards = []   # no reward at t = 0
+                rewards = [] # no reward at t = 0
 
-                #while not done:
+                # while not done:
                 for timesteps in range(self.maxTimesteps):
 
                     states.append(state)
@@ -142,7 +150,8 @@ class ActorCritic():
             print("==============================================")
             print("KEYBOARD INTERRUPTION!!=======================")
             print("==============================================")
-            #plt.plot(range(len(returns)), returns)
+
+            plt.plot(range(len(returns)), returns)
         finally:
             plt.plot(range(len(returns)), returns)
 
