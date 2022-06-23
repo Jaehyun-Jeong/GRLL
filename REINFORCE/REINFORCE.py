@@ -17,7 +17,20 @@ from models.ANN import ANN_V1
 import gym
 
 class REINFORCE():
-    def __init__(self, **params_dict): # parmas = {env, model, optimizer, maxTimesteps, stepsize}
+
+    '''
+    params_dict = {
+        'device': device to use, 'cuda' or 'cpu'
+        'env': environment like gym
+        'model': torch models for policy and value funciton
+        'optimizer': torch optimizer
+        #MAX_EPISODES = maximum episodes you want to learn
+        'maxTimesteps': maximum timesteps agent take 
+        'stepsize': GAMMA # step-size for updating Q value
+    }
+    '''
+
+    def __init__(self, **params_dict): 
         super(REINFORCE, self).__init__()
 
         # init parameters 
@@ -31,12 +44,15 @@ class REINFORCE():
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
 
+    # In Reinforcement learning, pi means the function from state space to action probability distribution
+    # Returns probability of taken action a from state s
     def pi(self, s, a):
         s = torch.Tensor(s).to(self.device)
         probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
         return probs[a]
     
+    # Returns the action from state s by using multinomial distribution
     def get_action(self, s):
         s = torch.tensor(s).to(self.device)
         probs = self.model.forward(s)
@@ -48,6 +64,7 @@ class REINFORCE():
         action = a[0]
         return action
     
+    # Returns the action by using epsilon greedy policy in Reinforcment learning
     def epsilon_greedy_action(self, s, epsilon = 0.1):
         s = torch.tensor(s).to(self.device)
         s = torch.unsqueeze(s, 0)
@@ -64,13 +81,17 @@ class REINFORCE():
         action = a[0]
         return action
 
+    # Update weights by using Actor Critic Method
     def update_weight(self, states, actions, rewards, last_state, entropy_term = 0):
+
         # compute Q values
         G = torch.tensor(0)
         loss = 0
+
         # loss obtained when rewards are obtained
         len_loss = len(rewards)
 
+        # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
             log_prob = torch.log(self.pi(s_t, a_t))
             G = log_prob + self.stepsize * G

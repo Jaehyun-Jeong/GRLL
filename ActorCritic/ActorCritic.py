@@ -17,7 +17,20 @@ from models.ANN import ANN_V1
 import gym
 
 class ActorCritic():
-    def __init__(self, **params_dict): # parmas = {env, model, optimizer, maxTimesteps, stepsize}
+
+    '''
+    params_dict = {
+        'device': device to use, 'cuda' or 'cpu'
+        'env': environment like gym
+        'model': torch models for policy and value funciton
+        'optimizer': torch optimizer
+        #MAX_EPISODES = maximum episodes you want to learn
+        'maxTimesteps': maximum timesteps agent take 
+        'stepsize': GAMMA # step-size for updating Q value
+    }
+    '''
+
+    def __init__(self, **params_dict):
         super(ActorCritic, self).__init__()
 
         # init parameters 
