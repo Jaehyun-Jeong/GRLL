@@ -88,23 +88,12 @@ class REINFORCE():
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
 
-            log_prob = torch.log(self.pi(s_t, a_t))
-            G = log_prob + self.stepsize * G
+            G = torch.tensor(r_tt) + self.stepsize * G
             loss = (-1.0) * G * torch.log(self.pi(s_t, a_t) + self.ups)
 
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            
-        '''
-        loss = loss/len_loss
-
-        print(loss)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-        '''
 
     def train(self, maxEpisodes):
         try:
