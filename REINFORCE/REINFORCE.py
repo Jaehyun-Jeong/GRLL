@@ -82,9 +82,6 @@ class REINFORCE():
         G = torch.tensor(0)
         loss = 0
 
-        # loss obtained when rewards are obtained
-        len_loss = len(rewards)
-
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
 

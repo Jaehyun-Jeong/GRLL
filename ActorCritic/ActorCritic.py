@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
+from torch.autograd import Variable
 
 class ActorCritic():
 
@@ -89,27 +90,23 @@ class ActorCritic():
 
         # compute Q values
         Qval = self.value(last_state)
-        loss = 0
-
-        # loss obtained when rewards are obtained
-        len_loss = len(rewards)
 
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
+
             log_prob = torch.log(self.pi(s_t, a_t))
             value = self.value(s_t)
-            Qval = r_tt + self.stepsize * torch.clone(Qval)
-            advantage = Qval - value
+            Qval = r_tt + self.stepsize * Qval
+            advantage = Variable(Qval - value)
 
+            # get loss
             actor_loss = (-log_prob * advantage)
-            critic_loss = 0.5 * advantage.pow(2)
-            loss += actor_loss + critic_loss + 0.001 * entropy_term
-            
-        loss = loss/len_loss
+            critic_loss = 0.5 * (-value).pow(2)
+            loss = actor_loss + critic_loss + 0.001 * entropy_term
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
     def train(self, maxEpisodes):
         try:
@@ -186,7 +183,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
     ACmodel = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
+    optimizer = optim.SGD(ACmodel.parameters(), lr=ALPHA)
 
     ActorCritic_parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
