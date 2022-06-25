@@ -170,7 +170,7 @@ if __name__ == "__main__":
     # Environment 
     import gym
 
-    MAX_EPISODES = 3000
+    MAX_EPISODES = 10000
     MAX_TIMESTEPS = 1000
 
     ALPHA = 3e-4 # learning rate
