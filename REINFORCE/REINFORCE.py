@@ -103,8 +103,6 @@ class REINFORCE():
                 from torch.utils.tensorboard import SummaryWriter
                 writer = SummaryWriter()
 
-            for i_episode in range(maxEpisodes):
-
             #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):

@@ -119,9 +119,9 @@ class ActorCritic():
                 from torch.utils.tensorboard import SummaryWriter
                 writer = SummaryWriter()
 
-            for i_episode in range(maxEpisodes):
-
             #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+            for i_episode in range(maxEpisodes):
 
                 state = self.env.reset()
                 init_state = state
