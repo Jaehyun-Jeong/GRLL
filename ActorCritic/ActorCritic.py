@@ -108,9 +108,13 @@ class ActorCritic():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes):
+    def train(self, maxEpisodes, useTensorboard=False):
         try:
             returns = []
+
+            if useTensorboard:
+                from torch.utils.tensorboard import SummaryWriter
+                writer = SummaryWriter()
 
             for i_episode in range(maxEpisodes):
 
@@ -143,13 +147,13 @@ class ActorCritic():
                 returns.append(sum(rewards))
 
                 if (i_episode + 1) % 500 == 0:
-                    print("Episode {} return {}".format(i_episode + 1, returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
                     # SAVE THE MODEL
                     #torch.save(model, '../saved_models/model' + str(i_episode + 1) + '.pt')
 
                 elif (i_episode + 1) % 10 == 0:
-                    print("Episode {} return {}".format(i_episode + 1, returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
         except KeyboardInterrupt:
             print("==============================================")
