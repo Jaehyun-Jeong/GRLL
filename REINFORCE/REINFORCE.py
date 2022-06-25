@@ -139,7 +139,7 @@ class REINFORCE():
                 # TENSORBOARD
 
                 if useTensorboard:
-                    writer.add_scalar("Returns", returns[-1], i_episode)
+                    writer.add_scalars("Returns", {'REINFORCE': returns[-1]}, i_episode)
 
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -202,4 +202,4 @@ if __name__ == "__main__":
     RF = REINFORCE(**parameters)
 
     # TRAIN Agent
-    RF.train(MAX_EPISODES)
+    RF.train(MAX_EPISODES, useTensorboard=True)

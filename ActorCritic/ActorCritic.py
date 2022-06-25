@@ -155,7 +155,7 @@ class ActorCritic():
                 # TENSORBOARD
 
                 if useTensorboard:
-                    writer.add_scalar("Returns", returns[-1], i_episode)
+                    writer.add_scalars("Returns", {'ActorCritic': returns[-1]}, i_episode)
 
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
