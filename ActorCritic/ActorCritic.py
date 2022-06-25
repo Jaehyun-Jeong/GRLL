@@ -112,11 +112,16 @@ class ActorCritic():
         try:
             returns = []
 
+            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            # TENSORBOARD
+            
             if useTensorboard:
                 from torch.utils.tensorboard import SummaryWriter
                 writer = SummaryWriter()
 
             for i_episode in range(maxEpisodes):
+
+            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 state = self.env.reset()
                 init_state = state
@@ -145,6 +150,14 @@ class ActorCritic():
                 self.update_weight(states, actions, rewards, last_state)
 
                 returns.append(sum(rewards))
+
+                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                # TENSORBOARD
+
+                if useTensorboard:
+                    writer.add_scalar("Returns", returns[-1], i_episode)
+
+                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
@@ -187,7 +200,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
     ACmodel = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.SGD(ACmodel.parameters(), lr=ALPHA)
+    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
     ActorCritic_parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
@@ -203,4 +216,4 @@ if __name__ == "__main__":
     AC = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
-    AC.train(MAX_EPISODES)
+    AC.train(MAX_EPISODES, useTensorboard=True)

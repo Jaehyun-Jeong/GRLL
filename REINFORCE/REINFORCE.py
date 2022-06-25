@@ -92,9 +92,20 @@ class REINFORCE():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes):
+    def train(self, maxEpisodes, useTensorboard=False):
         try:
             returns = []
+
+            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            # TENSORBOARD
+            
+            if useTensorboard:
+                from torch.utils.tensorboard import SummaryWriter
+                writer = SummaryWriter()
+
+            for i_episode in range(maxEpisodes):
+
+            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):
 
@@ -125,6 +136,14 @@ class REINFORCE():
                 self.update_weight(states, actions, rewards, last_state)
 
                 returns.append(sum(rewards))
+
+                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                # TENSORBOARD
+
+                if useTensorboard:
+                    writer.add_scalar("Returns", returns[-1], i_episode)
+
+                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
@@ -169,7 +188,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
     REINFORCE_model = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.SGD(REINFORCE_model.parameters(), lr=ALPHA)
+    optimizer = optim.Adam(REINFORCE_model.parameters(), lr=ALPHA)
 
     parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
