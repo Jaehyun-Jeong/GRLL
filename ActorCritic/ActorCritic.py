@@ -94,14 +94,14 @@ class ActorCritic():
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
 
-            log_prob = torch.log(self.pi(s_t, a_t))
+            log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
             value = self.value(s_t)
             Qval = r_tt + self.stepsize * Qval
             advantage = Variable(Qval - value)
 
             # get loss
-            actor_loss = (-log_prob * advantage)
-            critic_loss = 0.5 * (-value * advantage).pow(2)
+            actor_loss = -(log_prob * advantage)
+            critic_loss = -0.5 * (value * advantage).pow(2)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
             self.optimizer.zero_grad()
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # set environment
-    env = gym.make('CartPole-v0')
+    env = gym.make("LunarLander-v2")
 
     # set ActorCritic
     num_actions = env.action_space.n
