@@ -1,18 +1,18 @@
+import sys
+sys.path.append("../") # to import module
 
 # PyTorch
 import torch
 import torch.optim as optim
 
-#sys.path.append("../") # to import Maze_Solver
-
 # import model
-from ActorCritic.models import CNN_V1
+from ActorCritic.models import ANN_V2
 from ActorCritic.ActorCritic import ActorCritic
 
 # Environment 
-from envs.maze.Maze_Solver import MazeSolverEnv
+import gym
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 10000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
@@ -22,12 +22,12 @@ GAMMA = 0.99 # step-size
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = MazeSolverEnv()
+env = gym.make('MountainCar-v0')
 
 # set ActorCritic
-num_actions = env.num_action
-num_states = env.num_obs
-ACmodel = CNN_V1(num_states[0], num_states[1], num_actions).to(device)
+num_actions = env.action_space.n
+num_states = env.observation_space.shape[0]
+ACmodel = ANN_V2(num_states, num_actions).to(device)
 optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
 ActorCritic_parameters = {
