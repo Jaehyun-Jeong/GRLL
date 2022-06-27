@@ -101,7 +101,7 @@ class ActorCritic():
 
             # get loss
             actor_loss = -(log_prob * advantage)
-            critic_loss = -0.5 * (value * advantage).pow(2)
+            critic_loss = 0.5 * (value * advantage).pow(2)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
             self.optimizer.zero_grad()
@@ -181,10 +181,10 @@ class ActorCritic():
 
 if __name__ == "__main__":
 
-    from models import ANN_V1 # import model
+    from models import ANN_V2 # import model
     import gym # Environment 
 
-    MAX_EPISODES = 3000
+    MAX_EPISODES = 10000
     MAX_TIMESTEPS = 1000
 
     ALPHA = 3e-4 # learning rate
@@ -194,12 +194,12 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # set environment
-    env = gym.make("LunarLander-v2")
+    env = gym.make("CartPole-v1")
 
     # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
-    ACmodel = ANN_V1(num_states, num_actions).to(device)
+    ACmodel = ANN_V2(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
     ActorCritic_parameters = {
