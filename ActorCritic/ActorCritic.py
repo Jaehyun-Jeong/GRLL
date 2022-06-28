@@ -2,6 +2,7 @@
 import numpy as np
 import random 
 import matplotlib.pyplot as plt
+from collections import namedtuple, deque
 
 # PyTorch
 import torch
@@ -10,6 +11,25 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
+
+
+Transition = namedtuple('Transition',
+                       ('state', 'action', 'next_state', 'reward'))
+
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.memory = deque([],maxlen=capacity)
+
+    def push(self, *args):
+        """Save a transition"""
+        self.memory.append(Transition(*args))
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
 
 class ActorCritic():
 
@@ -88,22 +108,22 @@ class ActorCritic():
         return value    
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, states, actions, rewards, last_state, entropy_term = 0):
-
-        # compute Q values
-        Qval = self.value(last_state)
-
+    def update_weight(self, Transitions, entropy_term = 0):
         # update by using mini-batch Gradient Ascent
-        for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
+
+        for Transition in Transitions.memory:
+            s_t = Transition.state
+            a_t = Transition.action
+            s_tt = Transition.next_state
+            r_tt = Transition.reward
 
             log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
             value = self.value(s_t)
-            Qval = r_tt + self.discount_rate * Qval
-            advantage = Variable(Qval - value)
+            sigma = Variable(r_tt + self.value(s_tt) - self.value(s_t))
 
             # get loss
-            actor_loss = -(log_prob * advantage)
-            critic_loss = 0.5 * (value * advantage).pow(2)
+            actor_loss = -(sigma * log_prob)
+            critic_loss = 1/2 * (-sigma * value).pow(2)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
             self.optimizer.zero_grad()
@@ -124,15 +144,11 @@ class ActorCritic():
             #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):
-
+                
+                Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
-                init_state = state
-
                 done = False
-
-                states = []
-                actions = []
-                rewards = [] # no reward at t = 0
+                rewards = []
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
@@ -140,19 +156,19 @@ class ActorCritic():
                     if isRender:
                         env.render()
 
-                    states.append(state)
-
                     action = self.get_action(state)
-                    actions.append(action)
+                    next_state, reward, done, _ = self.env.step(action.tolist())
+                    
+                    Transitions.push(state, action, next_state, reward)
 
-                    state, reward, done, _ = self.env.step(action.tolist())
                     rewards.append(reward)
+                    state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
-                        last_state = state
                         break
 
-                self.update_weight(states, actions, rewards, last_state)
+
+                self.update_weight(Transitions)
 
                 returns.append(sum(rewards))
 
@@ -188,16 +204,16 @@ if __name__ == "__main__":
     MAX_EPISODES = 10000
     MAX_TIMESTEPS = 1000
 
-    ALPHA = 0.1e-6 # learning rate
+    ALPHA = 0.1e-3 # learning rate
     GAMMA = 0.99 # discount_rate
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # set environment
-    #env = gym.make("CartPole-v0")
+    env = gym.make("CartPole-v0")
     #env = gym.make("Acrobot-v1")
-    env = gym.make("MountainCar-v0")
+    #env = gym.make("MountainCar-v0")
 
     # set ActorCritic
     num_actions = env.action_space.n
