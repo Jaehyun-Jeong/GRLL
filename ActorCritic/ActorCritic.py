@@ -111,7 +111,7 @@ class ActorCritic():
     def update_weight(self, Transitions, entropy_term = 0):
         # update by using mini-batch Gradient Ascent
 
-        for Transition in Transitions.memory:
+        for Transition in reversed(Transitions.memory):
             s_t = Transition.state
             a_t = Transition.action
             s_tt = Transition.next_state
@@ -122,8 +122,8 @@ class ActorCritic():
             sigma = Variable(r_tt + self.value(s_tt) - self.value(s_t))
 
             # get loss
-            actor_loss = -(sigma * log_prob)
-            critic_loss = 1/2 * (-sigma * value).pow(2)
+            actor_loss = (sigma * log_prob)
+            critic_loss = 1/2 * (sigma * value).pow(2)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
             self.optimizer.zero_grad()
