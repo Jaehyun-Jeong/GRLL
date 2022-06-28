@@ -146,9 +146,6 @@ class REINFORCE():
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
-                    # SAVE THE MODEL
-                    #torch.save(model, '../saved_models/model' + str(i_episode + 1) + '.pt')
-
                 elif (i_episode + 1) % 10 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
