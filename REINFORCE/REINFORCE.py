@@ -20,7 +20,7 @@ class REINFORCE():
         'optimizer': torch optimizer
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
-        'stepsize': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA # step-size for updating Q value
     }
     '''
 
@@ -33,7 +33,7 @@ class REINFORCE():
         self.model = params_dict['model']
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
-        self.stepsize = params_dict['stepsize']
+        self.discount_rate = params_dict['discount_rate']
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -85,7 +85,7 @@ class REINFORCE():
         # update by using mini-batch Gradient Ascent
         for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
 
-            G = torch.tensor(r_tt) + self.stepsize * G
+            G = torch.tensor(r_tt) + self.discount_rate * G
             loss = (-1.0) * G * torch.log(self.pi(s_t, a_t) + self.ups)
 
             self.optimizer.zero_grad()
@@ -145,7 +145,6 @@ class REINFORCE():
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
-
                 elif (i_episode + 1) % 10 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
@@ -192,7 +191,7 @@ if __name__ == "__main__":
         'optimizer': optimizer, # torch optimizer
         #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'stepsize': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA # step-size for updating Q value
     }
 
     # Initialize Actor-Critic Mehtod

@@ -21,7 +21,7 @@ class ActorCritic():
         'optimizer': torch optimizer
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
-        'stepsize': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA # step-size for updating Q value
     }
     '''
 
@@ -34,7 +34,7 @@ class ActorCritic():
         self.model = params_dict['model']
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
-        self.stepsize = params_dict['stepsize']
+        self.discount_rate = params_dict['discount_rate']
 
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -96,7 +96,7 @@ class ActorCritic():
 
             log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
             value = self.value(s_t)
-            Qval = r_tt + self.stepsize * Qval
+            Qval = r_tt + self.discount_rate * Qval
             advantage = Variable(Qval - value)
 
             # get loss
@@ -161,7 +161,6 @@ class ActorCritic():
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
-
                 elif (i_episode + 1) % 10 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
@@ -206,7 +205,7 @@ if __name__ == "__main__":
         'optimizer': optimizer, # torch optimizer
         #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'stepsize': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA # step-size for updating Q value
     }
 
     # Initialize Actor-Critic Mehtod
