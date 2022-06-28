@@ -1,7 +1,6 @@
 
 import numpy as np
-import random
-import matplotlib.pyplot as plt
+import random import matplotlib.pyplot as plt
 
 # PyTorch
 import torch
@@ -108,7 +107,7 @@ class ActorCritic():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes, useTensorboard=False):
+    def train(self, maxEpisodes, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
             returns = []
 
@@ -155,7 +154,7 @@ class ActorCritic():
                 # TENSORBOARD
 
                 if useTensorboard:
-                    writer.add_scalars("Returns", {'ActorCritic': returns[-1]}, i_episode)
+                    writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
 
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -212,4 +211,4 @@ if __name__ == "__main__":
     AC = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
-    AC.train(MAX_EPISODES, useTensorboard=True)
+    AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="CartPole-v1")

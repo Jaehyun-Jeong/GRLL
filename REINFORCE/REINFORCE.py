@@ -92,7 +92,7 @@ class REINFORCE():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes, useTensorboard=False):
+    def train(self, maxEpisodes, useTensorboard=False, tensorboardTag="REINFORCE"):
         try:
             returns = []
 
@@ -139,7 +139,7 @@ class REINFORCE():
                 # TENSORBOARD
 
                 if useTensorboard:
-                    writer.add_scalars("Returns", {'REINFORCE': returns[-1]}, i_episode)
+                    writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
 
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
