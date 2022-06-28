@@ -50,39 +50,41 @@ class ActorCritic():
     
     # Returns the action from state s by using multinomial distribution
     def get_action(self, s):
-        s = torch.tensor(s).to(self.device)
-        _, probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
-        
-        a = probs.multinomial(num_samples=1)
-        a = a.data
-        
-        action = a[0]
-        return action
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            _, probs = self.model.forward(s)
+            probs = torch.squeeze(probs, 0)
+
+            a = probs.multinomial(num_samples=1)
+            a = a.data
+            
+            action = a[0]
+            return action
     
     # Returns the action by using epsilon greedy policy in Reinforcment learning
     def epsilon_greedy_action(self, s, epsilon = 0.1):
-        s = torch.tensor(s).to(self.device)
-        s = torch.unsqueeze(s, 0)
-        _, probs = self.model.forward(s)
-        
-        probs = torch.squeeze(probs, 0)
-        
-        if random.random() > epsilon:
-            a = torch.tensor([torch.argmax(probs)])
-        else:
-            a = torch.rand(probs.shape).multinomial(num_samples=1)
-        
-        a = a.data
-        action = a[0]
-        return action
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            s = torch.unsqueeze(s, 0)
+            _, probs = self.model.forward(s)
+            
+            probs = torch.squeeze(probs, 0)
+            
+            if random.random() > epsilon:
+                a = torch.tensor([torch.argmax(probs)])
+            else:
+                a = torch.rand(probs.shape).multinomial(num_samples=1)
+            
+            a = a.data
+            action = a[0]
+            return action
   
     # Returns a value of the state (state value function in Reinforcement learning)
     def value(self, s):
         s = torch.tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = torch.squeeze(value, 0)
-        
+
         return value    
 
     # Update weights by using Actor Critic Method
@@ -108,7 +110,7 @@ class ActorCritic():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes, useTensorboard=False, tensorboardTag="ActorCritic"):
+    def train(self, maxEpisodes, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
             returns = []
 
@@ -134,6 +136,9 @@ class ActorCritic():
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+
+                    if isRender:
+                        env.render()
 
                     states.append(state)
 
@@ -183,18 +188,21 @@ if __name__ == "__main__":
     MAX_EPISODES = 10000
     MAX_TIMESTEPS = 1000
 
-    ALPHA = 3e-4 # learning rate
-    GAMMA = 0.99 # step-size
+    ALPHA = 0.1e-6 # learning rate
+    GAMMA = 0.99 # discount_rate
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # set environment
-    env = gym.make("CartPole-v1")
+    #env = gym.make("CartPole-v0")
+    #env = gym.make("Acrobot-v1")
+    env = gym.make("MountainCar-v0")
 
     # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
+
     ACmodel = ANN_V2(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
@@ -212,4 +220,4 @@ if __name__ == "__main__":
     AC = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
-    AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="CartPole-v1")
+    AC.train(MAX_EPISODES, isRender=True, useTensorboard=True, tensorboardTag="CartPole-v1")
