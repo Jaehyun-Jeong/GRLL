@@ -122,7 +122,7 @@ class ActorCritic():
             sigma = Variable(r_tt + self.value(s_tt) - self.value(s_t))
 
             # get loss
-            actor_loss = (sigma * log_prob)
+            actor_loss = -(sigma * log_prob)
             critic_loss = 1/2 * (sigma * value).pow(2)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
