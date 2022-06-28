@@ -236,4 +236,4 @@ if __name__ == "__main__":
     AC = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
-    AC.train(MAX_EPISODES, isRender=True, useTensorboard=True, tensorboardTag="CartPole-v1")
+    AC.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
