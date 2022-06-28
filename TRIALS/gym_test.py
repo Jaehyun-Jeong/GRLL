@@ -22,7 +22,8 @@ GAMMA = 0.99 # step-size
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = gym.make('MountainCar-v0')
+env = gym.make('CartPole-v0')
+#env = gym.make('MountainCar-v0')
 
 # set ActorCritic
 num_actions = env.action_space.n
