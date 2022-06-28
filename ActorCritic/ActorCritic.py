@@ -123,7 +123,7 @@ class ActorCritic():
 
             # get loss
             actor_loss = -(sigma * log_prob)
-            critic_loss = 1/2 * (sigma * value).pow(2)
+            critic_loss = -(sigma * value)
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
             self.optimizer.zero_grad()
