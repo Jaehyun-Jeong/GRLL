@@ -37,7 +37,7 @@ ActorCritic_parameters = {
     'model': ACmodel, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'stepsize': GAMMA # step-size for updating Q value
+    'discount_rate': GAMMA # step-size for updating Q value
 }
 
 # Initialize Actor-Critic Mehtod
