@@ -176,7 +176,7 @@ class ActorCritic():
                         if isRender:
                             env.render()
 
-                        action = self.get_action(state, epsilon=1)
+                        action = self.get_action(state)
                         _, reward, done, _ = self.env.step(action.tolist())
 
                         test_rewards.append(reward)
