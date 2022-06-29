@@ -113,6 +113,7 @@ class ActorCritic():
         for Transition in reversed(Transitions.memory):
             s_t = Transition.state
             a_t = Transition.action
+
             s_tt = Transition.next_state
             r_tt = Transition.reward
 
