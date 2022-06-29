@@ -45,5 +45,5 @@ ActorCritic_parameters = {
 AC = ActorCritic(**ActorCritic_parameters)
 
 # TRAIN Agent
-AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="maze_ANN_V2")
+AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="maze_ANN_V1")
 
