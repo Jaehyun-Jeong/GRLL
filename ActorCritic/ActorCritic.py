@@ -195,18 +195,18 @@ class ActorCritic():
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, test_returns[-1]))
                 elif (i_episode + 1) % 10 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, test_returns[-1]))
 
         except KeyboardInterrupt:
             print("==============================================")
             print("KEYBOARD INTERRUPTION!!=======================")
             print("==============================================")
 
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(test_returns)), test_returns)
         finally:
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(test_returns)), test_returns)
 
         self.env.close()
 
