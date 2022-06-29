@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
+from torch.autograd import Variable
 
 
 Transition = namedtuple('Transition',
@@ -41,7 +42,6 @@ class ActorCritic():
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
         'discount_rate': GAMMA # step-size for updating Q value
-        'epsilon': epsilon for epsilon greedy action
     }
     '''
 
@@ -55,7 +55,6 @@ class ActorCritic():
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.discount_rate = params_dict['discount_rate']
-        self.epsilon = params_dict['epsilon']
 
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -70,13 +69,28 @@ class ActorCritic():
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
+    def get_action(self, s):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             _, probs = self.model.forward(s)
             probs = torch.squeeze(probs, 0)
+
+            a = probs.multinomial(num_samples=1)
+            a = a.data
             
-            if random.random() >= epsilon:
+            action = a[0]
+            return action
+    
+    # Returns the action by using epsilon greedy policy in Reinforcment learning
+    def epsilon_greedy_action(self, s, epsilon = 0.1):
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            s = torch.unsqueeze(s, 0)
+            _, probs = self.model.forward(s)
+            
+            probs = torch.squeeze(probs, 0)
+            
+            if random.random() > epsilon:
                 a = probs.multinomial(num_samples=1)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
@@ -95,6 +109,7 @@ class ActorCritic():
 
     # Update weights by using Actor Critic Method
     def update_weight(self, Transitions, entropy_term = 0):
+
         # update by using mini-batch Gradient Ascent
         for Transition in reversed(Transitions.memory):
             s_t = Transition.state
@@ -118,10 +133,10 @@ class ActorCritic():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
+    def train(self, maxEpisodes, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
             returns = []
-            
+
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             # TENSORBOARD
             
@@ -136,58 +151,37 @@ class ActorCritic():
                 Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
                 done = False
-                
-                #==========================================================================
-                # MAKE TRAIN DATA
-                #==========================================================================
+                rewards = []
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
 
                     if isRender:
                         env.render()
-
-                    action = self.get_action(state, epsilon=self.epsilon)
+                    
+                    action = self.get_action(state)
                     next_state, reward, done, _ = self.env.step(action.tolist())
+                    
                     Transitions.push(state, action, next_state, reward)
+
+                    rewards.append(reward)
                     state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
-                # train
+
+
                 self.update_weight(Transitions)
 
-                #==========================================================================
-                # TEST
-                #==========================================================================
+                returns.append(sum(rewards))
 
-                if (i_episode+1) % testPer == 0: 
-                    state = self.env.reset()
-                    done = False
-                    rewards = []
+                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                # TENSORBOARD
 
-                    for timesteps in range(self.maxTimesteps):
-                        if isRender:
-                            env.render()
+                if useTensorboard:
+                    writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
 
-                        action = self.get_action(state)
-                        next_state, reward, done, _ = self.env.step(action.tolist())
-
-                        rewards.append(reward)
-                        state = next_state
-
-                        if done or timesteps == self.maxTimesteps-1:
-                            break
-
-                    returns.append(sum(rewards))
-
-                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                    # TENSORBOARD
-
-                    if useTensorboard:
-                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
-
-                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
@@ -207,7 +201,7 @@ class ActorCritic():
 
 if __name__ == "__main__":
 
-    from models import ANN_V1 # import model
+    from models import ANN_V2 # import model
     import gym # Environment 
 
     MAX_EPISODES = 10000
@@ -215,7 +209,6 @@ if __name__ == "__main__":
 
     ALPHA = 0.1e-3 # learning rate
     GAMMA = 0.99 # discount_rate
-    epsilon = 0 # for epsilon greedy action
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -229,7 +222,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
 
-    ACmodel = ANN_V1(num_states, num_actions).to(device)
+    ACmodel = ANN_V2(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
     ActorCritic_parameters = {
@@ -237,9 +230,9 @@ if __name__ == "__main__":
         'env': env, # environment like gym
         'model': ACmodel, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
+        #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': epsilon # epsilon greedy action for training
+        'discount_rate': GAMMA # step-size for updating Q value
     }
 
     # Initialize Actor-Critic Mehtod
