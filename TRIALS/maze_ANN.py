@@ -14,10 +14,11 @@ from ActorCritic.ActorCritic import ActorCritic
 from envs.maze.Maze_Solver import MazeSolverEnv
 
 MAX_EPISODES = 10000
-MAX_TIMESTEPS = 30000
+MAX_TIMESTEPS = 1000
 
 ALPHA = 0.1e-3 # learning rate
 GAMMA = 0.90 # discount rate
+epsilon = 0 # for epsilon greedy action
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,7 +39,8 @@ ActorCritic_parameters = {
     'model': ACmodel, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA # step-size for updating Q value
+    'discount_rate': GAMMA, # step-size for updating Q value
+    'epsilon': epsilon 
 }
 
 # Initialize Actor-Critic Mehtod
