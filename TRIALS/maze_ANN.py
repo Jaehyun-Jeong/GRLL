@@ -17,7 +17,7 @@ MAX_EPISODES = 10000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 0.1e-3 # learning rate
-GAMMA = 0.90 # discount rate
+GAMMA = 0.99 # discount rate
 epsilon = 0 # for epsilon greedy action
 
 # device to use
