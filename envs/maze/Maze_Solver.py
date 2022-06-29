@@ -372,7 +372,6 @@ class MazeSolverEnv:
             # hit the wall
             if np.array_equal(self.maze_solver.start_pos, self.maze_solver.next_pos):
                 reward -= 0.75
-                done = True
             elif self.path_blocks[self.maze_solver.next_pos[0]][self.maze_solver.next_pos[1]] == 1:
                 reward -= 0.25
                 

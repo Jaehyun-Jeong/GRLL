@@ -68,20 +68,7 @@ class ActorCritic():
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            _, probs = self.model.forward(s)
-            probs = torch.squeeze(probs, 0)
-
-            a = probs.multinomial(num_samples=1)
-            a = a.data
-            
-            action = a[0]
-            return action
-    
-    # Returns the action by using epsilon greedy policy in Reinforcment learning
-    def epsilon_greedy_action(self, s, epsilon = 0.1):
+    def get_action(self, s, epsilon = 0):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             s = torch.unsqueeze(s, 0)
@@ -132,10 +119,11 @@ class ActorCritic():
             loss.backward()
             self.optimizer.step()
 
-    def train(self, maxEpisodes, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
+    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
-            returns = []
-
+            train_returns = []
+            test_returns = []
+            
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             # TENSORBOARD
             
@@ -150,7 +138,12 @@ class ActorCritic():
                 Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
                 done = False
-                rewards = []
+                train_rewards = []
+                test_rewards = []
+                
+                #==========================================================================
+                # MAKE TRAIN DATA
+                #==========================================================================
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
@@ -158,27 +151,46 @@ class ActorCritic():
                     if isRender:
                         env.render()
 
-                    action = self.get_action(state)
+                    action = self.get_action(state, epsilon=1)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     
                     Transitions.push(state, action, next_state, reward)
 
-                    rewards.append(reward)
+                    train_rewards.append(reward)
                     state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
 
-
                 self.update_weight(Transitions)
+                train_returns.append(sum(train_rewards))
 
-                returns.append(sum(rewards))
+                #==========================================================================
+                # TEST
+                #==========================================================================
+
+                if (i_episode+1) % testPer == 0: 
+                    self.env.reset()
+
+                    for timesteps in range(self.maxTimesteps):
+                        if isRender:
+                            env.render()
+
+                        action = self.get_action(state, epsilon=1)
+                        _, reward, done, _ = self.env.step(action.tolist())
+
+                        test_rewards.append(reward)
+
+                        if done or timesteps == self.maxTimesteps-1:
+                            break
+
+                test_returns.append(sum(test_rewards))
 
                 #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                 # TENSORBOARD
 
                 if useTensorboard:
-                    writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
+                    writer.add_scalars("Returns", {tensorboardTag: test_returns[-1]}, i_episode)
 
                 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
