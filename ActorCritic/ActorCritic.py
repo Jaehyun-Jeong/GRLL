@@ -247,7 +247,7 @@ if __name__ == "__main__":
         #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': # epsilon greedy action for training
+        'epsilon': epsilon # epsilon greedy action for training
     }
 
     # Initialize Actor-Critic Mehtod

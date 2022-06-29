@@ -45,12 +45,12 @@ class ANN_V2(nn.Module):
     def forward(self, x):
         state = x
 
-        probs = nn.PReLU(self.actor_fc1(state))
-        probs = nn.PReLU(self.actor_fc2(probs))
+        probs = F.relu(self.actor_fc1(state))
+        probs = F.relu(self.actor_fc2(probs))
         probs = self.head(self.actor_fc3(probs))
         
-        value = nn.PReLU(self.critic_fc1(state))
-        value = nn.PReLU(self.critic_fc2(value))
+        value = F.relu(self.critic_fc1(state))
+        value = F.relu(self.critic_fc2(value))
         value = self.critic_fc3(value)
         
         return value, probs
