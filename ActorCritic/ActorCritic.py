@@ -113,7 +113,6 @@ class ActorCritic():
         for Transition in reversed(Transitions.memory):
             s_t = Transition.state
             a_t = Transition.action
-
             s_tt = Transition.next_state
             r_tt = Transition.reward
 
@@ -215,8 +214,8 @@ if __name__ == "__main__":
 
     # set environment
     #env = gym.make("CartPole-v0")
-    #env = gym.make("Acrobot-v1")
-    env = gym.make("MountainCar-v0")
+    env = gym.make("Acrobot-v1")
+    #env = gym.make("MountainCar-v0")
 
     # set ActorCritic
     num_actions = env.action_space.n
