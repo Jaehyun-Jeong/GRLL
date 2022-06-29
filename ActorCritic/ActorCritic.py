@@ -73,13 +73,11 @@ class ActorCritic():
     def get_action(self, s, epsilon = 0):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
-            s = torch.unsqueeze(s, 0)
             _, probs = self.model.forward(s)
-            
             probs = torch.squeeze(probs, 0)
             
             if random.random() > epsilon:
-                a = torch.tensor([torch.argmax(probs)])
+                a = probs.multinomial(num_samples=1)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
             
@@ -98,8 +96,7 @@ class ActorCritic():
     # Update weights by using Actor Critic Method
     def update_weight(self, Transitions, entropy_term = 0):
         # update by using mini-batch Gradient Ascent
-
-        for Transition in Transitions.memory:
+        for Transition in reversed(Transitions.memory):
             s_t = Transition.state
             a_t = Transition.action
             s_tt = Transition.next_state
@@ -154,6 +151,9 @@ class ActorCritic():
                         env.render()
 
                     action = self.get_action(state, epsilon=epsilon)
+
+                    print(action)
+
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     
                     Transitions.push(state, action, next_state, reward)
