@@ -14,7 +14,7 @@ from ActorCritic.ActorCritic import ActorCritic
 from envs.maze.Maze_Solver import MazeSolverEnv
 
 MAX_EPISODES = 10000
-MAX_TIMESTEPS = 1000
+MAX_TIMESTEPS = 30000
 
 ALPHA = 0.1e-3 # learning rate
 GAMMA = 0.90 # discount rate
