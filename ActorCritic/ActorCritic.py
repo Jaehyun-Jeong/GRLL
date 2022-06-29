@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
+from torch.autograd import Variable
 
 
 Transition = namedtuple('Transition',
@@ -95,6 +96,8 @@ class ActorCritic():
 
     # Update weights by using Actor Critic Method
     def update_weight(self, Transitions, entropy_term = 0):
+        Qval = 0
+
         # update by using mini-batch Gradient Ascent
         for Transition in reversed(Transitions.memory):
             s_t = Transition.state
@@ -102,15 +105,17 @@ class ActorCritic():
             s_tt = Transition.next_state
             r_tt = Transition.reward
 
+            Qval = r_tt + self.discount_rate * Qval
+
             # get actor loss
             log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-            advantage = r_tt + self.value(s_tt) - self.value(s_t)
+            advantage = Qval - self.value(s_t)
             actor_loss = -(advantage * log_prob)
 
             # get critic loss
             value = self.value(s_t)
             next_value = self.value(s_tt)
-            critic_loss = 1/2 * (r_tt + self.discount_rate * next_value - value).pow(2)
+            critic_loss = 1/2 * (Qval - value).pow(2)
 
             loss = actor_loss + critic_loss + 0.001 * entropy_term
 
@@ -185,7 +190,7 @@ class ActorCritic():
                     # TENSORBOARD
 
                     if useTensorboard:
-                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
+                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
