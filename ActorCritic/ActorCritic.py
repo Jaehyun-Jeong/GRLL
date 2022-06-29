@@ -154,7 +154,7 @@ class ActorCritic():
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
-
+                # train
                 self.update_weight(Transitions)
 
                 #==========================================================================
@@ -171,9 +171,10 @@ class ActorCritic():
                             env.render()
 
                         action = self.get_action(state)
-                        _, reward, done, _ = self.env.step(action.tolist())
+                        next_state, reward, done, _ = self.env.step(action.tolist())
 
                         rewards.append(reward)
+                        state = next_state
 
                         if done or timesteps == self.maxTimesteps-1:
                             break
@@ -236,7 +237,6 @@ if __name__ == "__main__":
         'env': env, # environment like gym
         'model': ACmodel, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
-        #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
         'epsilon': epsilon # epsilon greedy action for training
