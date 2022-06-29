@@ -184,15 +184,15 @@ class ActorCritic():
                         if done or timesteps == self.maxTimesteps-1:
                             break
 
-                test_returns.append(sum(test_rewards))
+                    test_returns.append(sum(test_rewards))
 
-                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                # TENSORBOARD
+                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                    # TENSORBOARD
 
-                if useTensorboard:
-                    writer.add_scalars("Returns", {tensorboardTag: test_returns[-1]}, i_episode)
+                    if useTensorboard:
+                        writer.add_scalars("Returns", {tensorboardTag: test_returns[-1]}, i_episode)
 
-                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, test_returns[-1]))
