@@ -70,13 +70,13 @@ class ActorCritic():
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, epsilon = 0):
+    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             _, probs = self.model.forward(s)
             probs = torch.squeeze(probs, 0)
             
-            if random.random() > epsilon:
+            if random.random() >= epsilon:
                 a = probs.multinomial(num_samples=1)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
@@ -120,8 +120,7 @@ class ActorCritic():
 
     def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
-            train_returns = []
-            test_returns = []
+            returns = []
             
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             # TENSORBOARD
@@ -137,8 +136,6 @@ class ActorCritic():
                 Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
                 done = False
-                train_rewards = []
-                test_rewards = []
                 
                 #==========================================================================
                 # MAKE TRAIN DATA
@@ -152,17 +149,13 @@ class ActorCritic():
 
                     action = self.get_action(state, epsilon=epsilon)
                     next_state, reward, done, _ = self.env.step(action.tolist())
-                    
                     Transitions.push(state, action, next_state, reward)
-
-                    train_rewards.append(reward)
                     state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
 
                 self.update_weight(Transitions)
-                train_returns.append(sum(train_rewards))
 
                 #==========================================================================
                 # TEST
@@ -170,6 +163,8 @@ class ActorCritic():
 
                 if (i_episode+1) % testPer == 0: 
                     state = self.env.reset()
+                    done = False
+                    rewards = []
 
                     for timesteps in range(self.maxTimesteps):
                         if isRender:
@@ -178,34 +173,34 @@ class ActorCritic():
                         action = self.get_action(state)
                         _, reward, done, _ = self.env.step(action.tolist())
 
-                        test_rewards.append(reward)
+                        rewards.append(reward)
 
                         if done or timesteps == self.maxTimesteps-1:
                             break
 
-                    test_returns.append(sum(test_rewards))
+                    returns.append(sum(rewards))
 
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
                     if useTensorboard:
-                        writer.add_scalars("Returns", {tensorboardTag: test_returns[-1]}, i_episode)
+                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, test_returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
                 elif (i_episode + 1) % 10 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, test_returns[-1]))
+                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
         except KeyboardInterrupt:
             print("==============================================")
             print("KEYBOARD INTERRUPTION!!=======================")
             print("==============================================")
 
-            plt.plot(range(len(test_returns)), test_returns)
+            plt.plot(range(len(returns)), returns)
         finally:
-            plt.plot(range(len(test_returns)), test_returns)
+            plt.plot(range(len(returns)), returns)
 
         self.env.close()
 
