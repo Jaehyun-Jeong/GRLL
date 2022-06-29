@@ -169,7 +169,7 @@ class ActorCritic():
                 #==========================================================================
 
                 if (i_episode+1) % testPer == 0: 
-                    self.env.reset()
+                    state = self.env.reset()
 
                     for timesteps in range(self.maxTimesteps):
                         if isRender:
