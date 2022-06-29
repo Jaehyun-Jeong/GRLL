@@ -151,9 +151,6 @@ class ActorCritic():
                         env.render()
 
                     action = self.get_action(state, epsilon=epsilon)
-
-                    print(action)
-
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     
                     Transitions.push(state, action, next_state, reward)
