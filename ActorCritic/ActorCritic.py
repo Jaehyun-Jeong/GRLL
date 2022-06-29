@@ -41,6 +41,7 @@ class ActorCritic():
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
         'discount_rate': GAMMA # step-size for updating Q value
+        'epsilon': epsilon for epsilon greedy action
     }
     '''
 
@@ -54,6 +55,7 @@ class ActorCritic():
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.discount_rate = params_dict['discount_rate']
+        self.epsilon = params_dict['epsilon']
 
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -151,7 +153,7 @@ class ActorCritic():
                     if isRender:
                         env.render()
 
-                    action = self.get_action(state, epsilon=1)
+                    action = self.get_action(state, epsilon=epsilon)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     
                     Transitions.push(state, action, next_state, reward)
@@ -220,6 +222,7 @@ if __name__ == "__main__":
 
     ALPHA = 0.1e-3 # learning rate
     GAMMA = 0.99 # discount_rate
+    epsilon = 0 # for epsilon greedy action
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -244,6 +247,7 @@ if __name__ == "__main__":
         #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA # step-size for updating Q value
+        'epsilon': # epsilon greedy action for training
     }
 
     # Initialize Actor-Critic Mehtod
