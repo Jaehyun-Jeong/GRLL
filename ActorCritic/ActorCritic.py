@@ -99,7 +99,7 @@ class ActorCritic():
     def update_weight(self, Transitions, entropy_term = 0):
         # update by using mini-batch Gradient Ascent
 
-        for Transition in reversed(Transitions.memory):
+        for Transition in Transitions.memory:
             s_t = Transition.state
             a_t = Transition.action
             s_tt = Transition.next_state
@@ -214,7 +214,7 @@ class ActorCritic():
 
 if __name__ == "__main__":
 
-    from models import ANN_V2 # import model
+    from models import ANN_V1 # import model
     import gym # Environment 
 
     MAX_EPISODES = 10000
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
 
-    ACmodel = ANN_V2(num_states, num_actions).to(device)
+    ACmodel = ANN_V1(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
     ActorCritic_parameters = {
