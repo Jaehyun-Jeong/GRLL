@@ -76,14 +76,15 @@ class ActorCritic():
             s = torch.tensor(s).to(self.device)
             _, probs = self.model.forward(s)
             probs = torch.squeeze(probs, 0)
-            
+
             if random.random() >= epsilon:
                 a = probs.multinomial(num_samples=1)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
-            
+
             a = a.data
             action = a[0]
+
             return action
   
     # Returns a value of the state (state value function in Reinforcement learning)
@@ -97,6 +98,8 @@ class ActorCritic():
     # Update weights by using Actor Critic Method
     def update_weight(self, Transitions, entropy_term = 0):
         Qval = 0
+        loss = 0
+        lenLoss = Transitions.memory.__len__()
 
         # update by using mini-batch Gradient Ascent
         for Transition in reversed(Transitions.memory):
@@ -117,11 +120,13 @@ class ActorCritic():
             next_value = self.value(s_tt)
             critic_loss = 1/2 * (Qval - value).pow(2)
 
-            loss = actor_loss + critic_loss + 0.001 * entropy_term
-
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+            loss += actor_loss + critic_loss + 0.001 * entropy_term
+        
+        loss = loss/lenLoss
+        
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
     def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:

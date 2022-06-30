@@ -17,6 +17,7 @@ MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
 GAMMA = 0.99 # step-size
+epsilon = 0.3
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -36,12 +37,13 @@ ActorCritic_parameters = {
     'model': ACmodel, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'stepsize': GAMMA # step-size for updating Q value
+    'discount_rate': GAMMA, # discount rate for updating Q value
+    'epsilon': epsilon
 }
 
 # Initialize Actor-Critic Mehtod
 AC = ActorCritic(**ActorCritic_parameters)
 
 # TRAIN Agent
-AC.train(MAX_EPISODES)
+AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="maze_CNN_V1")
 

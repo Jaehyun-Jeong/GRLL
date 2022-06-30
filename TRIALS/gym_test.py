@@ -17,8 +17,10 @@ MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
 GAMMA = 0.99 # discount rate
+epsilon = 0.7 
 
-gym_list = ['Acrobot-v1', 'MountainCar-v0', 'CartPole-v0']
+#gym_list = ['Acrobot-v1', 'MountainCar-v0', 'CartPole-v0']
+gym_list = ['MountainCar-v0']
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,7 +41,8 @@ for gym_name in gym_list:
         'model': ACmodel, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA, # step-size for updating Q value
+        'epsilon': epsilon
     }
 
     # Initialize Actor-Critic Mehtod
