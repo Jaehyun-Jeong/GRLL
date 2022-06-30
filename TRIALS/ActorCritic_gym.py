@@ -7,7 +7,7 @@ import torch.optim as optim
 
 # import model
 from ActorCritic.models import ANN_V2
-from REINFORCE.REINFORCE import REINFORCE
+from ActorCritic.ActorCritic import ActorCritic
 
 # Environment 
 import gym
@@ -32,13 +32,13 @@ for gym_name in gym_list:
     # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
-    REINFORCE_model = ANN_V2(num_states, num_actions).to(device)
-    optimizer = optim.Adam(REINFORCE_model.parameters(), lr=ALPHA)
+    ActorCritic_model = ANN_V2(num_states, num_actions).to(device)
+    optimizer = optim.Adam(ActorCritic_model.parameters(), lr=ALPHA)
 
-    REINFORCE_parameters= {
+    ActorCritic_parameters= {
         'device': device, # device to use, 'cuda' or 'cpu'
         'env': env, # environment like gym
-        'model': REINFORCE_model, # torch models for policy and value funciton
+        'model': ActorCritic_model, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
@@ -47,8 +47,8 @@ for gym_name in gym_list:
     }
 
     # Initialize Actor-Critic Mehtod
-    RF = REINFORCE(**REINFORCE_parameters)
+    RF = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
-    RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="REINFORCE_noBASELINE_"+gym_name)
+    RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="ActorCritic_"+gym_name)
 
