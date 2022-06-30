@@ -42,12 +42,13 @@ for gym_name in gym_list:
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': epsilon
+        'epsilon': epsilon,
+        'useBaseline': True
     }
 
     # Initialize Actor-Critic Mehtod
     RF = REINFORCE(**REINFORCE_parameters)
 
     # TRAIN Agent
-    RF.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="ANN_V2 "+gym_name)
+    RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="ANN_V2 with baseline : "+gym_name)
 
