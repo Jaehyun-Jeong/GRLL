@@ -199,10 +199,7 @@ class REINFORCE():
                         writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-                if (i_episode + 1) % 500 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
-                elif (i_episode + 1) % 10 == 0:
+                    
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
         except KeyboardInterrupt:

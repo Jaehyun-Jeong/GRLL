@@ -43,7 +43,7 @@ for gym_name in gym_list:
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
         'epsilon': epsilon,
-        'useBaseline': True
+        'useBaseline': False
     }
 
     # Initialize Actor-Critic Mehtod
