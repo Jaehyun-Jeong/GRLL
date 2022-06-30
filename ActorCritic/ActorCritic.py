@@ -31,7 +31,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class REINFORCE():
+class ActorCritic():
 
     '''
     params_dict = {
@@ -47,7 +47,7 @@ class REINFORCE():
     '''
 
     def __init__(self, **params_dict):
-        super(REINFORCE, self).__init__()
+        super(ActorCritic, self).__init__()
 
         # init parameters 
         self.device = params_dict['device']
@@ -97,39 +97,27 @@ class REINFORCE():
         return value    
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, Transitions, entropy_term = 0):
-        Qval = 0
-        loss = 0
-        lenLoss = Transitions.memory.__len__()
+    def update_weight(self, Transition, entropy_term = 0):
+        s_t = Transition.state
+        a_t = Transition.action
+        s_tt = Transition.next_state
+        r_tt = Transition.reward
 
-        # update by using mini-batch Gradient Ascent
-        for Transition in reversed(Transitions.memory):
-            s_t = Transition.state
-            a_t = Transition.action
-            s_tt = Transition.next_state
-            r_tt = Transition.reward
+        # get actor loss
+        log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
+        advantage = Variable(r_tt + self.value(s_tt) - self.value(s_t))
+        actor_loss = -(advantage * log_prob)
 
-            Qval = r_tt + self.discount_rate * Qval
+        # get critic loss
+        critic_loss = 1/2 * (r_tt + self.value(s_tt) - self.value(s_t)).pow(2)
 
-            # get actor loss
-            log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-            advantage = Qval - self.value(s_t)
-            actor_loss = -(advantage * log_prob)
-
-            # get critic loss
-            value = self.value(s_t)
-            next_value = self.value(s_tt)
-            critic_loss = 1/2 * (Qval - value).pow(2)
-
-            loss += actor_loss + critic_loss + 0.001 * entropy_term
-        
-        loss = loss/lenLoss
-        
+        loss = actor_loss + critic_loss + 0.001 * entropy_term
+    
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="REINFORCE"):
+    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
         try:
             returns = []
             
@@ -144,7 +132,6 @@ class REINFORCE():
 
             for i_episode in range(maxEpisodes):
                 
-                Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
                 done = False
                 
@@ -160,13 +147,17 @@ class REINFORCE():
 
                     action = self.get_action(state, epsilon=self.epsilon)
                     next_state, reward, done, _ = self.env.step(action.tolist())
-                    Transitions.push(state, action, next_state, reward)
+
+                    # trans means transition 
+                    trans = Transition(state, action, next_state, reward)
+
                     state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
-                # train
-                self.update_weight(Transitions)
+
+                    # train
+                    self.update_weight(trans)
 
                 #==========================================================================
                 # TEST
@@ -200,9 +191,6 @@ class REINFORCE():
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                if (i_episode + 1) % 500 == 0:
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
-                elif (i_episode + 1) % 10 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
         except KeyboardInterrupt:
@@ -242,7 +230,7 @@ if __name__ == "__main__":
     ACmodel = ANN_V1(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
-    REINFORCE_parameters = {
+    ActorCritic_parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
         'env': env, # environment like gym
         'model': ACmodel, # torch models for policy and value funciton
@@ -253,8 +241,8 @@ if __name__ == "__main__":
         'useBaseline': True # use value function as baseline or not
     }
 
-    # Initialize REINFORCE Mehtod
-    AC = REINFORCE(**REINFORCE_parameters)
+    # Initialize ActorCritic Mehtod
+    AC = ActorCritic(**ActorCritic_parameters)
 
     # TRAIN Agent
     AC.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
