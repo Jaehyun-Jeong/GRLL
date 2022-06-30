@@ -17,10 +17,10 @@ MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
 GAMMA = 0.99 # discount rate
-epsilon = 0.7 
+epsilon = 0
 
-#gym_list = ['Acrobot-v1', 'MountainCar-v0', 'CartPole-v0']
-gym_list = ['CartPole-v0']
+gym_list = ['Acrobot-v1', 'MountainCar-v0', 'CartPole-v0']
+#gym_list = ['CartPole-v0']
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
