@@ -1,7 +1,8 @@
 
 import numpy as np
-import random
+import random 
 import matplotlib.pyplot as plt
+from collections import namedtuple, deque
 
 # PyTorch
 import torch
@@ -9,6 +10,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
+from torch.autograd import Variable
+
+
+Transition = namedtuple('Transition',
+                       ('state', 'action', 'next_state', 'reward'))
+
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.memory = deque([],maxlen=capacity)
+
+    def push(self, *args):
+        """Save a transition"""
+        self.memory.append(Transition(*args))
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
 
 class REINFORCE():
 
@@ -21,10 +42,11 @@ class REINFORCE():
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
         'discount_rate': GAMMA # step-size for updating Q value
+        'epsilon': epsilon for epsilon greedy action
     }
     '''
 
-    def __init__(self, **params_dict): 
+    def __init__(self, **params_dict):
         super(REINFORCE, self).__init__()
 
         # init parameters 
@@ -34,6 +56,9 @@ class REINFORCE():
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.discount_rate = params_dict['discount_rate']
+        self.epsilon = params_dict['epsilon']
+        self.useBaseline = params_dict['epsilon']
+
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -42,60 +67,72 @@ class REINFORCE():
     # Returns probability of taken action a from state s
     def pi(self, s, a):
         s = torch.Tensor(s).to(self.device)
-        probs = self.model.forward(s)
+        _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s):
+    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            _, probs = self.model.forward(s)
+            probs = torch.squeeze(probs, 0)
+
+            if random.random() >= epsilon:
+                a = probs.multinomial(num_samples=1)
+            else:
+                a = torch.rand(probs.shape).multinomial(num_samples=1)
+
+            a = a.data
+            action = a[0]
+
+            return action
+  
+    # Returns a value of the state (state value function in Reinforcement learning)
+    def value(self, s):
         s = torch.tensor(s).to(self.device)
-        probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
-        
-        a = probs.multinomial(num_samples=1)
-        a = a.data
-        
-        action = a[0]
-        return action
-    
-    # Returns the action by using epsilon greedy policy in Reinforcment learning
-    def epsilon_greedy_action(self, s, epsilon = 0.1):
-        s = torch.tensor(s).to(self.device)
-        s = torch.unsqueeze(s, 0)
-        probs = self.model.forward(s)
-        
-        probs = torch.squeeze(probs, 0)
-        
-        if random.random() > epsilon:
-            a = torch.tensor([torch.argmax(probs)])
-        else:
-            a = torch.rand(probs.shape).multinomial(num_samples=1)
-        
-        a = a.data
-        action = a[0]
-        return action
+        value, _ = self.model.forward(s)
+        value = torch.squeeze(value, 0)
+
+        return value    
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, states, actions, rewards, last_state, entropy_term = 0):
-
-        # compute Q values
-        G = torch.tensor(0)
+    def update_weight(self, Transitions, entropy_term = 0):
+        Qval = 0
         loss = 0
+        lenLoss = Transitions.memory.__len__()
 
         # update by using mini-batch Gradient Ascent
-        for s_t, a_t, r_tt in reversed(list(zip(states, actions, rewards))):
+        for Transition in reversed(Transitions.memory):
+            s_t = Transition.state
+            a_t = Transition.action
+            s_tt = Transition.next_state
+            r_tt = Transition.reward
 
-            G = torch.tensor(r_tt) + self.discount_rate * G
-            loss = (-1.0) * G * torch.log(self.pi(s_t, a_t) + self.ups)
+            Qval = r_tt + self.discount_rate * Qval
 
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+            # get actor loss
+            log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
+            advantage = Qval - self.value(s_t) * self.useBaseline
+            actor_loss = -(advantage * log_prob)
 
-    def train(self, maxEpisodes, useTensorboard=False, tensorboardTag="REINFORCE"):
+            # get critic loss
+            value = self.value(s_t)
+            next_value = self.value(s_tt)
+            critic_loss = 1/2 * (Qval - value).pow(2)
+
+            loss += actor_loss + critic_loss + 0.001 * entropy_term
+        
+        loss = loss/lenLoss
+        
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="REINFORCE"):
         try:
             returns = []
-
+            
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             # TENSORBOARD
             
@@ -106,42 +143,62 @@ class REINFORCE():
             #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):
-
-                state = env.reset()
-                init_state = state
-
+                
+                Transitions = ReplayMemory(maxEpisodes)
+                state = self.env.reset()
                 done = False
+                
+                #==========================================================================
+                # MAKE TRAIN DATA
+                #==========================================================================
 
-                states = []
-                actions = []
-                rewards = []   # no reward at t = 0
-
-                #while not done:
+                # while not done:
                 for timesteps in range(self.maxTimesteps):
 
-                    states.append(state)
+                    if isRender:
+                        env.render()
 
-                    action = self.get_action(state)
-                    actions.append(action)
-
-                    state, reward, done, _ = self.env.step(action.tolist())
-                    rewards.append(reward)
+                    action = self.get_action(state, epsilon=self.epsilon)
+                    next_state, reward, done, _ = self.env.step(action.tolist())
+                    Transitions.push(state, action, next_state, reward)
+                    state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
-                        last_state = state
                         break
+                # train
+                self.update_weight(Transitions)
 
-                self.update_weight(states, actions, rewards, last_state)
+                #==========================================================================
+                # TEST
+                #==========================================================================
 
-                returns.append(sum(rewards))
+                if (i_episode+1) % testPer == 0: 
+                    state = self.env.reset()
+                    done = False
+                    rewards = []
 
-                #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                # TENSORBOARD
+                    for timesteps in range(self.maxTimesteps):
+                        if isRender:
+                            env.render()
 
-                if useTensorboard:
-                    writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode)
+                        action = self.get_action(state)
+                        next_state, reward, done, _ = self.env.step(action.tolist())
 
-                #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        rewards.append(reward)
+                        state = next_state
+
+                        if done or timesteps == self.maxTimesteps-1:
+                            break
+
+                    returns.append(sum(rewards))
+
+                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                    # TENSORBOARD
+
+                    if useTensorboard:
+                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
+
+                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                 if (i_episode + 1) % 500 == 0:
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
@@ -152,50 +209,53 @@ class REINFORCE():
             print("==============================================")
             print("KEYBOARD INTERRUPTION!!=======================")
             print("==============================================")
-            #plt.plot(range(len(returns)), returns)
+
+            plt.plot(range(len(returns)), returns)
         finally:
             plt.plot(range(len(returns)), returns)
 
-        env.close()
+        self.env.close()
 
 if __name__ == "__main__":
 
-    # import model
-    from models.ANN import ANN_V1
-
-    # Environment 
-    import gym
+    from models import ANN_V1 # import model
+    import gym # Environment 
 
     MAX_EPISODES = 10000
     MAX_TIMESTEPS = 1000
 
-    ALPHA = 3e-4 # learning rate
-    GAMMA = 0.99 # step-size
+    ALPHA = 0.1e-3 # learning rate
+    GAMMA = 0.99 # discount_rate
+    epsilon = 0 # for epsilon greedy action
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # set environment
-    env = gym.make('CartPole-v0')
+    env = gym.make("CartPole-v0")
+    #env = gym.make("Acrobot-v1")
+    #env = gym.make("MountainCar-v0")
 
-    # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
-    REINFORCE_model = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(REINFORCE_model.parameters(), lr=ALPHA)
 
-    parameters = {
+    ACmodel = ANN_V1(num_states, num_actions).to(device)
+    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
+
+    REINFORCE_parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
         'env': env, # environment like gym
-        'model': REINFORCE_model, # torch models for policy and value funciton
+        'model': ACmodel, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
-        #MAX_EPISODES = MAX_EPISODES, # maximum episodes you want to learn
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA # step-size for updating Q value
+        'discount_rate': GAMMA, # step-size for updating Q value
+        'epsilon': epsilon, # epsilon greedy action for training
+        'useBaseline': True # use value function as baseline or not
     }
 
-    # Initialize Actor-Critic Mehtod
-    RF = REINFORCE(**parameters)
+    # Initialize REINFORCE Mehtod
+    RF = REINFORCE(**REINFORCE_parameters)
 
     # TRAIN Agent
-    RF.train(MAX_EPISODES, useTensorboard=True)
+    RF.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
+
