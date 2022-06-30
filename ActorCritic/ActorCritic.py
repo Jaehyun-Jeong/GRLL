@@ -31,7 +31,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class ActorCritic():
+class REINFORCE():
 
     '''
     params_dict = {
@@ -47,7 +47,7 @@ class ActorCritic():
     '''
 
     def __init__(self, **params_dict):
-        super(ActorCritic, self).__init__()
+        super(REINFORCE, self).__init__()
 
         # init parameters 
         self.device = params_dict['device']
@@ -57,6 +57,7 @@ class ActorCritic():
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.discount_rate = params_dict['discount_rate']
         self.epsilon = params_dict['epsilon']
+        self.useBaseline = params_dict['epsilon']
 
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -128,7 +129,7 @@ class ActorCritic():
         loss.backward()
         self.optimizer.step()
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
+    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="REINFORCE"):
         try:
             returns = []
             
@@ -235,25 +236,25 @@ if __name__ == "__main__":
     #env = gym.make("Acrobot-v1")
     #env = gym.make("MountainCar-v0")
 
-    # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
 
     ACmodel = ANN_V1(num_states, num_actions).to(device)
     optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
 
-    ActorCritic_parameters = {
+    REINFORCE_parameters = {
         'device': device, # device to use, 'cuda' or 'cpu'
         'env': env, # environment like gym
         'model': ACmodel, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': epsilon # epsilon greedy action for training
+        'epsilon': epsilon, # epsilon greedy action for training
+        'useBaseline': True # use value function as baseline or not
     }
 
-    # Initialize Actor-Critic Mehtod
-    AC = ActorCritic(**ActorCritic_parameters)
+    # Initialize REINFORCE Mehtod
+    AC = REINFORCE(**REINFORCE_parameters)
 
     # TRAIN Agent
     AC.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
