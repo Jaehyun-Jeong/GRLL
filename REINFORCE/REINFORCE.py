@@ -113,7 +113,7 @@ class REINFORCE():
 
             # get actor loss
             log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-            advantage = Qval - self.value(s_t) * self.useBaseline
+            advantage = Variable(Qval - self.value(s_t) * self.useBaseline)
             actor_loss = -(advantage * log_prob)
 
             # get critic loss
