@@ -50,5 +50,5 @@ for gym_name in gym_list:
     RF = REINFORCE(**REINFORCE_parameters)
 
     # TRAIN Agent
-    RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="ANN_V2 with baseline : "+gym_name)
+    RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="REINFORCE_BASELINE_"+gym_name)
 
