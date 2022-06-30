@@ -12,7 +12,7 @@ from REINFORCE.REINFORCE import REINFORCE
 # Environment 
 import gym
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 500
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
@@ -43,7 +43,7 @@ for gym_name in gym_list:
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
         'epsilon': epsilon,
-        'useBaseline': True 
+        'useBaseline': False
     }
 
     # Initialize Actor-Critic Mehtod
