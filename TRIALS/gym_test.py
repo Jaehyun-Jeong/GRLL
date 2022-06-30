@@ -32,13 +32,13 @@ for gym_name in gym_list:
     # set ActorCritic
     num_actions = env.action_space.n
     num_states = env.observation_space.shape[0]
-    ACmodel = ANN_V2(num_states, num_actions).to(device)
-    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
+    REINFORCE_model = ANN_V2(num_states, num_actions).to(device)
+    optimizer = optim.Adam(REINFORCE_model.parameters(), lr=ALPHA)
 
-    ActorCritic_parameters = {
+    REINFORCE_parameters= {
         'device': device, # device to use, 'cuda' or 'cpu'
         'env': env, # environment like gym
-        'model': ACmodel, # torch models for policy and value funciton
+        'model': REINFORCE_model, # torch models for policy and value funciton
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
@@ -46,8 +46,8 @@ for gym_name in gym_list:
     }
 
     # Initialize Actor-Critic Mehtod
-    AC = ActorCritic(**ActorCritic_parameters)
+    RF = REINFORCE(**REINFORCE_parameters)
 
     # TRAIN Agent
-    AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="ANN_V2 "+gym_name)
+    RF.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="ANN_V2 "+gym_name)
 
