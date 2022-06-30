@@ -7,7 +7,7 @@ import torch.optim as optim
 
 # import model
 from ActorCritic.models import ANN_V2
-from ActorCritic.ActorCritic import ActorCritic
+from REINFORCE.REINFORCE import REINFORCE
 
 # Environment 
 import gym
@@ -20,7 +20,7 @@ GAMMA = 0.99 # discount rate
 epsilon = 0.7 
 
 #gym_list = ['Acrobot-v1', 'MountainCar-v0', 'CartPole-v0']
-gym_list = ['MountainCar-v0']
+gym_list = ['CartPole-v0']
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
