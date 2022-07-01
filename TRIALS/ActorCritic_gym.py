@@ -16,7 +16,7 @@ import gym
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 
-ALPHAs = [0.01, 0.001, 0.0001] # learning rate
+ALPHAs = [0.001, 0.0001] # learning rate
 GAMMAs = [0.9, 0.95, 0.99] # discount rate
 epsilon = 0
 
