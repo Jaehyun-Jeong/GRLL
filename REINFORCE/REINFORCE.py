@@ -118,11 +118,10 @@ class REINFORCE():
 
             # get critic loss
             value = self.value(s_t)
-            next_value = self.value(s_tt)
             critic_loss = 1/2 * (Qval - value).pow(2)
 
             loss += actor_loss + critic_loss + 0.001 * entropy_term
-        
+
         loss = loss/lenLoss
         
         self.optimizer.zero_grad()
