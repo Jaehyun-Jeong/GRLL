@@ -12,7 +12,7 @@ from ActorCritic.ActorCritic import ActorCritic
 # Environment 
 from envs.maze.Maze_Solver import MazeSolverEnv
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 10000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
@@ -38,12 +38,12 @@ ActorCritic_parameters = {
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # discount rate for updating Q value
-    'epsilon': epsilon
+    'epsilon': epsilon,
 }
 
 # Initialize Actor-Critic Mehtod
 AC = ActorCritic(**ActorCritic_parameters)
 
 # TRAIN Agent
-AC.train(MAX_EPISODES, useTensorboard=True, tensorboardTag="maze_CNN_V1")
+AC.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="maze_CNN_V1")
 
