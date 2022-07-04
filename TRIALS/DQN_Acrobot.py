@@ -12,13 +12,13 @@ from DQN.DQN import DQN
 # Environment 
 import gym
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 500
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
-epsilon = 0.3
+epsilon = 0.1
 
 gym_name = 'Acrobot-v1'
 
