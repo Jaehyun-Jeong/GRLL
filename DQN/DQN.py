@@ -93,7 +93,7 @@ class DQN():
     # Returns a value of the state (state value function in Reinforcement learning)
     def max_value(self, s):
         s = torch.tensor(s).to(self.device)
-        value, _ = self.model.forward(s)
+        value = self.model.forward(s)
         value = torch.squeeze(value, 0)
         maxValue = torch.max(value)
 
