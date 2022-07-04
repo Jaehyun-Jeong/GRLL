@@ -100,7 +100,6 @@ class DQN():
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
-        Qval = 0
         loss = 0
         batch_size = self.numBatch if self.numBatch <= self.replayMemory.memory.__len__() else self.replayMemory.__len__() # if memory is smaller then numBatch, then just use all data
         batches = self.replayMemory.sample(batch_size)
@@ -114,7 +113,7 @@ class DQN():
             s_tt = Transition.next_state
             r_tt = Transition.reward
             
-            target = Variable(r_tt + self.max_value(s_tt) * (not done))
+            target = Variable(r_tt + self.discount_rate * self.max_value(s_tt) * (not done))
             loss += 1/2 * (target - self.pi(s_t, a_t)).pow(2)
 
         loss = loss/lenLoss
