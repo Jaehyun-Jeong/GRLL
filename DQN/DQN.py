@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     ALPHA = 0.1e-3 # learning rate
     GAMMA = 0.99 # discount_rate
-    epsilon = 0 # for epsilon greedy action
+    epsilon = 0.3 # for epsilon greedy action
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
