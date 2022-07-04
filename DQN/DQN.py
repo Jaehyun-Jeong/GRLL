@@ -81,12 +81,11 @@ class DQN():
             probs = torch.squeeze(probs, 0)
 
             if random.random() >= epsilon:
-                a = torch.argmax(probs, dim=0)
+                action = torch.argmax(probs, dim=0)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
-
-            a = a.data
-            action = a[0]
+                a = a.data
+                action = a[0]
 
             return action
   
