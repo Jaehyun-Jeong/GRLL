@@ -12,7 +12,7 @@ from DQN.DQN import DQN
 # Environment 
 import gym
 
-MAX_EPISODES = 500
+MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
