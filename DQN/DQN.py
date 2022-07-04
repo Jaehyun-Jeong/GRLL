@@ -114,8 +114,9 @@ class DQN():
             done = Transition.done
             s_tt = Transition.next_state
             r_tt = Transition.reward
-
-            loss += 1/2 * (r_tt + self.max_value(s_tt) * (not done) - self.pi(s_t, a_t)).pow(2)
+            
+            target = Variable(r_tt + self.max_value(s_tt) * (not done))
+            loss += 1/2 * (target - self.pi(s_t, a_t)).pow(2)
 
         loss = loss/lenLoss
         
