@@ -14,11 +14,10 @@ import gym
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
+MAX_REPLAYMEMORY = 100000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
-epsilon = 0.1
 
 gym_name = 'Acrobot-v1'
 
@@ -43,12 +42,11 @@ params_dict = {
     'discount_rate': GAMMA, # step-size for updating Q value
     'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
-    'update_period': 1000,
-    'numBatch': 300,
+    'numBatch': 64,
     'eps': { # for epsilon scheduling
         'start': 0.99,
         'end': 0.00001,
-        'decay': 200
+        'decay': 2000
     }
 }
 
