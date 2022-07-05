@@ -14,7 +14,7 @@ import gym
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
+MAX_REPLAYMEMORY = 100
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
