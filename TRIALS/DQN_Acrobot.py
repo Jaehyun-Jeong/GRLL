@@ -14,7 +14,7 @@ import gym
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 1000
+MAX_REPLAYMEMORY = 10000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
@@ -43,7 +43,7 @@ params_dict = {
     'discount_rate': GAMMA, # step-size for updating Q value
     'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
+    'numBatch': 300,
     'eps': { # for epsilon scheduling
         'start': 0.9,
         'end': 0.05,
