@@ -44,6 +44,11 @@ class DQN():
         'epsilon': epsilon greedy action for training
         'maxMemory': capacitiy of Replay Memory
         'numBatch': number of batches
+        'eps': { # for epsilon scheduling
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        }
     }
     '''
 
@@ -60,6 +65,8 @@ class DQN():
         self.epsilon = params_dict['epsilon']
         self.replayMemory = ReplayMemory(params_dict['maxMemory'])
         self.numBatch = params_dict['numBatch']
+        self.eps = params_dict['eps']
+        self.steps_done = 0 # eps scheduling
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -71,16 +78,26 @@ class DQN():
         value = self.model.forward(s)
         value = torch.squeeze(value, 0)
         return value[a]
+
+    def get_eps(self):
+        import math
+
+        eps_start = self.eps['start']
+        eps_end = self.eps['end']
+        eps_decay = self.eps['decay']
+
+        eps_threshold = eps_end + (eps_start - eps_end) * math.exp(-1. * self.steps_done / eps_decay)
+
+        return eps_threshold
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
+    def get_action(self, s): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             values = self.model.forward(s)
-            probs = self.model.softmax(values)
-            probs = torch.squeeze(probs, 0)
+            probs = torch.squeeze(values, 0)
 
-            if random.random() >= epsilon:
+            if random.random() >= self.get_eps():
                 action = torch.argmax(probs, dim=0)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
@@ -114,13 +131,15 @@ class DQN():
             r_tt = Transition.reward
             
             target = Variable(r_tt + self.discount_rate * self.max_value(s_tt) * (not done))
-            loss += (target - self.pi(s_t, a_t)).pow(2)
+            loss += 1/2 * (target - self.pi(s_t, a_t)).pow(2)
 
         loss = loss/lenLoss
         
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        self.steps_done += 1
 
     def test(self, isRender=False):
         state = self.env.reset()
@@ -170,12 +189,13 @@ class DQN():
                     if isRender:
                        self.env.render()
 
-                    action = self.get_action(state, epsilon=self.epsilon)
+                    action = self.get_action(state)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     self.replayMemory.push(state, action, done, next_state, reward)
                     state = next_state
 
                     if done or timesteps == self.maxTimesteps-1:
+
                         break
 
                     # train
@@ -246,7 +266,12 @@ if __name__ == "__main__":
         'discount_rate': GAMMA, # step-size for updating Q value
         'epsilon': epsilon, # epsilon greedy action for training
         'maxMemory': MAX_REPLAYMEMORY, # capacitiy of Replay Memory
-        'numBatch': 64 # number of batches
+        'numBatch': 64, # number of batches
+        'eps': { # for epsilon scheduling
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        }
     }
 
     # Initialize DQN Mehtod

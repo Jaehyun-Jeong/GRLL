@@ -43,7 +43,12 @@ params_dict = {
     'discount_rate': GAMMA, # step-size for updating Q value
     'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64
+    'numBatch': 64,
+    'eps': { # for epsilon scheduling
+        'start': 0.9,
+        'end': 0.05,
+        'decay': 200
+    }
 }
 
 # Initialize Actor-Critic Mehtod
