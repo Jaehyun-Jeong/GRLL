@@ -40,7 +40,6 @@ params_dict = {
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
-    'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
     'numBatch': 64,
     'eps': { # for epsilon scheduling

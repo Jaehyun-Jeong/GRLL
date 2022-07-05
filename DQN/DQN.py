@@ -41,7 +41,6 @@ class DQN():
         'optimizer': torch optimizer
         'maxTimesteps': maximum timesteps agent take 
         'discount_rate': step-size for updating Q value
-        'epsilon': epsilon greedy action for training
         'maxMemory': capacitiy of Replay Memory
         'numBatch': number of batches
         'eps': { # for epsilon scheduling
@@ -62,7 +61,6 @@ class DQN():
         self.optimizer = params_dict['optimizer']
         self.maxTimesteps = params_dict['maxTimesteps'] 
         self.discount_rate = params_dict['discount_rate']
-        self.epsilon = params_dict['epsilon']
         self.replayMemory = ReplayMemory(params_dict['maxMemory'])
         self.numBatch = params_dict['numBatch']
         self.eps = params_dict['eps']
@@ -240,7 +238,6 @@ if __name__ == "__main__":
 
     ALPHA = 0.1e-3 # learning rate
     GAMMA = 0.99 # discount_rate
-    epsilon = 0.3 # for epsilon greedy action
 
     # device to use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -263,7 +260,6 @@ if __name__ == "__main__":
         'optimizer': optimizer, # torch optimizer
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': epsilon, # epsilon greedy action for training
         'maxMemory': MAX_REPLAYMEMORY, # capacitiy of Replay Memory
         'numBatch': 64, # number of batches
         'eps': { # for epsilon scheduling
