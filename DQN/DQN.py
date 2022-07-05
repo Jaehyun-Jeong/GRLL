@@ -65,6 +65,7 @@ class DQN():
         self.epsilon = params_dict['epsilon']
         self.replayMemory = ReplayMemory(params_dict['maxMemory'])
         self.numBatch = params_dict['numBatch']
+        self.update_period = params_dict['period_update']
         self.eps = params_dict['eps']
         self.steps_done = 0 # eps scheduling
 

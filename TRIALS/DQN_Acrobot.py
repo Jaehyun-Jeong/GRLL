@@ -43,10 +43,11 @@ params_dict = {
     'discount_rate': GAMMA, # step-size for updating Q value
     'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
+    'update_period': 1000,
     'numBatch': 300,
     'eps': { # for epsilon scheduling
-        'start': 0.9,
-        'end': 0.05,
+        'start': 0.99,
+        'end': 0.00001,
         'decay': 200
     }
 }
