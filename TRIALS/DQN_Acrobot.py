@@ -14,7 +14,7 @@ import gym
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 100000
+MAX_REPLAYMEMORY = 10000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
@@ -45,7 +45,7 @@ params_dict = {
     'eps': { # for epsilon scheduling
         'start': 0.99,
         'end': 0.00001,
-        'decay': 10000
+        'decay': 100000
     }
 }
 
