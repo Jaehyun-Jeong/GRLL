@@ -3,6 +3,7 @@ import numpy as np
 import random 
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
+from copy import deepcopy
 
 # PyTorch
 import torch
@@ -31,7 +32,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class DQN():
+class ADQN():
 
     '''
     param_dict = {
@@ -47,24 +48,29 @@ class DQN():
             'start': 0.9,
             'end': 0.05,
             'decay': 200
-        }
+        },
+        'kFold': to save last K previously learnd Q-networks
     }
     '''
 
-    def __init__(self, **params_dict):
-        super(DQN, self).__init__()
+    def __init__(self, env, model, optimizer, maxTimesteps, maxMemory, eps, device="cpu", discount_rate=0.99, numBatch=64, numPrevModels=10):
+        super(ADQN, self).__init__()
 
         # init parameters 
-        self.device = params_dict['device']
-        self.env = params_dict['env']
-        self.model = params_dict['model']
-        self.optimizer = params_dict['optimizer']
-        self.maxTimesteps = params_dict['maxTimesteps'] 
-        self.discount_rate = params_dict['discount_rate']
-        self.replayMemory = ReplayMemory(params_dict['maxMemory'])
-        self.numBatch = params_dict['numBatch']
-        self.eps = params_dict['eps']
+        self.device = device
+        self.env = env
+        self.model = model
+        self.optimizer = optimizer
+        self.maxTimesteps = maxTimesteps 
+        self.discount_rate = discount_rate
+        self.replayMemory = ReplayMemory(maxMemory)
+        self.numBatch = numBatch
+        self.eps = eps
         self.steps_done = 0 # eps scheduling
+
+        # save last K previously learned Q-networks 
+        self.kFold = numPrevModels
+        self.prevModels = deque([], maxlen=numPrevModels)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -76,7 +82,8 @@ class DQN():
         value = self.model.forward(s)
         value = torch.squeeze(value, 0)
         return value[a]
-
+    
+    # Epsilon scheduling
     def get_eps(self):
         import math
 
@@ -87,13 +94,37 @@ class DQN():
         eps_threshold = eps_end + (eps_start - eps_end) * math.exp(-1. * self.steps_done / eps_decay)
 
         return eps_threshold
+
+    # action seleted from previous K models by averaging it
+    def averaged_value(self, s):
+        with torch.no_grad():
+
+            prevModels = list(self.prevModels)
+
+            values = self.model.forward(s)
+            for model in prevModels[:-1]: # last model is equal to self.model
+                values += self.model.forward(s)
+            
+            values = values / len(self.prevModels)
+            values = torch.squeeze(values, 0)
+
+            return values
+
+    # Returns a value of the state (state value function in Reinforcement learning)
+    def max_value(self, s):
+        with torch.no_grad():
+
+            s = torch.tensor(s).to(self.device)
+            values = self.averaged_value(s)
+            maxValues = torch.max(values)
+
+            return maxValues
     
     # Returns the action from state s by using multinomial distribution
     def get_action(self, s): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
-            values = self.model.forward(s)
-            probs = torch.squeeze(values, 0)
+            probs = self.averaged_value(s) 
 
             if random.random() >= self.get_eps():
                 action = torch.argmax(probs, dim=0)
@@ -104,17 +135,9 @@ class DQN():
 
             return action
   
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def max_value(self, s):
-        s = torch.tensor(s).to(self.device)
-        value = self.model.forward(s)
-        value = torch.squeeze(value, 0)
-        maxValue = torch.max(value)
-
-        return maxValue
-
     # Update weights by using Actor Critic Method
     def update_weight(self):
+
         loss = 0
         batch_size = self.numBatch if self.numBatch <= self.replayMemory.memory.__len__() else self.replayMemory.__len__() # if memory is smaller then numBatch, then just use all data
         batches = self.replayMemory.sample(batch_size)
@@ -162,6 +185,7 @@ class DQN():
     def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="DQN"):
         try:
             returns = []
+            self.prevModels.append(deepcopy(self.model)) # save initial model
 
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             # TENSORBOARD
@@ -197,6 +221,7 @@ class DQN():
 
                     # train
                     self.update_weight()
+                    self.prevModels.append(deepcopy(self.model)) # save updated model
 
                 #==========================================================================
                 # TEST
@@ -270,56 +295,8 @@ if __name__ == "__main__":
     }
 
     # Initialize DQN Mehtod
-    DeepQN = DQN(**param_dict)
+    averagedDQN = ADQN(**param_dict)
 
     # TRAIN Agent
-    DeepQN.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
-
-if __name__ == "__main__":
-
-    from models import ANN_V1 # import model
-    import gym # Environment 
-
-    MAX_EPISODES = 10000
-    MAX_TIMESTEPS = 1000
-    MAX_REPLAYMEMORY = 10000
-
-    ALPHA = 0.1e-3 # learning rate
-    GAMMA = 0.99 # discount_rate
-
-    # device to use
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # set environment
-    env = gym.make("CartPole-v0")
-    #env = gym.make("Acrobot-v1")
-    #env = gym.make("MountainCar-v0")
-
-    num_actions = env.action_space.n
-    num_states = env.observation_space.shape[0]
-
-    ACmodel = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
-
-    param_dict = {
-        'device': device, # device to use, 'cuda' or 'cpu'
-        'env': env, # environment like gym
-        'model': ACmodel, # torch models for policy and value funciton
-        'optimizer': optimizer, # torch optimizer
-        'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA, # step-size for updating Q value
-        'maxMemory': MAX_REPLAYMEMORY, # capacitiy of Replay Memory
-        'numBatch': 64, # number of batches
-        'eps': { # for epsilon scheduling
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        }
-    }
-
-    # Initialize DQN Mehtod
-    DeepQN = DQN(**param_dict)
-
-    # TRAIN Agent
-    DeepQN.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
+    averagedDQN.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
 
