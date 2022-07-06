@@ -51,7 +51,7 @@ params_dict = {
 }
 
 # Initialize Actor-Critic Mehtod
-averagedDQN = DQN(**params_dict)
+averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
 averagedDQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="DQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
