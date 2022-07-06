@@ -89,13 +89,13 @@ class DQN():
         return eps_threshold
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s): # epsilon 0 for greedy action
+    def get_action(self, s, isGreedy=False): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             values = self.model.forward(s)
             probs = torch.squeeze(values, 0)
 
-            if random.random() >= self.get_eps():
+            if random.random() >= self.get_eps() or isGreedy:
                 action = torch.argmax(probs, dim=0)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
@@ -148,7 +148,7 @@ class DQN():
             if isRender:
                 self.env.render()
 
-            action = self.get_action(state)
+            action = self.get_action(state, isGreedy=True)
             next_state, reward, done, _ = self.env.step(action.tolist())
 
             rewards.append(reward)
