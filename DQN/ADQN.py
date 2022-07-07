@@ -140,6 +140,8 @@ class ADQN():
             s = torch.tensor(s).to(self.device)
             probs = self.averaged_value(s) 
 
+            print(probs)
+
             a = probs.multinomial(num_samples=1)
             a = a.data
             action = a[0]
