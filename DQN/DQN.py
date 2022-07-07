@@ -104,6 +104,18 @@ class DQN():
 
             return action
   
+    def get_stochastic_action(self, s):
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            values = self.model.forward(s)
+            probs = torch.squeeze(values, 0)
+
+            a = probs.multinomial(num_samples=1)
+            a = a.data
+            action = a[0]
+
+            return action
+
     # Returns a value of the state (state value function in Reinforcement learning)
     def max_value(self, s):
         s = torch.tensor(s).to(self.device)
@@ -148,7 +160,7 @@ class DQN():
             if isRender:
                 self.env.render()
 
-            action = self.get_action(state, isGreedy=True)
+            action = self.get_stochastic_action(state)
             next_state, reward, done, _ = self.env.step(action.tolist())
 
             rewards.append(reward)

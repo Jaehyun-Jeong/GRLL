@@ -134,6 +134,17 @@ class ADQN():
                 action = a[0]
 
             return action
+
+    def get_stochastic_action(self, s):
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            probs = self.averaged_value(s) 
+
+            a = probs.multinomial(num_samples=1)
+            a = a.data
+            action = a[0]
+
+            return action
   
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -171,7 +182,7 @@ class ADQN():
             if isRender:
                 self.env.render()
 
-            action = self.get_action(state, isGreedy=True)
+            action = self.get_stochastic_action(state)
             next_state, reward, done, _ = self.env.step(action.tolist())
 
             rewards.append(reward)
