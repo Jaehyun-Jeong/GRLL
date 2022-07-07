@@ -65,6 +65,7 @@ class DQN():
         self.numBatch = params_dict['numBatch']
         self.eps = params_dict['eps']
         self.steps_done = 0 # eps scheduling
+        self.softmax = nn.Softmax(dim=0)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -109,6 +110,7 @@ class DQN():
             s = torch.tensor(s).to(self.device)
             values = self.model.forward(s)
             probs = torch.squeeze(values, 0)
+            probs = self.softmax(probs)
 
             a = probs.multinomial(num_samples=1)
             a = a.data

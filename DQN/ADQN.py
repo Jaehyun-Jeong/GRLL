@@ -67,6 +67,7 @@ class ADQN():
         self.numBatch = numBatch
         self.eps = eps
         self.steps_done = 0 # eps scheduling
+        self.softmax = nn.Softmax(dim=0)
 
         # save last K previously learned Q-networks 
         self.kFold = numPrevModels
@@ -139,8 +140,7 @@ class ADQN():
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             probs = self.averaged_value(s) 
-
-            print(probs)
+            probs = self.softmax(probs) 
 
             a = probs.multinomial(num_samples=1)
             a = a.data
