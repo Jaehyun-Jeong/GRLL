@@ -46,7 +46,7 @@ params_dict = {
     'eps': { # for epsilon scheduling
         'start': 0.99,
         'end': 0.00001,
-        'decay': 10000
+        'decay': 1000
     }
 }
 
