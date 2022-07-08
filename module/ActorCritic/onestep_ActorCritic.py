@@ -16,7 +16,7 @@ from torch.autograd import Variable
 from module.ActorCritic.ActorCritic import ActorCritic
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'next_state', 'reward'))
+                       ('state', 'action', 'done', 'next_state', 'reward'))
 
 class onestep_ActorCritic(ActorCritic):
 
@@ -68,7 +68,7 @@ class onestep_ActorCritic(ActorCritic):
         )
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, Transition, isTerminal ,entropy_term = 0):
+    def update_weight(self, Transition, entropy_term = 0):
         s_t = Transition.state
         a_t = Transition.action
         s_tt = Transition.next_state
@@ -76,11 +76,11 @@ class onestep_ActorCritic(ActorCritic):
 
         # get actor loss
         log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-        advantage = Variable(r_tt + self.value(s_tt)*(not isTerminal) - self.value(s_t))
+        advantage = Variable(r_tt + self.value(s_tt)*(not done) - self.value(s_t))
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        critic_loss = 1/2 * (r_tt + self.value(s_tt)*(not isTerminal) - self.value(s_t)).pow(2)
+        critic_loss = 1/2 * (r_tt + self.value(s_tt)*(not done) - self.value(s_t)).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term
     
@@ -131,16 +131,15 @@ class onestep_ActorCritic(ActorCritic):
                     next_state, reward, done, _ = self.env.step(action.tolist())
 
                     # trans means transition 
-                    trans = Transition(state, action, next_state, reward)
+                    trans = Transition(state, action, done, next_state, reward)
 
                     state = next_state
 
                     # Train
                     if done or timesteps == self.maxTimesteps-1:
-                        self.update_weight(trans, isTerminal=True)
                         break
-                    else:
-                        self.update_weight(trans, isTerminal=False)
+                    
+                    self.update_weight(trans)
 
                 #==========================================================================
                 # TEST
