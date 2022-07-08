@@ -73,6 +73,7 @@ class onestep_ActorCritic(ActorCritic):
         a_t = Transition.action
         s_tt = Transition.next_state
         r_tt = Transition.reward
+        done = Transition.done
 
         # get actor loss
         log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
