@@ -85,7 +85,7 @@ class REINFORCE(ActorCritic):
         self.ups=1e-7
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, Transitions, entropy_term = 0):
+    def __update_weight(self, Transitions, entropy_term = 0):
         Qval = 0
         loss = 0
         lenLoss = Transitions.memory.__len__()
@@ -162,7 +162,7 @@ class REINFORCE(ActorCritic):
                     if done or timesteps == self.maxTimesteps-1:
                         break
                 # train
-                self.update_weight(Transitions)
+                self.__update_weight(Transitions)
 
                 #==========================================================================
                 # TEST

@@ -78,7 +78,7 @@ class ActorCritic():
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
 
-    def get_eps(self):
+    def __get_eps(self):
         import math
 
         eps_start = self.eps['start']
@@ -102,7 +102,7 @@ class ActorCritic():
             _, probs = self.model.forward(s)
             probs = torch.squeeze(probs, 0)
 
-            eps = self.get_eps() if useEps else 0
+            eps = self.__get_eps() if useEps else 0
             
             if random.random() >= eps:
                 if useStochastic:
