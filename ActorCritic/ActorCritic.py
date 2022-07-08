@@ -50,10 +50,11 @@ class ActorCritic():
         self, 
         env, 
         model,
+        optimizer,
         device="cpu", 
-        optimizer=optim.Adam(ACmodel.parameters(), lr=0.1e-3),
         maxTimesteps=1000,
-        discount_rate=0.99
+        discount_rate=0.99,
+        epsilon=0.1
     ):
 
         super(ActorCritic, self).__init__()
