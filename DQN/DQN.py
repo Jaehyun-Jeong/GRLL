@@ -181,7 +181,7 @@ class DQN():
             # TENSORBOARD
             
             if useTensorboard:
-                from torch.utils.tensorboard import SummaryWriter
+                from tensorboardX import SummaryWriter
                 self.writer = SummaryWriter()
 
             #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

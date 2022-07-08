@@ -283,7 +283,7 @@ class MazeSolverEnv:
         
         # setting number of observations and actions
         # height, width
-        self.num_obs = (self.blocks.shape[0], self.blocks.shape[1])
+        self.num_obs = self.blocks.shape[0] * self.blocks.shape[1]
         self.num_action = 4 # e, w, n, s
 
         start_pos = np.asarray(np.shape(self.blocks), dtype=np.int) - 2  # bottom right corner
@@ -487,15 +487,15 @@ class MazeSolverEnv:
         obs[start_pos[0]][start_pos[1]] = 3 # unit_pos index as 3
         obs[end_pos[0]][end_pos[1]] = 4 # end_pos index as 4
 
-        '''
         for i in range(5):
             obs = np.where(obs == i, i * (255 / 4), obs)
         
         obs = obs.flatten().astype(np.float32)
-        '''
 
+        '''
         # one hot encoding (1 channel to 5 channel)
         obs = np.array([([channel_num] == obs[..., None]).astype(int).reshape(obs.shape[0], obs.shape[1]) for channel_num in range(0, self.num_celltype)], dtype=np.float32)
+        '''
         
         return obs
     
