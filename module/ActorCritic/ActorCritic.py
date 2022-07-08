@@ -96,7 +96,7 @@ class ActorCritic():
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, useEps, useStochastic): # epsilon 0 for greedy action
+    def get_action(self, s, useEps, useStochastic):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             _, probs = self.model.forward(s)

@@ -13,7 +13,7 @@ from module.ActorCritic import onestep_ActorCritic
 # Environment 
 import gym
 
-MAX_EPISODES = 500
+MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 0.0001 # learning rate
