@@ -42,7 +42,12 @@ class ActorCritic():
         #MAX_EPISODES = maximum episodes you want to learn
         'maxTimesteps': maximum timesteps agent take 
         'discount_rate': GAMMA # step-size for updating Q value
-        'epsilon': epsilon for epsilon greedy action
+        'eps': {
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        }, 
+        'trainPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
     }
     '''
 
@@ -54,7 +59,13 @@ class ActorCritic():
         device="cpu", 
         maxTimesteps=1000,
         discount_rate=0.99,
-        epsilon=0.1
+        eps={
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        },
+        trainPolicy='eps-stochastic',
+        testPolicy='stochastic'
     ):
 
         super(ActorCritic, self).__init__()
@@ -66,11 +77,37 @@ class ActorCritic():
         self.optimizer = optimizer
         self.maxTimesteps = maxTimesteps 
         self.discount_rate = discount_rate
-        self.epsilon = epsilon
+        self.steps_done = 0 # for epsilon scheduling
 
+        # select train, test policy
+        policyDict = {'greedy': [False, False], 'stochastic': [False, True], 'eps-greedy': [True, False], 'eps-stochastic': [True, True]} # [ useEpsilon, useStochastic ]
+
+        try:
+            trainPolicyList = policyDict[trainPolicy]
+            testPolicyList = policyDict[testPolicy]
+
+            if trainPolicyList[0] or testPolicyList[0]:
+                self.eps = eps
+
+            self.useTrainEps = trainPolicyList[0]
+            self.useTrainStochastic = trainPolicyList[1]
+            self.useTestEps = testPolicyList[0]
+            self.useTestStochastic = testPolicyList[1]
+
+        except: 
+            print("ERROR OCCURED : supported policies are 'greedy', 'eps-greedy', 'stochastic', and 'eps-stochastic'")
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
+
+    def get_eps(self):
+        import math
+
+        eps_start = self.eps['start']
+        eps_end = self.eps['end']
+        eps_decay = self.eps['decay']
+
+        return eps_end + (eps_start + eps_end) * math.exp(-1. * self.steps_done / eps_decay)
 
     # In Reinforcement learning, pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
@@ -81,19 +118,25 @@ class ActorCritic():
         return probs[a]
     
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
+    def get_action(self, s, useEps, useStochastic): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             _, probs = self.model.forward(s)
             probs = torch.squeeze(probs, 0)
 
-            if random.random() >= epsilon:
-                a = probs.multinomial(num_samples=1)
+            eps = self.get_eps() if useEps else 0
+            
+            if random.random() >= eps:
+                if useStochastic:
+                    a = probs.multinomial(num_samples=1) 
+                    a = a.data
+                    action = a[0]
+                else:
+                    action = torch.argmax(probs, dim=0)
             else:
                 a = torch.rand(probs.shape).multinomial(num_samples=1)
-
-            a = a.data
-            action = a[0]
+                a = a.data
+                action = a[0]
 
             return action
   
@@ -126,7 +169,18 @@ class ActorCritic():
         loss.backward()
         self.optimizer.step()
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="ActorCritic"):
+        self.steps_done += 1
+
+    def train(
+        self, 
+        maxEpisodes, 
+        testPer=10, 
+        testSize=10,
+        isRender=False, 
+        useTensorboard=False, 
+        tensorboardTag="ActorCritic"
+    ):
+
         try:
             returns = []
             
@@ -154,7 +208,7 @@ class ActorCritic():
                     if isRender:
                         env.render()
 
-                    action = self.get_action(state, epsilon=self.epsilon)
+                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.env.step(action.tolist())
 
                     # trans means transition 
@@ -169,31 +223,14 @@ class ActorCritic():
                     else:
                         self.update_weight(trans, isTerminal=False)
 
-
-
                 #==========================================================================
                 # TEST
                 #==========================================================================
 
                 if (i_episode+1) % testPer == 0: 
-                    state = self.env.reset()
-                    done = False
-                    rewards = []
 
-                    for timesteps in range(self.maxTimesteps):
-                        if isRender:
-                            env.render()
-
-                        action = self.get_action(state)
-                        next_state, reward, done, _ = self.env.step(action.tolist())
-
-                        rewards.append(reward)
-                        state = next_state
-
-                        if done or timesteps == self.maxTimesteps-1:
-                            break
-
-                    returns.append(sum(rewards))
+                    cumulative_rewards = self.test(testSize=testSize)   
+                    returns.append(cumulative_rewards)
 
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
@@ -215,6 +252,33 @@ class ActorCritic():
             plt.plot(range(len(returns)), returns)
 
         self.env.close()
+
+    def test(self, isRender=True, testSize=10):
+        
+        returns = []
+
+        for testIdx in range(testSize):
+            state = self.env.reset()
+            done = False
+            rewards = []
+            for timesteps in range(self.maxTimesteps):
+                if isRender:
+                    self.env.render()
+
+                action = self.get_action(state, useEps=self.useTestEps, useStochastic=self.useTestStochastic)
+                next_state, reward, done, _ = self.env.step(action.tolist())
+
+                rewards.append(reward)
+                state = next_state
+
+                if done or timesteps == self.maxTimesteps-1:
+                    break
+            
+            returns.append(sum(rewards))
+        
+        averagedReward = sum(returns) / testSize
+
+        return averagedReward
 
 if __name__ == "__main__":
 

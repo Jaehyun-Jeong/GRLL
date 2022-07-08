@@ -41,7 +41,6 @@ ActorCritic_parameters = {
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
-    'epsilon': epsilon,
 }
 
 # Initialize Actor-Critic Mehtod
