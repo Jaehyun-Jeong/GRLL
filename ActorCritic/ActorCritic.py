@@ -46,18 +46,26 @@ class ActorCritic():
     }
     '''
 
-    def __init__(self, **params_dict):
+    def __init__(
+        self, 
+        env, 
+        model,
+        device="cpu", 
+        optimizer=optim.Adam(ACmodel.parameters(), lr=0.1e-3),
+        maxTimesteps=1000,
+        discount_rate=0.99
+    ):
+
         super(ActorCritic, self).__init__()
 
         # init parameters 
-        self.device = params_dict['device']
-        self.env = params_dict['env']
-        self.model = params_dict['model']
-        self.optimizer = params_dict['optimizer']
-        self.maxTimesteps = params_dict['maxTimesteps'] 
-        self.discount_rate = params_dict['discount_rate']
-        self.epsilon = params_dict['epsilon']
-        self.useBaseline = params_dict['epsilon']
+        self.device = device
+        self.env = env
+        self.model = model
+        self.optimizer = optimizer
+        self.maxTimesteps = maxTimesteps 
+        self.discount_rate = discount_rate
+        self.epsilon = epsilon
 
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -241,7 +249,6 @@ if __name__ == "__main__":
         'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
         'discount_rate': GAMMA, # step-size for updating Q value
         'epsilon': epsilon, # epsilon greedy action for training
-        'useBaseline': True # use value function as baseline or not
     }
 
     # Initialize ActorCritic Mehtod
