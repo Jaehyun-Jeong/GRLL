@@ -6,8 +6,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from ActorCritic.models import ANN_V2
-from REINFORCE.REINFORCE import REINFORCE
+from module.ActorCritic.models import ANN_V2
+from module.ActorCritic import REINFORCE
 
 # Environment 
 import gym
@@ -37,10 +37,6 @@ REINFORCE_parameters= {
     'env': env, # environment like gym
     'model': REINFORCE_model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'epsilon': epsilon,
-    'useBaseline': True
 }
 
 # Initialize Actor-Critic Mehtod

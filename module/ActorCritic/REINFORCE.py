@@ -12,6 +12,8 @@ import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
 
+# Parent Class
+from module.ActorCritic.ActorCritic import ActorCritic
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'next_state', 'reward'))
@@ -31,7 +33,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class REINFORCE():
+class REINFORCE(ActorCritic):
 
     '''
     params_dict = {
@@ -54,58 +56,33 @@ class REINFORCE():
         device="cpu", 
         maxTimesteps=1000,
         discount_rate=0.99,
-        epsilon=0.1,
+        eps={
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        },
+        trainPolicy='eps-stochastic',
+        testPolicy='stochastic',
         useBaseline=True,
     ):
 
-        super(REINFORCE, self).__init__()
-
         # init parameters 
-        self.device = device
-        self.env = env
-        self.model = model
-        self.optimizer = optimizer
-        self.maxTimesteps = maxTimesteps
-        self.discount_rate = discount_rate
-        self.epsilon = epsilon
-        self.useBaseline = useBaseline
-
+        super().__init__(
+            env=env, 
+            model=model,
+            optimizer=optimizer,
+            device=device, 
+            maxTimesteps=maxTimesteps,
+            discount_rate=discount_rate,
+            eps=eps,
+            trainPolicy=trainPolicy,
+            testPolicy=testPolicy
+        )
+        
+        self.useBaseline=useBaseline
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
-
-    # In Reinforcement learning, pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(self, s, a):
-        s = torch.Tensor(s).to(self.device)
-        _, probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
-        return probs[a]
-    
-    # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, epsilon = 0): # epsilon 0 for greedy action
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            _, probs = self.model.forward(s)
-            probs = torch.squeeze(probs, 0)
-
-            if random.random() >= epsilon:
-                a = probs.multinomial(num_samples=1)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
-
-            a = a.data
-            action = a[0]
-
-            return action
-  
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def value(self, s):
-        s = torch.tensor(s).to(self.device)
-        value, _ = self.model.forward(s)
-        value = torch.squeeze(value, 0)
-
-        return value    
 
     # Update weights by using Actor Critic Method
     def update_weight(self, Transitions, entropy_term = 0):
@@ -139,7 +116,16 @@ class REINFORCE():
         loss.backward()
         self.optimizer.step()
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="REINFORCE"):
+    def train(
+        self, 
+        maxEpisodes, 
+        testPer=10, 
+        testSize=10,
+        isRender=False, 
+        useTensorboard=False, 
+        tensorboardTag="REINFORCE"
+    ):
+
         try:
             returns = []
             
@@ -168,7 +154,7 @@ class REINFORCE():
                     if isRender:
                         env.render()
 
-                    action = self.get_action(state, epsilon=self.epsilon)
+                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
@@ -183,24 +169,9 @@ class REINFORCE():
                 #==========================================================================
 
                 if (i_episode+1) % testPer == 0: 
-                    state = self.env.reset()
-                    done = False
-                    rewards = []
 
-                    for timesteps in range(self.maxTimesteps):
-                        if isRender:
-                            env.render()
-
-                        action = self.get_action(state)
-                        next_state, reward, done, _ = self.env.step(action.tolist())
-
-                        rewards.append(reward)
-                        state = next_state
-
-                        if done or timesteps == self.maxTimesteps-1:
-                            break
-
-                    returns.append(sum(rewards))
+                    cumulative_rewards = self.test(testSize=testSize)   
+                    returns.append(cumulative_rewards)
 
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
@@ -209,7 +180,7 @@ class REINFORCE():
                         writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                    
+
                     print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
 
         except KeyboardInterrupt:

@@ -13,7 +13,6 @@ import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
 
-
 Transition = namedtuple('Transition',
                        ('state', 'action', 'done', 'next_state', 'reward'))
 

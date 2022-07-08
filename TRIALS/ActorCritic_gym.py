@@ -7,8 +7,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from ActorCritic.models import ANN_V2
-from ActorCritic.ActorCritic import ActorCritic
+from module.ActorCritic.models import ANN_V2
+from module.ActorCritic import onestep_ActorCritic
 
 # Environment 
 import gym
@@ -44,7 +44,7 @@ ActorCritic_parameters = {
 }
 
 # Initialize Actor-Critic Mehtod
-RF = ActorCritic(**ActorCritic_parameters)
+RF = onestep_ActorCritic(**ActorCritic_parameters)
 
 # TRAIN Agent
 RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="ActorCritic_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
