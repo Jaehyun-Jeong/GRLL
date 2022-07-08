@@ -56,16 +56,19 @@ class ADQN():
         super(ADQN, self).__init__()
 
         # init parameters 
-        self.device = device
-        self.env = env
-        self.model = model
-        self.optimizer = optimizer
-        self.maxTimesteps = maxTimesteps 
-        self.discount_rate = discount_rate
-        self.replayMemory = ReplayMemory(maxMemory)
-        self.numBatch = numBatch
-        self.eps = eps
-        self.steps_done = 0 # eps scheduling
+        super().__init__(
+            device = device
+            env = env
+            model = model
+            optimizer = optimizer
+            maxTimesteps = maxTimesteps 
+            discount_rate = discount_rate
+            replayMemory = ReplayMemory(maxMemory)
+            numBatch = numBatch
+            eps = eps
+        )
+
+        # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
 
         # save last K previously learned Q-networks 
@@ -75,28 +78,8 @@ class ADQN():
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
 
-    # In Reinforcement learning, pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(self, s, a):
-        s = torch.Tensor(s).to(self.device)
-        value = self.model.forward(s)
-        value = torch.squeeze(value, 0)
-        return value[a]
-    
-    # Epsilon scheduling
-    def get_eps(self):
-        import math
-
-        eps_start = self.eps['start']
-        eps_end = self.eps['end']
-        eps_decay = self.eps['decay']
-
-        eps_threshold = eps_end + (eps_start - eps_end) * math.exp(-1. * self.steps_done / eps_decay)
-
-        return eps_threshold
-
     # action seleted from previous K models by averaging it
-    def averaged_value(self, s):
+    def value(self, s):
         with torch.no_grad():
 
             prevModels = list(self.prevModels)
@@ -110,12 +93,36 @@ class ADQN():
 
             return values
 
+    # Returns the action from state s by using multinomial distribution
+    def get_action(self, s, useEps, useStochastic):
+        with torch.no_grad():
+            s = torch.tensor(s).to(self.device)
+            probs = self.value(s)
+
+            eps = self.__get_eps() if useEps else 0
+            
+            if random.random() >= eps:
+                if useStochastic:
+                    probs = self.softmax(probs)
+
+                    a = probs.multinomial(num_samples=1) 
+                    a = a.data
+                    action = a[0]
+                else:
+                    action = torch.argmax(probs, dim=0)
+            else:
+                a = torch.rand(probs.shape).multinomial(num_samples=1)
+                a = a.data
+                action = a[0]
+
+            return action
+
     # Returns a value of the state (state value function in Reinforcement learning)
     def max_value(self, s):
         with torch.no_grad():
 
             s = torch.tensor(s).to(self.device)
-            values = self.averaged_value(s)
+            values = self.value(s)
             maxValues = torch.max(values)
 
             return maxValues
@@ -124,7 +131,7 @@ class ADQN():
     def get_action(self, s, isGreedy=False): # epsilon 0 for greedy action
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
-            probs = self.averaged_value(s) 
+            probs = self.value(s) 
 
             if random.random() >= self.get_eps() or isGreedy:
                 action = torch.argmax(probs, dim=0)
@@ -135,18 +142,6 @@ class ADQN():
 
             return action
 
-    def get_stochastic_action(self, s):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            probs = self.averaged_value(s) 
-            probs = self.softmax(probs) 
-
-            a = probs.multinomial(num_samples=1)
-            a = a.data
-            action = a[0]
-
-            return action
-  
     # Update weights by using Actor Critic Method
     def update_weight(self):
 
@@ -183,7 +178,7 @@ class ADQN():
             if isRender:
                 self.env.render()
 
-            action = self.get_stochastic_action(state)
+            action = self.get_action(state, useEps=useTestEps, useStochastic=useTestStochastic)
             next_state, reward, done, _ = self.env.step(action.tolist())
 
             rewards.append(reward)
