@@ -12,7 +12,7 @@ from module.ActorCritic import REINFORCE
 # Environment 
 import gym
 
-MAX_EPISODES = 500
+MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
