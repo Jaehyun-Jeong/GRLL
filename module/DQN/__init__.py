@@ -1,3 +1,3 @@
 from . import models
-from . import DQN
-from . import ADQN
+from .DQN import *
+from .ADQN import *
