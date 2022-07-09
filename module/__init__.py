@@ -1,3 +1,3 @@
 from . import ActorCritic
-from . import DQN
+from . import ValueBased
 from . import envs
