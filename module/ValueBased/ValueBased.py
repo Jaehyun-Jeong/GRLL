@@ -13,25 +13,7 @@ import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
 
-Transition = namedtuple('Transition',
-                       ('state', 'action', 'done', 'next_state', 'reward'))
-
-class ReplayMemory(object):
-
-    def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
-
-    def push(self, *args):
-        """Save a transition"""
-        self.memory.append(Transition(*args))
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-class ADQN():
+class ValueBased():
 
     '''
     param_dict = {
@@ -58,16 +40,16 @@ class ADQN():
         env, 
         model, 
         optimizer, 
+        device="cpu", 
         maxTimesteps=1000, 
         maxMemory=10000, 
+        discount_rate=0.99,
+        numBatch=64,
         eps={
             'start': 0.9,
             'end': 0.05,
             'decay': 200
         }, 
-        device="cpu", 
-        discount_rate=0.99, 
-        numBatch=64, 
         trainPolicy='eps-greedy',
         testPolicy='greedy'
     ):
@@ -78,10 +60,9 @@ class ADQN():
         self.model = model
         self.optimizer = optimizer
         self.maxTimesteps = maxTimesteps 
+        self.maxMemory = maxMemory
         self.discount_rate = discount_rate
-        self.replayMemory = ReplayMemory(maxMemory)
         self.numBatch = numBatch
-        self.eps = eps
         self.steps_done = 0 # eps scheduling
         
         # Stochastic action selection
@@ -129,7 +110,7 @@ class ADQN():
         return eps_threshold
 
     # Returns the action from state s by using multinomial distribution
-    def get_action(self, values, useEps, useStochastic):
+    def get_action(self, s, useEps, useStochastic):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
             probs = self.value(s)
@@ -152,28 +133,12 @@ class ADQN():
 
             return action
 
-    # action seleted from previous K models by averaging it
-    def averaged_value(self, s):
-        with torch.no_grad():
-
-            prevModels = list(self.prevModels)
-
-            values = self.model.forward(s)
-            for model in prevModels[:-1]: # last model is equal to self.model
-                values += self.model.forward(s)
-            
-            values = values / len(self.prevModels)
-            values = torch.squeeze(values, 0)
-
-            return values
-
-
     # Returns a value of the state (state value function in Reinforcement learning)
     def max_value(self, s):
         with torch.no_grad():
 
             s = torch.tensor(s).to(self.device)
-            values = self.averaged_value(s)
+            values = self.value(s)
             maxValues = torch.max(values)
 
             return maxValues

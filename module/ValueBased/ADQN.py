@@ -4,6 +4,7 @@ import random
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from copy import deepcopy
+from abc import abstractmethod
 
 # PyTorch
 import torch
@@ -12,6 +13,8 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
+
+from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'done', 'next_state', 'reward'))
@@ -31,7 +34,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class ADQN():
+class ADQN(ValueBased):
 
     '''
     param_dict = {
@@ -52,24 +55,42 @@ class ADQN():
     }
     '''
 
-    def __init__(self, env, model, optimizer, maxTimesteps, maxMemory, eps, device="cpu", discount_rate=0.99, numBatch=64, numPrevModels=10):
-        super(ADQN, self).__init__()
+    def __init__(
+        self, 
+        env, 
+        model, 
+        optimizer, 
+        device="cpu", 
+        maxTimesteps=1000, 
+        maxMemory=10000, 
+        discount_rate=0.99, 
+        numBatch=64,
+        eps={
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        },
+        trainPolicy='eps-greedy',
+        testPolicy='greedy',
+        numPrevModels=10
+    ):
 
         # init parameters 
         super().__init__(
-            device = device
-            env = env
-            model = model
-            optimizer = optimizer
-            maxTimesteps = maxTimesteps 
-            discount_rate = discount_rate
-            replayMemory = ReplayMemory(maxMemory)
-            numBatch = numBatch
-            eps = eps
+            device = device,
+            env = env,
+            model = model,
+            optimizer = optimizer,
+            maxTimesteps = maxTimesteps, 
+            maxMemory = maxMemory,
+            discount_rate = discount_rate,
+            numBatch = numBatch,
+            eps = eps,
+            trainPolicy='eps-greedy',
+            testPolicy='greedy'
         )
-
-        # Stochastic action selection
-        self.softmax = nn.Softmax(dim=0)
+        
+        self.replayMemory = ReplayMemory(maxMemory)
 
         # save last K previously learned Q-networks 
         self.kFold = numPrevModels
@@ -79,6 +100,7 @@ class ADQN():
         self.ups=1e-7
 
     # action seleted from previous K models by averaging it
+    @abstractmethod
     def value(self, s):
         with torch.no_grad():
 
@@ -92,55 +114,6 @@ class ADQN():
             values = torch.squeeze(values, 0)
 
             return values
-
-    # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, useEps, useStochastic):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            probs = self.value(s)
-
-            eps = self.__get_eps() if useEps else 0
-            
-            if random.random() >= eps:
-                if useStochastic:
-                    probs = self.softmax(probs)
-
-                    a = probs.multinomial(num_samples=1) 
-                    a = a.data
-                    action = a[0]
-                else:
-                    action = torch.argmax(probs, dim=0)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
-                a = a.data
-                action = a[0]
-
-            return action
-
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def max_value(self, s):
-        with torch.no_grad():
-
-            s = torch.tensor(s).to(self.device)
-            values = self.value(s)
-            maxValues = torch.max(values)
-
-            return maxValues
-    
-    # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, isGreedy=False): # epsilon 0 for greedy action
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            probs = self.value(s) 
-
-            if random.random() >= self.get_eps() or isGreedy:
-                action = torch.argmax(probs, dim=0)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
-                a = a.data
-                action = a[0]
-
-            return action
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -168,26 +141,6 @@ class ADQN():
         self.optimizer.step()
 
         self.steps_done += 1
-
-    def test(self, isRender=False):
-        state = self.env.reset()
-        done = False
-        rewards = []
-
-        for timesteps in range(self.maxTimesteps):
-            if isRender:
-                self.env.render()
-
-            action = self.get_action(state, useEps=useTestEps, useStochastic=useTestStochastic)
-            next_state, reward, done, _ = self.env.step(action.tolist())
-
-            rewards.append(reward)
-            state = next_state
-
-            if done or timesteps == self.maxTimesteps-1:
-                break
-
-        return sum(rewards)
 
     def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="DQN"):
         try:
@@ -218,7 +171,7 @@ class ADQN():
                     if isRender:
                        self.env.render()
 
-                    action = self.get_action(state)
+                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     self.replayMemory.push(state, action, done, next_state, reward)
                     state = next_state

@@ -3,6 +3,7 @@ import numpy as np
 import random 
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
+from abc import abstractmethod
 
 # PyTorch
 import torch
@@ -12,6 +13,7 @@ import torchvision.transforms as T
 import torch.optim as optim
 from torch.autograd import Variable
 
+from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'done', 'next_state', 'reward'))
@@ -51,81 +53,52 @@ class DQN():
     }
     '''
 
-    def __init__(self, **params_dict):
-        super(DQN, self).__init__()
+    def __init__(
+        self, 
+        env,
+        model,
+        optimizer,
+        device='cpu',
+        maxTimesteps=1000,
+        maxMemory=10000,
+        discount_rate=0.99,
+        numBatch=64,
+        eps={
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        },
+        trainPolicy='eps-greedy',
+        testPolicy='greedy'
+    ):
 
         # init parameters 
-        self.device = params_dict['device']
-        self.env = params_dict['env']
-        self.model = params_dict['model']
-        self.optimizer = params_dict['optimizer']
-        self.maxTimesteps = params_dict['maxTimesteps'] 
-        self.discount_rate = params_dict['discount_rate']
-        self.replayMemory = ReplayMemory(params_dict['maxMemory'])
-        self.numBatch = params_dict['numBatch']
-        self.eps = params_dict['eps']
-        self.steps_done = 0 # eps scheduling
-        self.softmax = nn.Softmax(dim=0)
+        super().__init__(
+            env=env,
+            model=model,
+            optimizer=optimizer,
+            device=device,
+            maxTimesteps=maxTimesteps,
+            maxMemory=maxMemory,
+            discount_rate=discount_rate,
+            numBatch=numBatch,
+            eps=eps,
+            trainPolicy=trainPolicy,
+            testPolicy=testPolicy
+        )
+        
+        self.replayMemory = ReplayMemory(maxMemory)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
-
-    # In Reinforcement learning, pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(self, s, a):
+    
+    # ADQN has different type of value
+    @abstractmethod
+    def value(self, s):
         s = torch.Tensor(s).to(self.device)
         value = self.model.forward(s)
         value = torch.squeeze(value, 0)
-        return value[a]
-
-    def get_eps(self):
-        import math
-
-        eps_start = self.eps['start']
-        eps_end = self.eps['end']
-        eps_decay = self.eps['decay']
-
-        eps_threshold = eps_end + (eps_start - eps_end) * math.exp(-1. * self.steps_done / eps_decay)
-
-        return eps_threshold
-    
-    # Returns the action from state s by using multinomial distribution
-    def get_action(self, s, isGreedy=False): # epsilon 0 for greedy action
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            values = self.model.forward(s)
-            probs = torch.squeeze(values, 0)
-
-            if random.random() >= self.get_eps() or isGreedy:
-                action = torch.argmax(probs, dim=0)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
-                a = a.data
-                action = a[0]
-
-            return action
-  
-    def get_stochastic_action(self, s):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            values = self.model.forward(s)
-            probs = torch.squeeze(values, 0)
-            probs = self.softmax(probs)
-
-            a = probs.multinomial(num_samples=1)
-            a = a.data
-            action = a[0]
-
-            return action
-
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def max_value(self, s):
-        s = torch.tensor(s).to(self.device)
-        value = self.model.forward(s)
-        value = torch.squeeze(value, 0)
-        maxValue = torch.max(value)
-
-        return maxValue
+        return value
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -152,26 +125,6 @@ class DQN():
         self.optimizer.step()
 
         self.steps_done += 1
-
-    def test(self, isRender=False):
-        state = self.env.reset()
-        done = False
-        rewards = []
-
-        for timesteps in range(self.maxTimesteps):
-            if isRender:
-                self.env.render()
-
-            action = self.get_stochastic_action(state)
-            next_state, reward, done, _ = self.env.step(action.tolist())
-
-            rewards.append(reward)
-            state = next_state
-
-            if done or timesteps == self.maxTimesteps-1:
-                break
-
-        return sum(rewards)
 
     def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="DQN"):
         try:
@@ -201,7 +154,7 @@ class DQN():
                     if isRender:
                        self.env.render()
 
-                    action = self.get_action(state)
+                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.env.step(action.tolist())
                     self.replayMemory.push(state, action, done, next_state, reward)
                     state = next_state

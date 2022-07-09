@@ -7,8 +7,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from DQN.models import ANN_V2
-from DQN.ADQN import ADQN
+from module.ValueBased.models import ANN_V2
+from module.ValueBased.ADQN import ADQN
 
 # Environment 
 import gym
