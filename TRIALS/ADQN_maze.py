@@ -7,15 +7,15 @@ import torch
 import torch.optim as optim
 
 # import model
-from DQN.models import ANN_V2
-from DQN.ADQN import ADQN
+from module.ValueBased.models import ANN_V2
+from module.ValueBased.ADQN import ADQN
 
 # Environment 
-from envs.maze.Maze_Solver import MazeSolverEnv
+from module.envs.maze.Maze_Solver import MazeSolverEnv
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
+MAX_REPLAYMEMORY = 100000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
@@ -46,8 +46,10 @@ params_dict = {
     'eps': { # for epsilon scheduling
         'start': 0.99,
         'end': 0.00001,
-        'decay': 1000
-    }
+        'decay': 100000
+    },
+    'trainPolicy': 'eps-stochastic',
+    'testPolicy': 'stochastic'
 }
 
 # Initialize Actor-Critic Mehtod

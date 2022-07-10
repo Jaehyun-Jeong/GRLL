@@ -143,7 +143,7 @@ class ValueBased():
 
             return maxValues
     
-    def test(self, isRender=True, testSize=10):
+    def test(self, isRender=False, testSize=10):
         
         returns = []
 

@@ -17,7 +17,7 @@ import gym
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-gym_name = 'MountainCar-v0'
+gym_name = 'CartPole-v0'
 env = gym.make(gym_name)
 
 # set ActorCritic
