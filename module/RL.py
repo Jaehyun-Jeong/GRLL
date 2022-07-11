@@ -95,7 +95,7 @@ class RL():
 
         import pickle
 
-        file = open(saveDir, 'w')
+        file = open(saveDir, 'wb')
         file.write(pickle.dumps(self.__dict__))
         file.close()
 
@@ -103,7 +103,7 @@ class RL():
 
         import cPickle
 
-        file = open(loadDir, 'r')
+        file = open(loadDir, 'rb')
         dataPickle = file.read()
         file.close()
 
