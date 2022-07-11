@@ -13,7 +13,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
-from module.ActorCritic.ActorCritic import ActorCritic
+from module.ActorCritic import ActorCritic
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'next_state', 'reward'))

@@ -33,7 +33,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class DQN():
+class DQN(ValueBased):
 
     '''
     param_dict = {
