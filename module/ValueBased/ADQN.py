@@ -207,7 +207,7 @@ class ADQN(ValueBased):
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    self.printResult(i_episode + 1, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

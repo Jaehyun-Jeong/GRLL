@@ -43,15 +43,22 @@ class onestep_ActorCritic(ActorCritic):
         env,
         model,
         optimizer,
-        device,
-        eps,
-        maxTimesteps,
-        discount_rate,
-        isRender,
-        useTensorboard,
+        device='cpu',
+        eps={
+            'start': 0.99,
+            'end': 0.0001,
+            'decay': 10000
+        },
+        maxTimesteps=1000,
+        discount_rate=0.99,
+        isRender={
+            'train': False,
+            'test': False,
+        },
+        useTensorboard=False,
         tensorboardParams={
-            'logdir': "./runs",
-            'tag': "ActorCritic/Returns"
+            'logdir': "./runs/onestep_ActorCritic",
+            'tag': "Returns"
         },
         policy={
             'train': 'eps-stochastic',
@@ -153,7 +160,7 @@ class onestep_ActorCritic(ActorCritic):
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    self.printResult(i_episode+1, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

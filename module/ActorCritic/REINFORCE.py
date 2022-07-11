@@ -53,30 +53,43 @@ class REINFORCE(ActorCritic):
         env, 
         model,
         optimizer,
-        device="cpu", 
+        device='cpu',
+        eps={
+            'start': 0.99,
+            'end': 0.0001,
+            'decay': 10000
+        },
         maxTimesteps=1000,
         discount_rate=0.99,
-        eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
+        isRender={
+            'train': False,
+            'test': False,
         },
-        trainPolicy='eps-stochastic',
-        testPolicy='stochastic',
+        useTensorboard=False,
+        tensorboardParams={
+            'logdir': "./runs/REINFORCE",
+            'tag': "Returns"
+        },
+        policy={
+            'train': 'eps-stochastic',
+            'test': 'stochastic'
+        },
         useBaseline=True,
     ):
 
         # init parameters 
         super().__init__(
-            env=env, 
+            env=env,
             model=model,
             optimizer=optimizer,
-            device=device, 
+            device=device,
             maxTimesteps=maxTimesteps,
             discount_rate=discount_rate,
             eps=eps,
-            trainPolicy=trainPolicy,
-            testPolicy=testPolicy
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            policy=policy
         )
         
         self.useBaseline=useBaseline
@@ -121,23 +134,11 @@ class REINFORCE(ActorCritic):
         maxEpisodes, 
         testPer=10, 
         testSize=10,
-        isRender=False, 
-        useTensorboard=False, 
-        tensorboardTag="REINFORCE"
     ):
 
         try:
             returns = []
             
-            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            # TENSORBOARD
-            
-            if useTensorboard:
-                from torch.utils.tensorboard import SummaryWriter
-                writer = SummaryWriter()
-
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
             for i_episode in range(maxEpisodes):
                 
                 Transitions = ReplayMemory(maxEpisodes)
@@ -151,7 +152,7 @@ class REINFORCE(ActorCritic):
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
 
-                    if isRender:
+                    if self.isRender['train']:
                         env.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
@@ -176,12 +177,11 @@ class REINFORCE(ActorCritic):
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
-                    if useTensorboard:
-                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
+                    self.writeTensorboard(returns[-1], i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    self.printResult(i_episode + 1, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

@@ -35,4 +35,4 @@ onestep_AC = onestep_ActorCritic(
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=3000, testPer=1, useTensorboard=True, tensorboardTag="ActorCritic_AL"+str(0.1e-3)+"_GA"+str(0.99)+"_"+gym_name)
+onestep_AC.train(maxEpisodes=3000, testPer=1)

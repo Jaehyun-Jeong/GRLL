@@ -78,7 +78,7 @@ class DQN(ValueBased):
             'tag': "DQN"
         },
         policy={
-            'train': 'eps-stochastic',
+            'train': 'eps-greedy',
             'test': 'stochastic'
         },
     ):
@@ -100,9 +100,6 @@ class DQN(ValueBased):
             policy=policy
         )
         
-        print(self.useTrainEps)
-        print("==========================================")
-
         self.replayMemory = ReplayMemory(maxMemory)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -192,8 +189,8 @@ class DQN(ValueBased):
                     self.writeTensorboard(returns[-1], i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-                    print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+                    
+                    self.printResult(i_episode + 1, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

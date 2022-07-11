@@ -1,4 +1,6 @@
 
+from datetime import datetime
+
 class RL():
 
     def __init__(
@@ -14,6 +16,7 @@ class RL():
         tensorboardParams,
     ):
 
+        # init parameters
         self.env = env 
         self.model = model
         self.optimizer = optimizer
@@ -22,6 +25,10 @@ class RL():
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
+
+        # check the time spent
+        self.timeStart = datetime.now()
+        self.timePrevStep = datetime.now()
 
         # init Summary Writer
         if self.useTensorboard:
@@ -78,12 +85,25 @@ class RL():
 
         return averagedReturn
 
-    '''
-    @staticmethod
-    def print_result(*params):
-        print("Episode: {0:<10} return: {1:<10}".format(i_episode + 1, returns[-1]))
+    def printResult(self, episode, averagedReturn):
+        print("| Episode: {0:10} | Averaged Return: {1:10} | Time/step: {2:25} | Time spent: {3:<25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart)))
+        print("+" + '-'*21 + "+" + '-'*29 + "+" + '-'*38 + "+" + '-'*39 + "+")
+        self.timePrevStep = datetime.now()
 
-    def save(self, saveDir, ):
+    def save(self, saveDir: str = str(datetime)+".obj"):
 
-    def load(self, )
-    '''
+        import cPickle
+
+        file = open(saveDir, 'w')
+        file.write(cPickle.dumps(self.__dict__))
+        file.close()
+
+    def load(self, loadDir):
+
+        import cPickle
+
+        file = open(loadDir, 'r')
+        dataPickle = file.read()
+        file.close()
+
+        self.__dict__ = cPickle.loads(dataPickle)

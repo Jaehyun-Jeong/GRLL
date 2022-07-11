@@ -30,24 +30,18 @@ class ActorCritic(RL):
     '''
 
     def __init__(
-        self, 
-        device, 
-        env, 
+        self,
+        env,
         model,
         optimizer,
+        device,
+        maxTimesteps,
+        discount_rate,
+        eps,
         isRender,
         useTensorboard,
         tensorboardParams,
         policy,
-        maxTimesteps=1000,
-        maxMemory=10000,
-        discount_rate=0.99,
-        numBatch=64,
-        eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        },
     ):
 
         # init parameters 
@@ -56,13 +50,14 @@ class ActorCritic(RL):
             env = env,
             model = model,
             optimizer = optimizer,
-            isRender=isRender,
-            useTensorboard=useTensorboard,
-            tensorboardParams=tensorboardParams,
-            policy=policy
+            eps = eps,
+            isRender = isRender,
+            useTensorboard = useTensorboard,
+            tensorboardParams = tensorboardParams,
+            policy = policy
         )
-
-        self.maxTimesteps = maxTimesteps 
+        
+        self.maxTimesteps = maxTimesteps
         self.discount_rate = discount_rate
         self.steps_done = 0 # for epsilon scheduling
         

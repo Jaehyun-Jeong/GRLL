@@ -43,5 +43,5 @@ REINFORCE_parameters= {
 RF = REINFORCE(**REINFORCE_parameters)
 
 # TRAIN Agent
-RF.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="REINFORCE_noBASELINE_"+gym_name)
+RF.train(MAX_EPISODES, testPer=1)
 
