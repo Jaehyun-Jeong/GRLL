@@ -40,31 +40,38 @@ class onestep_ActorCritic(ActorCritic):
 
     def __init__(
         self, 
-        env, 
+        env,
         model,
         optimizer,
-        device="cpu", 
-        maxTimesteps=1000,
-        discount_rate=0.99,
-        eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
+        device,
+        eps,
+        maxTimesteps,
+        discount_rate,
+        isRender,
+        useTensorboard,
+        tensorboardParams={
+            'logdir': "./runs",
+            'tag': "ActorCritic/Returns"
         },
-        trainPolicy='eps-stochastic',
-        testPolicy='stochastic'
+        policy={
+            'train': 'eps-stochastic',
+            'test': 'stochastic'
+        },
     ):
 
+        # init parameters 
         super().__init__(
-            env=env, 
+            env=env,
             model=model,
             optimizer=optimizer,
-            device=device, 
+            device=device,
             maxTimesteps=maxTimesteps,
             discount_rate=discount_rate,
             eps=eps,
-            trainPolicy=trainPolicy,
-            testPolicy=testPolicy
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            policy=policy
         )
 
     # Update weights by using Actor Critic Method
@@ -96,23 +103,11 @@ class onestep_ActorCritic(ActorCritic):
         maxEpisodes, 
         testPer=10, 
         testSize=10,
-        isRender=False, 
-        useTensorboard=False, 
-        tensorboardTag="ActorCritic"
     ):
 
         try:
             returns = []
             
-            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            # TENSORBOARD
-            
-            if useTensorboard:
-                from torch.utils.tensorboard import SummaryWriter
-                writer = SummaryWriter()
-
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
             for i_episode in range(maxEpisodes):
                 
                 state = self.env.reset()
@@ -125,7 +120,7 @@ class onestep_ActorCritic(ActorCritic):
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
 
-                    if isRender:
+                    if self.isRender['train']:
                         env.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
@@ -154,8 +149,7 @@ class onestep_ActorCritic(ActorCritic):
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
-                    if useTensorboard:
-                        writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
+                    self.writeTensorboard(returns[-1], i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

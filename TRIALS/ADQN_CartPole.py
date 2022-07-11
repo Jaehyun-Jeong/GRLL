@@ -47,6 +47,11 @@ params_dict = {
         'start': 0.99,
         'end': 0.00001,
         'decay': 100000
+    },
+    'useTensorboard': True,
+    'tensorboardParams': {
+        'logdir': './runs/ADQN',
+        'tag': 'CartPole_Return'
     }
 }
 
@@ -54,4 +59,4 @@ params_dict = {
 averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
-averagedDQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="DQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
+averagedDQN.train(MAX_EPISODES, testPer=1)

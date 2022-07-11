@@ -4,16 +4,15 @@ import random
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 from copy import deepcopy
+from abc import abstractmethod
 
 # PyTorch
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-import torch.optim as optim
-from torch.autograd import Variable
 
-class ValueBased():
+from module.RL import RL
+
+class ValueBased(RL):
 
     '''
     param_dict = {
@@ -40,25 +39,31 @@ class ValueBased():
         env, 
         model, 
         optimizer, 
-        device="cpu", 
-        maxTimesteps=1000, 
-        maxMemory=10000, 
-        discount_rate=0.99,
-        numBatch=64,
-        eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        }, 
-        trainPolicy='eps-greedy',
-        testPolicy='greedy'
+        device, 
+        maxTimesteps,
+        maxMemory, 
+        discount_rate,
+        numBatch,
+        eps,
+        isRender,
+        useTensorboard,
+        tensorboardParams,
+        policy
     ):
 
         # init parameters 
-        self.device = device
-        self.env = env
-        self.model = model
-        self.optimizer = optimizer
+        super().__init__(
+            device = device,
+            env = env,
+            model = model,
+            optimizer = optimizer,
+            eps = eps,
+            policy = policy,
+            isRender = isRender,
+            useTensorboard = useTensorboard,
+            tensorboardParams = tensorboardParams 
+        )
+        
         self.maxTimesteps = maxTimesteps 
         self.maxMemory = maxMemory
         self.discount_rate = discount_rate
@@ -67,24 +72,6 @@ class ValueBased():
         
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
-
-        # select train, test policy
-        policyDict = {'greedy': [False, False], 'stochastic': [False, True], 'eps-greedy': [True, False], 'eps-stochastic': [True, True]} # [ useEpsilon, useStochastic ]
-
-        try:
-            trainPolicyList = policyDict[trainPolicy]
-            testPolicyList = policyDict[testPolicy]
-
-            if trainPolicyList[0] or testPolicyList[0]:
-                self.eps = eps
-
-            self.useTrainEps = trainPolicyList[0]
-            self.useTrainStochastic = trainPolicyList[1]
-            self.useTestEps = testPolicyList[0]
-            self.useTestStochastic = testPolicyList[1]
-
-        except: 
-            print("ERROR OCCURED : supported policies are 'greedy', 'eps-greedy', 'stochastic', and 'eps-stochastic'")
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
@@ -110,6 +97,7 @@ class ValueBased():
         return eps_threshold
 
     # Returns the action from state s by using multinomial distribution
+    @abstractmethod
     def get_action(self, s, useEps, useStochastic):
         with torch.no_grad():
             s = torch.tensor(s).to(self.device)
@@ -142,32 +130,3 @@ class ValueBased():
             maxValues = torch.max(values)
 
             return maxValues
-    
-    def test(self, isRender=False, testSize=10):
-        
-        returns = []
-
-        for testIdx in range(testSize):
-            state = self.env.reset()
-            done = False
-            rewards = []
-            for timesteps in range(self.maxTimesteps):
-                if isRender:
-                    self.env.render()
-
-                action = self.get_action(state, useEps=self.useTestEps, useStochastic=self.useTestStochastic)
-                next_state, reward, done, _ = self.env.step(action.tolist())
-
-                rewards.append(reward)
-                state = next_state
-
-                if done or timesteps == self.maxTimesteps-1:
-                    break
-            
-            returns.append(sum(rewards))
-        
-        averagedReward = sum(returns) / testSize
-
-        self.env.close()
-
-        return averagedReward

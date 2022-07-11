@@ -59,17 +59,28 @@ class DQN(ValueBased):
         model,
         optimizer,
         device='cpu',
-        maxTimesteps=1000,
-        maxMemory=10000,
-        discount_rate=0.99,
-        numBatch=64,
         eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
+            'start': 0.99,
+            'end': 0.0001,
+            'decay': 10000
         },
-        trainPolicy='eps-greedy',
-        testPolicy='greedy'
+        maxTimesteps=1000,
+        discount_rate=0.99,
+        maxMemory=10000,
+        numBatch=64,
+        isRender={
+            'train': False,
+            'test': False
+        }, 
+        useTensorboard=False,
+        tensorboardParams={
+            'logdir': "./runs",
+            'tag': "DQN"
+        },
+        policy={
+            'train': 'eps-stochastic',
+            'test': 'stochastic'
+        },
     ):
 
         # init parameters 
@@ -83,10 +94,15 @@ class DQN(ValueBased):
             discount_rate=discount_rate,
             numBatch=numBatch,
             eps=eps,
-            trainPolicy=trainPolicy,
-            testPolicy=testPolicy
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            policy=policy
         )
         
+        print(self.useTrainEps)
+        print("==========================================")
+
         self.replayMemory = ReplayMemory(maxMemory)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -126,18 +142,15 @@ class DQN(ValueBased):
 
         self.steps_done += 1
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="DQN"):
+    def train(
+        self, 
+        maxEpisodes, 
+        testPer=10, 
+        testSize=10,
+    ):
+
         try:
             returns = []
-
-            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            # TENSORBOARD
-            
-            if useTensorboard:
-                from tensorboardX import SummaryWriter
-                self.writer = SummaryWriter()
-
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):
 
@@ -151,7 +164,7 @@ class DQN(ValueBased):
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
 
-                    if isRender:
+                    if self.isRender['train']:
                        self.env.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
@@ -170,14 +183,13 @@ class DQN(ValueBased):
                 #==========================================================================
                 if (i_episode+1) % testPer == 0: 
 
-                    cumulative_rewards = self.test()
+                    cumulative_rewards = self.test(testSize=testSize)
                     returns.append(cumulative_rewards)
 
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
-                    if useTensorboard:
-                        self.writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
+                    self.writeTensorboard(returns[-1], i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

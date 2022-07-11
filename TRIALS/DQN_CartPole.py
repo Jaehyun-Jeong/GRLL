@@ -7,8 +7,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from DQN.models import ANN_V2
-from DQN.DQN import DQN
+from module.ValueBased.models import ANN_V2
+from module.ValueBased import DQN
 
 # Environment 
 import gym
@@ -42,7 +42,6 @@ params_dict = {
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
-    'epsilon': epsilon,
     'maxMemory': MAX_REPLAYMEMORY,
     'numBatch': 64,
     'eps': { # for epsilon scheduling
@@ -56,4 +55,4 @@ params_dict = {
 DeepQN = DQN(**params_dict)
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="DQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
+DeepQN.train(MAX_EPISODES, testPer=1)

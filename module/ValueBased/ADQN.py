@@ -57,37 +57,50 @@ class ADQN(ValueBased):
 
     def __init__(
         self, 
-        env, 
-        model, 
-        optimizer, 
-        device="cpu", 
-        maxTimesteps=1000, 
-        maxMemory=10000, 
-        discount_rate=0.99, 
-        numBatch=64,
+        env,
+        model,
+        optimizer,
+        device='cpu',
         eps={
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
+            'start': 0.99,
+            'end': 0.0001,
+            'decay': 10000
         },
-        trainPolicy='eps-greedy',
-        testPolicy='greedy',
+        maxTimesteps=1000,
+        discount_rate=0.99,
+        maxMemory=10000,
+        numBatch=64,
+        isRender={
+            'train': False,
+            'test': False
+        }, 
+        useTensorboard=False,
+        tensorboardParams={
+            'logdir': "./runs",
+            'tag': "DQN"
+        },
+        policy={
+            'train': 'eps-stochastic',
+            'test': 'stochastic'
+        },
         numPrevModels=10
     ):
 
         # init parameters 
         super().__init__(
-            device = device,
-            env = env,
-            model = model,
-            optimizer = optimizer,
-            maxTimesteps = maxTimesteps, 
-            maxMemory = maxMemory,
-            discount_rate = discount_rate,
-            numBatch = numBatch,
-            eps = eps,
-            trainPolicy='eps-greedy',
-            testPolicy='greedy'
+            env=env,
+            model=model,
+            optimizer=optimizer,
+            device=device,
+            maxTimesteps=maxTimesteps,
+            maxMemory=maxMemory,
+            discount_rate=discount_rate,
+            numBatch=numBatch,
+            eps=eps,
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            policy=policy
         )
         
         self.replayMemory = ReplayMemory(maxMemory)
@@ -142,19 +155,15 @@ class ADQN(ValueBased):
 
         self.steps_done += 1
 
-    def train(self, maxEpisodes, testPer=10, isRender=False, useTensorboard=False, tensorboardTag="DQN"):
+    def train(
+        self, 
+        maxEpisodes, 
+        testPer=10, 
+        testSize=10,
+    ):
         try:
             returns = []
             self.prevModels.append(deepcopy(self.model)) # save initial model
-
-            #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            # TENSORBOARD
-            
-            if useTensorboard:
-                from tensorboardX import SummaryWriter
-                self.writer = SummaryWriter()
-
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             for i_episode in range(maxEpisodes):
 
@@ -168,7 +177,7 @@ class ADQN(ValueBased):
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
 
-                    if isRender:
+                    if self.isRender['train']:
                        self.env.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
@@ -188,14 +197,13 @@ class ADQN(ValueBased):
                 #==========================================================================
                 if (i_episode+1) % testPer == 0: 
 
-                    cumulative_rewards = self.test()
+                    cumulative_rewards = self.test(testSize=testSize)
                     returns.append(cumulative_rewards)
 
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
-                    if useTensorboard:
-                        self.writer.add_scalars("Returns", {tensorboardTag: returns[-1]}, i_episode+1)
+                    self.writeTensorboard(returns[-1], i_episode+1)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
