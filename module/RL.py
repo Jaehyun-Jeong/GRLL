@@ -86,7 +86,8 @@ class RL():
         return averagedReturn
 
     def printResult(self, episode, averagedReturn):
-        print("| Episode: {0:10} | Averaged Return: {1:10} | Time/step: {2:25} | Time spent: {3:<25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart)))
+        print("| Episode: {0:>10} | Averaged Return: {1:>10} | Time/step: {2:>25} | Time spent: {3:>25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart)))
+        
         print("+" + '-'*21 + "+" + '-'*29 + "+" + '-'*38 + "+" + '-'*39 + "+")
         self.timePrevStep = datetime.now()
 
