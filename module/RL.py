@@ -101,7 +101,7 @@ class RL():
 
     def load(self, loadDir):
 
-        import cPickle
+        import pickle
 
         file = open(loadDir, 'rb')
         dataPickle = file.read()
