@@ -93,10 +93,10 @@ class RL():
 
     def save(self, saveDir: str = str(datetime)+".obj"):
 
-        import cPickle
+        import pickle
 
         file = open(saveDir, 'w')
-        file.write(cPickle.dumps(self.__dict__))
+        file.write(pickle.dumps(self.__dict__))
         file.close()
 
     def load(self, loadDir):
@@ -107,4 +107,4 @@ class RL():
         dataPickle = file.read()
         file.close()
 
-        self.__dict__ = cPickle.loads(dataPickle)
+        self.__dict__ = pickle.loads(dataPickle)
