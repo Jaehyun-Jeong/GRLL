@@ -31,6 +31,6 @@ AC = onestep_ActorCritic(
 AC.load("./saved_models/test.obj")
 
 # 테스트
-AC.isRender['test'] = True
+AC.isRender['test'] = True # 환경을 출력하도록 변경
 AC.test(testSize=10)
 
