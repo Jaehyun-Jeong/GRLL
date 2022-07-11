@@ -29,3 +29,6 @@ AC = onestep_ActorCritic(
 
 # 학습진행
 AC.train(maxEpisodes = 500)
+
+# 클래스 저장
+AC.save("./saved_model/test.obj")
