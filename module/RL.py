@@ -85,19 +85,33 @@ class RL():
 
         return averagedReturn
 
-    def printResult(self, episode, averagedReturn):
-        print("| Episode: {0:>10} | Averaged Return: {1:>10} | Time/step: {2:>25} | Time spent: {3:>25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart)))
-        
-        print("+" + '-'*21 + "+" + '-'*29 + "+" + '-'*38 + "+" + '-'*39 + "+")
+    def printResult(self, episode: int, averagedReturn: float):
+        results = "| Episode: {0:>10} | Averaged Return: {1:>10} | Time/step: {2:>25} | Time spent: {3:>25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart))
+
+        print(results)
+
+        splited = results.split('|')[1:-1]
+        frameString = "+"
+
+        for split in splited:
+            frameString += "-"*len(split) + "+"
+
+        print(frameString)
+
         self.timePrevStep = datetime.now()
 
     def save(self, saveDir: str = str(datetime)+".obj"):
 
         import pickle
 
+        save_dict = self.__dict__
+        # belows are impossible to dump
+        save_dict.pop('tensorboardWriter', None)
+
         file = open(saveDir, 'wb')
         file.write(pickle.dumps(self.__dict__))
         file.close()
+
 
     def load(self, loadDir):
 

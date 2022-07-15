@@ -8,19 +8,19 @@ import torch.optim as optim
 
 # import model
 from module.ValueBased.models import ANN_V2
-from module.ValueBased.ADQN import ADQN
+from module.ValueBased import ADQN
 
 # Environment 
 import gym
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 5
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
 
-gym_name = 'CartPole-v0'
+gym_name = 'CartPole-v1'
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -60,3 +60,5 @@ averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
 averagedDQN.train(MAX_EPISODES, testPer=1)
+
+averagedDQN.save("./saved_models/ADQN_CartPole.obj")

@@ -13,7 +13,7 @@ from module.ValueBased import DQN
 # Environment 
 import gym
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 5000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
@@ -21,7 +21,7 @@ ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
 epsilon = 0.3
 
-gym_name = 'CartPole-v0'
+gym_name = 'CartPole-v1'
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,3 +56,5 @@ DeepQN = DQN(**params_dict)
 
 # TRAIN Agent
 DeepQN.train(MAX_EPISODES, testPer=1)
+
+DeepQN.save("./saved_models/DQN_CartPole.obj")

@@ -105,8 +105,7 @@ class ADQN(ValueBased):
         
         self.replayMemory = ReplayMemory(maxMemory)
 
-        # save last K previously learned Q-networks 
-        self.kFold = numPrevModels
+        # save last K previously learned Q-networks
         self.prevModels = deque([], maxlen=numPrevModels)
 
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
@@ -115,18 +114,15 @@ class ADQN(ValueBased):
     # action seleted from previous K models by averaging it
     @abstractmethod
     def value(self, s):
-        with torch.no_grad():
 
-            prevModels = list(self.prevModels)
+        values = self.model.forward(s)
+        for model in list(self.prevModels)[:-1]: # last model is equal to self.model
+            values += model.forward(s)
+        
+        values = values / len(self.prevModels)
+        values = torch.squeeze(values, 0)
 
-            values = self.model.forward(s)
-            for model in prevModels[:-1]: # last model is equal to self.model
-                values += self.model.forward(s)
-            
-            values = values / len(self.prevModels)
-            values = torch.squeeze(values, 0)
-
-            return values
+        return values
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -267,4 +263,3 @@ if __name__ == "__main__":
 
     # TRAIN Agent
     averagedDQN.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")
-
