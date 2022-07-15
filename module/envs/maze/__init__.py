@@ -1,2 +1,2 @@
-from . import Maze_Generator
-from . import Maze_Solver
+from .Maze_Generator import *
+from .Maze_Solver import *

@@ -60,7 +60,7 @@ class ADQN(ValueBased):
         env,
         model,
         optimizer,
-        device='cpu',
+        device=torch.device('cpu'),
         eps={
             'start': 0.99,
             'end': 0.0001,

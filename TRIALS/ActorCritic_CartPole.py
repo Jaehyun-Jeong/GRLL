@@ -1,13 +1,12 @@
 import sys
 sys.path.append("../") # to import module
-from itertools import product
 
 # PyTorch
 import torch
 import torch.optim as optim
 
 # import model
-from module.ActorCritic.models import ANN_V2
+from module.ActorCritic.models import ANN_V1
 from module.ActorCritic import onestep_ActorCritic
 
 # Environment 
@@ -23,7 +22,8 @@ env = gym.make(gym_name)
 # set ActorCritic
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
-ActorCritic_model = ANN_V2(num_states, num_actions).to(device)
+
+ActorCritic_model = ANN_V1(num_states, num_actions).to(device)
 optimizer = optim.Adam(ActorCritic_model.parameters(), lr=0.1e-3)
 
 # Initialize Actor-Critic Mehtod

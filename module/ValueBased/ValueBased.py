@@ -98,28 +98,28 @@ class ValueBased(RL):
 
     # Returns the action from state s by using multinomial distribution
     @abstractmethod
+    @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            probs = self.value(s)
+        s = torch.tensor(s).to(self.device)
+        probs = self.value(s)
 
-            eps = self.__get_eps() if useEps else 0
-            
-            if random.random() >= eps:
-                if useStochastic:
-                    probs = self.softmax(probs)
+        eps = self.__get_eps() if useEps else 0
+        
+        if random.random() >= eps:
+            if useStochastic:
+                probs = self.softmax(probs)
 
-                    a = probs.multinomial(num_samples=1) 
-                    a = a.data
-                    action = a[0]
-                else:
-                    action = torch.argmax(probs, dim=0)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
+                a = probs.multinomial(num_samples=1) 
                 a = a.data
                 action = a[0]
+            else:
+                action = torch.argmax(probs, dim=0)
+        else:
+            a = torch.rand(probs.shape).multinomial(num_samples=1)
+            a = a.data
+            action = a[0]
 
-            return action
+        return action
 
     # Returns a value of the state (state value function in Reinforcement learning)
     def max_value(self, s):

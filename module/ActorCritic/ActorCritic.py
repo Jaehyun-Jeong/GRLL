@@ -86,29 +86,30 @@ class ActorCritic(RL):
     
     # Returns the action from state s by using multinomial distribution
     @abstractmethod
+    @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
-        with torch.no_grad():
-            s = torch.tensor(s).to(self.device)
-            _, probs = self.model.forward(s)
-            probs = torch.squeeze(probs, 0)
 
-            eps = self.__get_eps() if useEps else 0
-            
-            if random.random() >= eps:
-                if useStochastic:
-                    probs = self.softmax(probs)
+        s = torch.tensor(s).to(self.device)
+        _, probs = self.model.forward(s)
+        probs = torch.squeeze(probs, 0)
 
-                    a = probs.multinomial(num_samples=1) 
-                    a = a.data
-                    action = a[0]
-                else:
-                    action = torch.argmax(probs, dim=0)
-            else:
-                a = torch.rand(probs.shape).multinomial(num_samples=1)
+        eps = self.__get_eps() if useEps else 0
+
+        if random.random() >= eps:
+            if useStochastic:
+                probs = self.softmax(probs)
+
+                a = probs.multinomial(num_samples=1) 
                 a = a.data
                 action = a[0]
+            else:
+                action = torch.argmax(probs, dim=0)
+        else:
+            a = torch.rand(probs.shape).multinomial(num_samples=1)
+            a = a.data
+            action = a[0]
 
-            return action
+        return action
   
     # Returns a value of the state (state value function in Reinforcement learning)
     def value(self, s):

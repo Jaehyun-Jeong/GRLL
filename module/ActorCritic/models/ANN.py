@@ -17,8 +17,9 @@ class ANN_V1(nn.Module):
         self.critic_fc2 = nn.Linear(256, 1)
         
     def forward(self, x):
-        state = x
-
+        
+        state = x.to(torch.float32)
+        
         probs = F.relu(self.actor_fc1(state))
         probs = self.head(self.actor_fc2(probs))
 
