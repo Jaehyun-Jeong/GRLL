@@ -4,17 +4,19 @@ class linetrace:
 
     def __init__(self):
         self.LINE_COUNT = 8
-        self.LINE_LEN = 50
+        self.LINE_LEN = 100
         self.GREEN = (0, 255, 0)
         
     def draw(self, win, start_pos, degree):
 
-        radian = math.radians(degree)        
-        end_x = start_pos[0] + self.LINE_LEN * -math.sin(radian)
-        end_y = start_pos[1] + self.LINE_LEN * -math.cos(radian)
-        end_pos = (end_x, end_y)
+        for lineNum in range(self.LINE_COUNT):
 
-        pygame.draw.line(win, self.GREEN, start_pos, end_pos, 5)
+            radian = math.radians(degree + lineNum*45)
+            end_x = start_pos[0] + self.LINE_LEN * -math.sin(radian)
+            end_y = start_pos[1] + self.LINE_LEN * -math.cos(radian)
+            end_pos = (end_x, end_y)
+
+            pygame.draw.line(win, self.GREEN, start_pos, end_pos, 3)
 
 def env_collision(player_car, computer_car, game_info):
     if player_car.collide(TRACK_BORDER_MASK) != None:
