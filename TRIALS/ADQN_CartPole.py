@@ -13,7 +13,7 @@ from module.ValueBased import ADQN
 # Environment 
 import gym
 
-MAX_EPISODES = 5
+MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
@@ -51,7 +51,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': './runs/ADQN',
-        'tag': 'CartPole_Return'
+        'tag': 'CartPole'
     }
 }
 
