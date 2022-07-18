@@ -1,16 +1,13 @@
 
-import sys
-sys.path.append("../") # to import module
-
-# Environment 
+import mujoco_py
 import gym
 
-# set environment
-env = gym.make(gym_name)
+import os
+os.environ.get("LD_LIBRARY_PATH", "")
 
+env = gym.make("HalfCheetah-v2")
 env.reset()
-for i in range(100):
-    env.step(0) 
-    env.render()
 
-env.close()
+for i in range(100):
+    env.step(env.action_space.sample())
+    env.render()
