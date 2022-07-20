@@ -4,7 +4,7 @@ import math
 from utils import scale_image, blit_rotate_center, blit_text_center
 pygame.font.init()
 
-GRASS = scale_image(pygame.image.load("./imgs/grass.jpg"), 2.5)
+GRASS = scale_image(pygame.image.load("./imgs/grass.png"), 2.5)
 TRACK = scale_image(pygame.image.load("./imgs/track.png"), 0.9)
 
 TRACK_BORDER = scale_image(pygame.image.load("./imgs/track-border.png"), 0.9)

@@ -54,7 +54,7 @@ def env_collision(player_car, computer_car, game_info, lines):
     for hit_point in hit_points:
         car_center = player_car.rect.center
         relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
-        dists.append((relative_point[0]**2 + relative_point[1]**2)**(1/2))
+        dists.append(round((relative_point[0]**2 + relative_point[1]**2)**(1/2),2))
 
     print(dists)
     print("==================================================================")
