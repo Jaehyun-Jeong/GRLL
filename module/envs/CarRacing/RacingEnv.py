@@ -1,24 +1,64 @@
 from main import *
+from collections import deque
 
-class linetrace:
+class lines():
 
-    def __init__(self):
-        self.LINE_COUNT = 8
+    def __init__(self, win):
         self.LINE_LEN = 100
         self.GREEN = (0, 255, 0)
-        
-    def draw(self, win, start_pos, degree):
+        self.BLUE = (0, 0, 255)
 
-        for lineNum in range(self.LINE_COUNT):
+        # 8 lines
+        self.DEGREES = [45*i for i in range(8)]
+        self.hit_points = deque([], maxlen=8)
 
-            radian = math.radians(degree + lineNum*45)
-            end_x = start_pos[0] + self.LINE_LEN * -math.sin(radian)
-            end_y = start_pos[1] + self.LINE_LEN * -math.cos(radian)
+        self.surface = win
+
+    def draw(self, win, mask, start_pos, degree):
+
+        for line_degree in self.DEGREES:
+
+            radian = math.radians(degree + line_degree)
+
+            end_x = self.LINE_LEN * -math.sin(radian)
+            end_y = self.LINE_LEN * -math.cos(radian)
             end_pos = (end_x, end_y)
+            
+            is_hit = False
+            for length_mag in range(1000):
+                line_mag = (length_mag+1) / 1000
+                test_pos = (line_mag*end_pos[0]+start_pos[0], line_mag*end_pos[1]+start_pos[1])
+                if mask.get_at(test_pos):
+                    end_pos = test_pos
+                    is_hit = True
+                    break
 
-            pygame.draw.line(win, self.GREEN, start_pos, end_pos, 3)
+            if not is_hit:
+                end_pos = (end_x+start_pos[0], end_y+start_pos[1])
+            else:
+                pygame.draw.circle(self.surface, self.BLUE, end_pos, 3)
 
-def env_collision(player_car, computer_car, game_info):
+            self.hit_points.append(end_pos)
+            pygame.draw.line(self.surface, self.GREEN, start_pos, end_pos, 1)
+
+        win.blit(self.surface, self.surface.get_rect())
+    
+    def collide(self):
+        return list(self.hit_points)
+
+def env_collision(player_car, computer_car, game_info, lines):
+
+    # line collider
+    hit_points = lines.collide()
+    dists = []
+    for hit_point in hit_points:
+        car_center = player_car.rect.center
+        relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
+        dists.append((relative_point[0]**2 + relative_point[1]**2)**(1/2))
+
+    print(dists)
+    print("==================================================================")
+
     if player_car.collide(TRACK_BORDER_MASK) != None:
         blit_text_center(WIN, MAIN_FONT, "You lost!")
         pygame.display.update()
@@ -39,7 +79,6 @@ def env_collision(player_car, computer_car, game_info):
         if player_finish_poi_collide[1] == 0:
             blit_text_center(WIN, MAIN_FONT, "You lost!")
             pygame.display.update()
-            pygame.time.wait(5000)
             game_info.reset()
             player_car.reset()
             computer_car.reset()
@@ -48,14 +87,7 @@ def env_collision(player_car, computer_car, game_info):
             player_car.reset()
             computer_car.next_level(game_info.level)
 
-def get_center_pos(player_car):
-    rect = player_car.rect
-    x = (rect.topleft[0] - rect.bottomright[0])/2 + rect.bottomright[0]
-    y = (rect.topleft[1] - rect.bottomright[1])/2 + rect.bottomright[1]
-
-    return x, y
-
-def draw_env(win, images, player_car, computer_car, game_info, linetrace):
+def draw_env(win, images, player_car, computer_car, game_info, lines):
     for img, pos in images:
         win.blit(img, pos)
 
@@ -70,8 +102,29 @@ def draw_env(win, images, player_car, computer_car, game_info, linetrace):
 
     player_car.draw(win)
     computer_car.draw(win)
+    
+    lines.draw(win, TRACK_BORDER_MASK, player_car.rect.center, player_car.angle)
 
-    linetrace.draw(WIN, get_center_pos(player_car), player_car.angle)
+    '''
+    #===============================================================================
+    #TEST
+
+    # line collider
+    hit_point = lines.collide(TRACK_BORDER_MASK)
+    if hit_point != None:
+        relative_point = (hit_point[0]-player_car.x, hit_point[1]-player_car.y)
+        dist = (relative_point[0]**2 + relative_point[1]**2)**(1/2)
+
+        print(hit_point)
+        print(dist)
+        print(type(dist))
+        print("==================================================================")
+
+        pygame.draw.circle(win, (255, 0, 0), hit_point, 5)
+
+    #===============================================================================
+    '''
+
     pygame.display.update()
 
 run = True
@@ -79,11 +132,14 @@ images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BO
 player_car = PlayerCar(4, 4)
 computer_car = ComputerCar(2, 4, PATH)
 game_info = GameInfo()
-line = linetrace()
+
+# make line
+lines = lines(WIN)
+
 
 while run:
     
-    draw_env(WIN, images, player_car, computer_car, game_info, line)
+    draw_env(WIN, images, player_car, computer_car, game_info, lines)
 
     while not game_info.started:
         blit_text_center(WIN, MAIN_FONT, f"Press any key to start level {game_info.level}!")
@@ -98,7 +154,7 @@ while run:
     move_player(player_car)
     computer_car.move()
 
-    env_collision(player_car, computer_car, game_info)
+    env_collision(player_car, computer_car, game_info, lines)
 
     if game_info.game_finished():
         blit_text_center(win, MAIN_FONT, "You won the game!")

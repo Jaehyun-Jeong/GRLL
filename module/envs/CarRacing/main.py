@@ -87,15 +87,16 @@ class AbstractCar:
         radians = math.radians(self.angle)
         vertical = math.cos(radians) * self.vel
         horizontal = math.sin(radians) * self.vel
-
+        
         self.y -= vertical 
         self.x -= horizontal
 
     def collide(self, mask, x=0, y=0):
+
         car_mask = pygame.mask.from_surface(self.img)
         offset = (int(self.x - x), int(self.y - y))
         poi = mask.overlap(car_mask, offset)
-        return poi 
+        return poi
 
     def reset(self):
         self.x, self.y = self.START_POS
@@ -125,7 +126,7 @@ class ComputerCar(AbstractCar):
         self.vel = max_vel
 
     def draw_points(sefl, win):
-        for point in sefl.path:
+        for point in self.path:
             pygame.draw.circle(win, (255, 0, 0), point, 5)
 
     def draw(self, win):
@@ -161,7 +162,7 @@ class ComputerCar(AbstractCar):
 
     def move(self):
         if self.current_point >= len(self.path):
-            return 
+            return
 
         self.calculate_angle()
         self.update_path_point()
