@@ -48,12 +48,14 @@ params_dict = {
         'end': 0.00001,
         'decay': 100000
     },
-    'trainPolicy': 'eps-stochastic',
-    'testPolicy': 'stochastic'
+    'policy': {
+        'train': 'eps-stochastic',
+        'test': 'stochastic',
+    }
 }
 
 # Initialize Actor-Critic Mehtod
 averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
-averagedDQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="ADQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
+averagedDQN.train(MAX_EPISODES, testPer=1)
