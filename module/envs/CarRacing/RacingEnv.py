@@ -123,7 +123,7 @@ def draw_env(win, images, player_car, computer_car, game_info, lines):
     #===============================================================================
     '''
 
-    pygame.display.update()
+    #pygame.display.update()
 
 class RacingEnv_v0():
     
@@ -162,14 +162,14 @@ class RacingEnv_v0():
         return next_state, reward, done, action 
 
     def render(self):
-        pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+        #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
 
     def reset(self):
-        pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+        #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
         self.game_info.reset()
         self.player_car.reset()
         self.computer_car.reset()
-        pygame.display.update()
+        #pygame.display.update()
 
         initial_state = self.__line_collide()
         
