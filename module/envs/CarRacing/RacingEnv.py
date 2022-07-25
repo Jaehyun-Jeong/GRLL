@@ -1,7 +1,8 @@
-from main import *
 from collections import deque
+import torch
+from module.envs.CarRacing.main import *
 
-class lines():
+class Lines():
 
     def __init__(self, win):
         self.LINE_LEN = 100
@@ -55,9 +56,6 @@ def env_collision(player_car, computer_car, game_info, lines):
         car_center = player_car.rect.center
         relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
         dists.append(round((relative_point[0]**2 + relative_point[1]**2)**(1/2),2))
-
-    print(dists)
-    print("==================================================================")
 
     if player_car.collide(TRACK_BORDER_MASK) != None:
         blit_text_center(WIN, MAIN_FONT, "You lost!")
@@ -127,40 +125,115 @@ def draw_env(win, images, player_car, computer_car, game_info, lines):
 
     pygame.display.update()
 
-run = True
-images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
-player_car = PlayerCar(4, 4)
-computer_car = ComputerCar(2, 4, PATH)
-game_info = GameInfo()
-
-# make line
-lines = lines(WIN)
-
-
-while run:
+class RacingEnv_v0():
     
-    draw_env(WIN, images, player_car, computer_car, game_info, lines)
+    def __init__(self):
 
-    while not game_info.started:
-        blit_text_center(WIN, MAIN_FONT, f"Press any key to start level {game_info.level}!")
+        self.run = True
+        self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
+        self.player_car = PlayerCar(4, 4)
+        self.computer_car = ComputerCar(2, 4, PATH)
+        self.game_info = GameInfo()
+
+        # make line
+        self.lines = Lines(WIN)
+
+        # Number of actions and observations
+        # There are 2 actions left and right, and 8 lines to check distance to wall
+        self.num_actions = 2
+        self.num_obs = 8
+
+        self.game_info.start_level()
+        draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
+        
+        # reward
+        self._reward = 0
+
+    def step(self, action: torch.tensor):
+
+        self.__move(action)
+        self.computer_car.move()
+
+        next_state = self.__line_collide()
+        done, reward = self.__done_reward()
+
+        draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
+
+        return next_state, reward, done, action 
+
+    def render(self):
+        pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+
+    def reset(self):
+        pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+        self.game_info.reset()
+        self.player_car.reset()
+        self.computer_car.reset()
         pygame.display.update()
-        game_info.start_level()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-            break
+        initial_state = self.__line_collide()
+        
+        return initial_state
 
-    move_player(player_car)
-    computer_car.move()
+    def close(self):
+        pygame.quit()
 
-    env_collision(player_car, computer_car, game_info, lines)
+    def __move(self, action: torch.tensor):
 
-    if game_info.game_finished():
-        blit_text_center(win, MAIN_FONT, "You won the game!")
-        pygame.time.wait(5000)
-        game_info.reset()
-        player_car.reset()
-        computer_car.reset()
+        if action == 0: # left
+            self.player_car.rotate(left=True)
+        elif action == 1: # right 
+            self.player_car.rotate(right=True)
+        else:
+            raise ValueError("Action is out of bound!")
 
-pygame.quit()
+        self.player_car.move_forward()
+
+    def __line_collide(self):
+
+        # line collider
+        hit_points = self.lines.collide()
+        dists = []
+        for hit_point in hit_points:
+            car_center = self.player_car.rect.center
+            relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
+            dists.append((relative_point[0]**2 + relative_point[1]**2)**(1/2))
+
+        return dists
+
+    def __done_reward(self):
+
+        done = False
+        reward = -0.004 # Every step it have -0.04 reward 
+        
+        if self.player_car.collide(TRACK_BORDER_MASK) != None:
+            done = True
+            reward -= 1
+
+        computer_finish_poi_collide = self.computer_car.collide(FINISH_MASK, *FINISH_POSITION)
+        if computer_finish_poi_collide != None:
+            done = True
+            reward -= 1
+
+        player_finish_poi_collide = self.player_car.collide(FINISH_MASK, *FINISH_POSITION)
+        if player_finish_poi_collide != None:
+            done = True
+            if player_finish_poi_collide[1] == 0:
+                reward -= 1
+            else:
+                reward += 1
+        
+        return done, reward
+
+if __name__=="__main__":
+    RacingEnv = RacingEnv_v0()
+
+    for i in range(1000):
+        print(RacingEnv.step(0))
+
+    RacingEnv.reset()
+
+    for i in range(1000):
+        print(RacingEnv.step(1))
+
+    RacingEnv.close()

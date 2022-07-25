@@ -128,7 +128,7 @@ class onestep_ActorCritic(ActorCritic):
                 for timesteps in range(self.maxTimesteps):
 
                     if self.isRender['train']:
-                        env.render()
+                        self.env.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.env.step(action.tolist())

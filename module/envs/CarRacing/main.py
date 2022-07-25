@@ -1,24 +1,28 @@
 import pygame
 import time
 import math
-from utils import scale_image, blit_rotate_center, blit_text_center
+from module.envs.CarRacing.utils import scale_image, blit_rotate_center, blit_text_center
+
+import os.path as path
+root_dir = path.dirname(path.abspath(__file__))
+
 pygame.font.init()
 
-GRASS = scale_image(pygame.image.load("./imgs/grass.png"), 2.5)
-TRACK = scale_image(pygame.image.load("./imgs/track.png"), 0.9)
+GRASS = scale_image(pygame.image.load(root_dir + "/imgs/grass.png"), 2.5)
+TRACK = scale_image(pygame.image.load(root_dir + "/imgs/track.png"), 0.9)
 
-TRACK_BORDER = scale_image(pygame.image.load("./imgs/track-border.png"), 0.9)
+TRACK_BORDER = scale_image(pygame.image.load(root_dir + "/imgs/track-border.png"), 0.9)
 TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
-FINISH = pygame.image.load("./imgs/finish.png")
+FINISH = pygame.image.load(root_dir + "/imgs/finish.png")
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POSITION = (130, 250)
 
-RED_CAR = scale_image(pygame.image.load("./imgs/red-car.png"), 0.55)
-GREEN_CAR = scale_image(pygame.image.load("./imgs/green-car.png"), 0.55)
+RED_CAR = scale_image(pygame.image.load(root_dir + "/imgs/red-car.png"), 0.55)
+GREEN_CAR = scale_image(pygame.image.load(root_dir + "/imgs/green-car.png"), 0.55)
 
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+WIN = pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
 pygame.display.set_caption("Racing Game!")
 
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
@@ -31,6 +35,7 @@ class GameInfo:
     LEVELS = 10
 
     def __init__(self, level=1):
+
         self.level = level
         self.started = False
         self.level_start_time = 0

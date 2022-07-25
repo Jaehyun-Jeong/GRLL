@@ -81,8 +81,6 @@ class RL():
         
         averagedReturn = sum(returns) / testSize
 
-        self.env.close()
-
         return averagedReturn
 
     def printResult(self, episode: int, averagedReturn: float):
