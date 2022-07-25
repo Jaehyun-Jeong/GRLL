@@ -71,3 +71,8 @@ onestep_AC = onestep_ActorCritic(
 *학습시에는 렌더링 하지 않고, 테스트 때는 렌더링 한다.*
 
 ## 2.3 Exploring Starts 요소를 넣었다.
+
+**다음 사진에서 빨간 점이 있는 부분 중 렌덤으로 시작한다.**<br/>
+![](Exploring_Starts.png)<br/>
+
+이는 에이전트가 더 다양한 경험을 하게 만듦으로써 원활한 학습을 도와준다.

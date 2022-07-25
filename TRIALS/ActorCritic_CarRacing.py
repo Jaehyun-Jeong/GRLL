@@ -34,7 +34,7 @@ onestep_AC = onestep_ActorCritic(
     optimizer=optimizer,
     isRender={
         'train': False,
-        'test': False, 
+        'test': True, 
     },
     useTensorboard=True,
     tensorboardParams={
