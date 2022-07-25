@@ -47,44 +47,6 @@ class Lines():
     def collide(self):
         return list(self.hit_points)
 
-def env_collision(player_car, computer_car, game_info, lines):
-
-    # line collider
-    hit_points = lines.collide()
-    dists = []
-    for hit_point in hit_points:
-        car_center = player_car.rect.center
-        relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
-        dists.append(round((relative_point[0]**2 + relative_point[1]**2)**(1/2),2))
-
-    if player_car.collide(TRACK_BORDER_MASK) != None:
-        blit_text_center(WIN, MAIN_FONT, "You lost!")
-        pygame.display.update()
-        game_info.reset()
-        player_car.reset()
-        computer_car.reset()
-
-    computer_finish_poi_collide = computer_car.collide(FINISH_MASK, *FINISH_POSITION)
-    if computer_finish_poi_collide != None:
-        blit_text_center(WIN, MAIN_FONT, "You lost!")
-        pygame.display.update()
-        game_info.reset()
-        player_car.reset()
-        computer_car.reset()
-        
-    player_finish_poi_collide = player_car.collide(FINISH_MASK, *FINISH_POSITION)
-    if player_finish_poi_collide != None:
-        if player_finish_poi_collide[1] == 0:
-            blit_text_center(WIN, MAIN_FONT, "You lost!")
-            pygame.display.update()
-            game_info.reset()
-            player_car.reset()
-            computer_car.reset()
-        else:
-            game_info.next_level()
-            player_car.reset()
-            computer_car.next_level(game_info.level)
-
 def draw_env(win, images, player_car, computer_car, game_info, lines):
     for img, pos in images:
         win.blit(img, pos)
@@ -166,6 +128,11 @@ class RacingEnv_v0():
         pass
 
     def reset(self):
+
+        print("===============================================")
+        print(pygame.display)
+        print("===============================================")
+            
         #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
         self.game_info.reset()
         self.player_car.reset()
