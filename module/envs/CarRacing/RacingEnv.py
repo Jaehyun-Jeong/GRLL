@@ -107,8 +107,8 @@ class RacingEnv_v0():
     def render(self):
         try:
             pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
-        except RuntimeError:
-            print("No available display to render")
+        except:
+            raise RuntimeError("No available display to render")
 
     def reset(self):
         
