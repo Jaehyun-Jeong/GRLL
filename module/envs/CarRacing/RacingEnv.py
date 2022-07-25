@@ -77,6 +77,8 @@ class RacingEnv_v0():
         self.player_car = PlayerCar(4, 4)
         self.computer_car = ComputerCar(2, 4, PATH)
         self.game_info = GameInfo()
+        self.start_pos = (150, 200)
+        self.start_angle = 0
 
         # make line
         self.lines = Lines(WIN)
@@ -110,11 +112,17 @@ class RacingEnv_v0():
         except:
             raise RuntimeError("No available display to render")
 
-    def reset(self):
+    def reset(self, exploring_starts = True):
         
         self.game_info.reset()
-        self.player_car.reset()
         self.computer_car.reset()
+
+        if exploring_starts:
+            start_pos, start_angle = self.__get_random_pos_angle()
+            self.player_car.START_POS = start_pos
+            self.player_car.reset(start_angle)
+        else:
+            self.player_car.reset()
 
         if pygame.display.get_active():
             pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
@@ -126,6 +134,19 @@ class RacingEnv_v0():
 
     def close(self):
         pygame.quit()
+    
+    @staticmethod
+    def __get_random_pos_angle():
+        
+        import random
+            
+        PATH = [(150, 200), (175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
+                (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388)]
+        ANGLE = [0, 45, 30, 180, -135, -90, 0, -45, -90, -180, -134, -45, 45, 90, 45, -90, -45, 45, 90, 135, 135, 0]
+        
+        rand_ind = random.randint(0, len(PATH)-1)
+
+        return PATH[rand_ind], ANGLE[rand_ind]
 
     def __move(self, action: torch.tensor):
 

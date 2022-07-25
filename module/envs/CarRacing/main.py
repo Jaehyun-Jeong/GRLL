@@ -69,13 +69,13 @@ class GameInfo:
         return time.time() - self.level_start_time
 
 class AbstractCar:
-    def __init__(self, max_vel, rotation_vel):
+    def __init__(self, max_vel, rotation_vel, START_POS=(180, 200)):
         self.img = self.IMG
         self.max_vel = max_vel
         self.vel = 0
         self.rotation_vel = rotation_vel
         self.angle = 0
-        self.x, self.y = self.START_POS
+        self.x, self.y = START_POS
         self.acceleration = 0.1
 
     def rotate(self, left=False, right=False):
@@ -110,9 +110,9 @@ class AbstractCar:
         poi = mask.overlap(car_mask, offset)
         return poi
 
-    def reset(self):
+    def reset(self, angle=0):
         self.x, self.y = self.START_POS
-        self.angle = 0
+        self.angle = angle
         self.vel = 0
 
 class PlayerCar(AbstractCar):
