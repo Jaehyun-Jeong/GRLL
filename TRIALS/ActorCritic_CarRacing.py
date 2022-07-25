@@ -35,6 +35,11 @@ onestep_AC = onestep_ActorCritic(
     isRender={
         'train': False,
         'test': False, 
+    },
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "./runs/onestep_ActorCritic_CarRacing",
+        'tag': "Averaged Returns (from 10 tests)"     
     }
 )
 
