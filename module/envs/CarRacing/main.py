@@ -22,7 +22,14 @@ RED_CAR = scale_image(pygame.image.load(root_dir + "/imgs/red-car.png"), 0.55)
 GREEN_CAR = scale_image(pygame.image.load(root_dir + "/imgs/green-car.png"), 0.55)
 
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
-WIN = pygame.Surface((WIDTH, HEIGHT))
+
+# If there is no display device then pygame.display.set_mode make error
+# So It have to be done
+try:
+    WIN = pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+except:
+    WIN = pygame.Surface((WIDTH, HEIGHT))
+
 pygame.display.set_caption("Racing Game!")
 
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
