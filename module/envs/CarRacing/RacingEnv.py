@@ -65,27 +65,8 @@ def draw_env(win, images, player_car, computer_car, game_info, lines):
     
     lines.draw(win, TRACK_BORDER_MASK, player_car.rect.center, player_car.angle)
 
-    '''
-    #===============================================================================
-    #TEST
-
-    # line collider
-    hit_point = lines.collide(TRACK_BORDER_MASK)
-    if hit_point != None:
-        relative_point = (hit_point[0]-player_car.x, hit_point[1]-player_car.y)
-        dist = (relative_point[0]**2 + relative_point[1]**2)**(1/2)
-
-        print(hit_point)
-        print(dist)
-        print(type(dist))
-        print("==================================================================")
-
-        pygame.draw.circle(win, (255, 0, 0), hit_point, 5)
-
-    #===============================================================================
-    '''
-
-    #pygame.display.update()
+    if pygame.display.get_active():
+        pygame.display.update()
 
 class RacingEnv_v0():
     
@@ -124,20 +105,20 @@ class RacingEnv_v0():
         return next_state, reward, done, action 
 
     def render(self):
-        #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
-        pass
+        try:
+            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+        except RuntimeError:
+            print("No available display to render")
 
     def reset(self):
-
-        print("===============================================")
-        print(pygame.display)
-        print("===============================================")
-            
-        #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+        
         self.game_info.reset()
         self.player_car.reset()
         self.computer_car.reset()
-        #pygame.display.update()
+
+        if pygame.display.get_active():
+            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+            pygame.display.update()
 
         initial_state = self.__line_collide()
         
