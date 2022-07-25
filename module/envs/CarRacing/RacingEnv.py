@@ -163,6 +163,7 @@ class RacingEnv_v0():
 
     def render(self):
         #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+        pass
 
     def reset(self):
         #pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
