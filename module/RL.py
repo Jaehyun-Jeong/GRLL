@@ -105,6 +105,7 @@ class RL():
         save_dict = self.__dict__
         # belows are impossible to dump
         save_dict.pop('tensorboardWriter', None)
+        save_dict.pop('env', None)
 
         file = open(saveDir, 'wb')
         file.write(pickle.dumps(self.__dict__))

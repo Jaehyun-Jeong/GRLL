@@ -13,7 +13,8 @@ from module.ActorCritic import onestep_ActorCritic
 import gym
 
 # device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 
 # set environment
 gym_name = 'CartPole-v0'

@@ -55,4 +55,19 @@ onestep_AC.save("./saved_models/onestep_ActorCritic_RacingEnv_v0.obj")
 
 **렌더링은 학습의 속도를 줄인다. 따라서 렌더링 여부를 선택 할 수 있도록 코드를 수정했다.**
 
+**다음과 같이 모듈 초기화를 하면 된다.**<br/>
+```python
+# 강화학습 모듈 초기화
+onestep_AC = onestep_ActorCritic(
+    env=env,
+    model=ActorCritic_model,
+    optimizer=optimizer,
+    isRender={
+        'train': False,
+        'test': True,
+    }
+)
+```
+*학습시에는 렌더링 하지 않고, 테스트 때는 렌더링 한다.*
+
 ## 2.3 Exploring Starts 요소를 넣었다.
