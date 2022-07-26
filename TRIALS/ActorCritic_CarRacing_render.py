@@ -33,17 +33,10 @@ onestep_AC = onestep_ActorCritic(
     model=ActorCritic_model,
     optimizer=optimizer,
     isRender={
-        'train': False,
-        'test': False, 
+        'train': True,
+        'test': True, 
     },
-    useTensorboard=True,
-    tensorboardParams={
-        'logdir': "./runs/onestep_ActorCritic_CarRacing",
-        'tag': "Averaged Returns (from 10 tests)"     
-    }
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=1000, testSize=0)
-
-onestep_AC.save("./saved_models/onestep_ActorCritic_RacingEnv_v0.obj")
+onestep_AC.train(maxEpisodes=1000, testSize=0, testPer=1)

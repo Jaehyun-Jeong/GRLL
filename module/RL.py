@@ -54,7 +54,10 @@ class RL():
 
     def writeTensorboard(self, y, x: int):
         if self.useTensorboard:
-            self.tensorboardWriter.add_scalar(self.tensorboardParams['tag'], y, x)
+            try:
+                self.tensorboardWriter.add_scalar(self.tensorboardParams['tag'], y, x)
+            except:
+                ValueError("Can not use tensorboard!")
 
     def test(self, testSize=10):
         
@@ -79,12 +82,18 @@ class RL():
             
             returns.append(sum(rewards))
         
-        averagedReturn = sum(returns) / testSize
+        if testSize > 0:
+            averagedReturn = sum(returns) / testSize
+        elif testSize == 0:
+            averagedReturn = "no Test"
+        else:
+            #ERROR!
+            print("error")
 
         return averagedReturn
 
-    def printResult(self, episode: int, averagedReturn: float):
-        results = "| Episode: {0:>10.2f} | Averaged Return: {1:>10.2f} | Time/step: {2:>25} | Time spent: {3:>25} | ".format(episode, averagedReturn, str(datetime.now()-self.timePrevStep), str(datetime.now()-self.timeStart))
+    def printResult(self, episode: int, averagedReturn):
+        results = f"| Episode: {str(episode)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time/step: {str(datetime.now()-self.timePrevStep):10} | Time spent: {str(datetime.now()-self.timeStart):10} | "
 
         print(results)
 
