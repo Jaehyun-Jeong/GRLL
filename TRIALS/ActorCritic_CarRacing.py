@@ -34,7 +34,7 @@ onestep_AC = onestep_ActorCritic(
     optimizer=optimizer,
     isRender={
         'train': False,
-        'test': True, 
+        'test': False, 
     },
     useTensorboard=True,
     tensorboardParams={
@@ -44,6 +44,6 @@ onestep_AC = onestep_ActorCritic(
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=1000)
+onestep_AC.train(maxEpisodes=10)
 
 onestep_AC.save("./saved_models/onestep_ActorCritic_RacingEnv_v0.obj")
