@@ -178,7 +178,7 @@ class DQN(ValueBased):
                 #==========================================================================
                 # TEST
                 #==========================================================================
-                if (i_episode+1) % testPer == 0: 
+                if not(testPer == 0) and (i_episode+1) % testPer == 0: 
 
                     cumulative_rewards = self.test(testSize=testSize)
                     returns.append(cumulative_rewards)

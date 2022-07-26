@@ -106,10 +106,10 @@ class onestep_ActorCritic(ActorCritic):
         self.steps_done += 1
 
     def train(
-        self, 
+        self,
         maxEpisodes, 
         testPer=10, 
-        testSize=10,
+        testSize=10, # size is 0 or positive integer
     ):
 
         try:
@@ -148,7 +148,7 @@ class onestep_ActorCritic(ActorCritic):
                 # TEST
                 #==========================================================================
 
-                if (i_episode+1) % testPer == 0: 
+                if not(testPer == 0) and (i_episode+1) % testPer == 0:
 
                     cumulative_rewards = self.test(testSize=testSize)   
                     returns.append(cumulative_rewards)
