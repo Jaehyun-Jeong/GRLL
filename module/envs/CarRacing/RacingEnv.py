@@ -167,9 +167,14 @@ class RacingEnv_v0():
         for hit_point in hit_points:
             car_center = self.player_car.rect.center
             relative_point = (hit_point[0]-car_center[0], hit_point[1]-car_center[1])
-            dists.append((relative_point[0]**2 + relative_point[1]**2)**(1/2))
+            dist = (relative_point[0]**2 + relative_point[1]**2)**(1/2)
+            dists.append(self.__line_preprocess(dist))
 
         return dists
+
+    # dists length from 0 to 1
+    def __line_preprocess(self, dist):
+        return dist / self.lines.LINE_LEN
 
     def __done_reward(self):
 
