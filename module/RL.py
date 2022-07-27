@@ -25,6 +25,9 @@ class RL():
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
+        
+        # Init trained Episode
+        self.trainedEpisodes = 0
 
         # check the time spent
         self.timeStart = datetime.now()

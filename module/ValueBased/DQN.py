@@ -150,9 +150,9 @@ class DQN(ValueBased):
             returns = []
 
             for i_episode in range(maxEpisodes):
-
                 state = self.env.reset()
                 done = False
+                self.trainedEpisodes += 1
                 
                 #==========================================================================
                 # MAKE TRAIN DATA
@@ -178,7 +178,7 @@ class DQN(ValueBased):
                 #==========================================================================
                 # TEST
                 #==========================================================================
-                if (i_episode+1) % testPer == 0: 
+                if (self.trainedEpisodes) % testPer == 0: 
 
                     cumulative_rewards = self.test(testSize=testSize)
                     returns.append(cumulative_rewards)
@@ -186,11 +186,11 @@ class DQN(ValueBased):
                     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                     # TENSORBOARD
 
-                    self.writeTensorboard(returns[-1], i_episode+1)
+                    self.writeTensorboard(returns[-1], self.trainedEpisodes)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     
-                    self.printResult(i_episode + 1, returns[-1])
+                    self.printResult(self.trainedEpisodes, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")
