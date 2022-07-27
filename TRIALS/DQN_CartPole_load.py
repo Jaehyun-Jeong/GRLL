@@ -36,28 +36,18 @@ params_dict = {
     'env': env, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CartPole-v0",
         'tag': "Averaged Returns (from 10 tests)"     
     },
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 1000
-    },
-    'policy': {
-        'train': 'eps-stochastic',
-        'test': 'stochastic' 
-    }
 }
 
 # Initialize Actor-Critic Mehtod
 DeepQN = DQN(**params_dict)
+
+# load pretrained model
+DeepQN.load("./saved_models/DQN_CartPole_v0.obj")
 
 # TRAIN Agent
 DeepQN.train(MAX_EPISODES)
