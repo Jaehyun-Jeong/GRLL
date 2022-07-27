@@ -130,4 +130,5 @@ class RL():
         dataPickle = file.read()
         file.close()
 
-        self.__dict__ = pickle.loads(dataPickle)
+        for key, value in pickle.loads(dataPickle).items():
+            self.__dict__[key] = value
