@@ -116,9 +116,15 @@ class RL():
         # belows are impossible to dump
         save_dict.pop('tensorboardWriter', None)
         save_dict.pop('env', None)
+        
+        # save model state dict
+        save_dict['modelStateDict'] = self.model.state_dict()
+        save_dict.pop('model', None)
+        save_dict['optimizerStateDict'] = self.model.state_dict()
+        save_dict.pop('optimizer', None)
 
         file = open(saveDir, 'wb')
-        file.write(pickle.dumps(self.__dict__))
+        file.write(pickle.dumps(save_dict))
         file.close()
 
     def load(self, loadDir):
@@ -129,8 +135,12 @@ class RL():
         dataPickle = file.read()
         file.close()
 
-        for key, value in pickle.loads(dataPickle).items():
-            self.__dict__[key] = value
+        loadedDict = pickle.loads(dataPickle)
 
-        self.model.eval()
+        self.model.load_state_dict(loadedDict.pop('modelStateDict'))
+        self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
+
+        for key, value in loadedDict.items():
+            self.__dict__[key] = value
         
+        self.model.eval()
