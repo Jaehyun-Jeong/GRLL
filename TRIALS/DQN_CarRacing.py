@@ -12,7 +12,7 @@ from module.ValueBased import DQN
 # Environment 
 from module.envs.CarRacing import RacingEnv_v0
 
-MAX_EPISODES = 20
+MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
