@@ -11,10 +11,16 @@
 *[Continuous Action Space Actor Critic Tutorial](https://www.youtube.com/watch?v=kWHSH2HgbNQ&t=153s&ab_channel=SkowstertheGeek)*
 
 위 유튜브 영상에서는 ActorCritic에서 연속적인 행동을 선택하는 방법을 소개하고 있다.
-그리고 리차트 서튼과 안드류 바토의 Reinforcement Learning: An Introduction 2nd의 13장 6절 "Policy Gradient for Continuing Problems"를 보면 잘 알 수 있다.<br/>
-*Richard Sutton and Andrew Barto. Reinforcement Learning: An Introduction. MIT Press, 2018. page 333*
+그리고 리차트 서튼과 안드류 바토의 Reinforcement Learning: An Introduction 2nd의 13장 7절 "Policy Parameterization for Continuous Actions"를 보면 잘 알 수 있다.<br/>
+*Richard Sutton and Andrew Barto. Reinforcement Learning: An Introduction. MIT Press, 2018. page 335*
 
 ## 1.1. 위 알고리즘의 설명
+
+**위 알고리즘은 다음과 같은 순서로 진행된다.**
+
+![](Continuous_Action_01.png)<br/>
+![](Continuous_Action_02.png)<br/>
+![](Continuous_Action_0345.png)<br/>
 
 # 2. 자동차 환경 수정
 
