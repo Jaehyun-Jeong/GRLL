@@ -121,7 +121,6 @@ class RL():
         file.write(pickle.dumps(self.__dict__))
         file.close()
 
-
     def load(self, loadDir):
 
         import pickle
@@ -132,3 +131,6 @@ class RL():
 
         for key, value in pickle.loads(dataPickle).items():
             self.__dict__[key] = value
+
+        self.model.eval()
+        
