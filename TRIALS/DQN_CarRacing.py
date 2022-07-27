@@ -42,7 +42,7 @@ params_dict = {
     'numBatch': 64,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "./runs/onestep_ActorCritic_CarRacing",
+        'logdir': "./runs/DQN_CarRacing_v0",
         'tag': "Averaged Returns (from 10 tests)"     
     },
     'eps': { # for epsilon scheduling
