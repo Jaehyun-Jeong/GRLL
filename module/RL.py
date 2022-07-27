@@ -121,9 +121,9 @@ class RL():
         save_dict.pop('env', None)
         
         # save model state dict
-        save_dict['modelStateDict'] = self.model.state_dict()
+        save_dict['modelStateDict'] = save_dict['model'].state_dict()
         save_dict.pop('model', None)
-        save_dict['optimizerStateDict'] = self.model.state_dict()
+        save_dict['optimizerStateDict'] = save_dict['optimizer'].state_dict()
         save_dict.pop('optimizer', None)
 
         file = open(saveDir, 'wb')
