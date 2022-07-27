@@ -36,6 +36,11 @@ params_dict = {
     'env': env, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
+    'useTensorboard': True,
+    'tensorboardParams': {
+        'logdir': "./runs/DQN_CarRacing_v0",
+        'tag': "Averaged Returns (from 10 tests)"     
+    },
 }
 
 # Initialize Actor-Critic Mehtod
