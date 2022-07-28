@@ -43,7 +43,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns lr=2e-9"
+        'tag': "Averaged Returns lr=1e-4"
     },
     'policy': {
         'train': 'eps-stochastic',
