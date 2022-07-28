@@ -48,7 +48,7 @@ params_dict = {
     'eps': {
         'start': 0.99,
         'end': 0.0001,
-        'decay': int(1e6)
+        'decay': 30000
     },
     'policy': {
         'train': 'eps-stochastic',
