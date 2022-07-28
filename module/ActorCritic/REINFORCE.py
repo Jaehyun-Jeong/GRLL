@@ -140,7 +140,7 @@ class REINFORCE(ActorCritic):
             returns = []
             
             for i_episode in range(maxEpisodes):
-                
+
                 Transitions = ReplayMemory(maxEpisodes)
                 state = self.env.reset()
                 done = False
@@ -152,6 +152,7 @@ class REINFORCE(ActorCritic):
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+                    self.trainedTimesteps += 1
 
                     if self.isRender['train']:
                         env.render()
@@ -182,7 +183,7 @@ class REINFORCE(ActorCritic):
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    self.printResult(self.trainedEpisodes, returns[-1])
+                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

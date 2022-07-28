@@ -173,6 +173,7 @@ class ADQN(ValueBased):
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+                    self.trainedTimesteps += 1
 
                     if self.isRender['train']:
                        self.env.render()
@@ -204,7 +205,7 @@ class ADQN(ValueBased):
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    self.printResult(self.trainedEpisodes, returns[-1])
+                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

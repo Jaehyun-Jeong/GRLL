@@ -160,6 +160,7 @@ class DQN(ValueBased):
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+                    self.trainedTimesteps += 1
 
                     if self.isRender['train']:
                        self.env.render()
@@ -189,8 +190,8 @@ class DQN(ValueBased):
                     self.writeTensorboard(returns[-1], self.trainedEpisodes)
 
                     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                    
-                    self.printResult(self.trainedEpisodes, returns[-1])
+
+                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
             print("==============================================")

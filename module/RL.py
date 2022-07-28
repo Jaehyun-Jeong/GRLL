@@ -28,6 +28,7 @@ class RL():
         
         # Init trained Episode
         self.trainedEpisodes = 0
+        self.trainedTimesteps = 0
 
         # check the time spent
         self.timeStart = datetime.now()
@@ -95,8 +96,8 @@ class RL():
 
         return averagedReturn
 
-    def printResult(self, episode: int, averagedReturn):
-        results = f"| Episode: {str(episode)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time/step: {str(datetime.now()-self.timePrevStep):10} | Time spent: {str(datetime.now()-self.timeStart):10} | "
+    def printResult(self, episode: int, timesteps: int, averagedReturn):
+        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time/testsize: {str(datetime.now()-self.timePrevStep):10} | Time Spent : {str(datetime.now()-self.timeStart):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
         print(results)
 
