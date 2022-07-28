@@ -97,7 +97,7 @@ class RL():
         return averagedReturn
 
     def printResult(self, episode: int, timesteps: int, averagedReturn):
-        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time/testsize: {str(datetime.now()-self.timePrevStep):10} | Time Spent : {str(datetime.now()-self.timeStart):10} / {str(datetime.now()-self.timePrevStep):10} | "
+        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(datetime.now()-self.timeStart):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
         print(results)
 
