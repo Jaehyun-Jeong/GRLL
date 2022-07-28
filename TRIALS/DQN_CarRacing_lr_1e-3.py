@@ -16,7 +16,7 @@ MAX_EPISODES = 3000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 1e-4 # learning rate
+ALPHA = 1e-3 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
@@ -43,7 +43,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns lr=1e-4"
+        'tag': "Averaged Returns lr=1e-3"
     },
     'eps': {
         'start': 0.90,

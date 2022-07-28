@@ -84,8 +84,8 @@ class RacingEnv_v0():
         self.lines = Lines(WIN)
 
         # Number of actions and observations
-        # There are 2 actions left and right, and 8 lines to check distance to wall
-        self.num_actions = 2
+        # There are 3 actions left, center, and right, then 8 lines to check distance to wall
+        self.num_actions = 3
         self.num_obs = 8
 
         self.game_info.start_level()
@@ -152,7 +152,9 @@ class RacingEnv_v0():
 
         if action == 0: # left
             self.player_car.rotate(left=True)
-        elif action == 1: # right 
+        elif action == 1: # center
+            pass
+        elif action == 2: # right 
             self.player_car.rotate(right=True)
         else:
             raise ValueError("Action is out of bound!")
