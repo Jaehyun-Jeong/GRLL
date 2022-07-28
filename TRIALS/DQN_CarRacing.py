@@ -16,7 +16,7 @@ MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 2e-9 # learning rate
+ALPHA = 1e-4 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
