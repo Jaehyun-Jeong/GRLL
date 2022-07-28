@@ -112,7 +112,7 @@ class RacingEnv_v0():
         except:
             raise RuntimeError("No available display to render")
 
-    def reset(self, exploring_starts = True):
+    def reset(self, exploring_starts = False):
         
         self.game_info.reset()
         self.computer_car.reset()
