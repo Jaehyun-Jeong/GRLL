@@ -39,7 +39,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns (from 10 tests)"     
+        'tag': "Averaged Returns lr=2e-9"
     },
 }
 
