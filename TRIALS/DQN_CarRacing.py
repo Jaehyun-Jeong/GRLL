@@ -9,14 +9,14 @@ import torch.optim as optim
 from module.ValueBased.models import ANN_V2
 from module.ValueBased import DQN
 
-# Environment 
+# Environment
 from module.envs.CarRacing import RacingEnv_v0
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 0.0001 # learning rate
+ALPHA = 2e-9 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
@@ -43,7 +43,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns (from 10 tests)"     
+        'tag': "Averaged Returns lr=2e-9"
     },
     'eps': { # for epsilon scheduling
         'start': 0.99,
