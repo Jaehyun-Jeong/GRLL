@@ -45,11 +45,6 @@ params_dict = {
         'logdir': "./runs/DQN_CarRacing_v0",
         'tag': "Averaged Returns lr=2e-9"
     },
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 1000
-    },
     'policy': {
         'train': 'eps-stochastic',
         'test': 'stochastic' 
