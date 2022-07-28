@@ -179,7 +179,7 @@ class RacingEnv_v0():
     def __done_reward(self):
 
         done = False
-        reward = 0.004 # Every step it have -0.04 reward 
+        reward = 0.04 # Every step it have -0.04 reward 
         
         if self.player_car.collide(TRACK_BORDER_MASK) != None:
             done = True
