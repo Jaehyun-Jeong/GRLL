@@ -39,19 +39,14 @@ params_dict = {
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 1000,
+    'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns lr=1e-4"
-    },
-    'eps': {
-        'start': 0.90,
-        'end': 0.05,
-        'decay': 200
+        'tag': "Averaged Returns/lr=1e-4"
     },
     'policy': {
-        'train': 'eps-stochastic',
+        'train': 'stochastic',
         'test': 'stochastic' 
     }
 }
@@ -63,4 +58,4 @@ DeepQN = DQN(**params_dict)
 DeepQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/DQN_RacingEnv_v0.obj")
+DeepQN.save("./saved_models/CarRacing_v0/DQN_lr1e-4.obj")

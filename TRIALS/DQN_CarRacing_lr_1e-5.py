@@ -6,17 +6,17 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
+from module.ValueBased.models import ANN_V3
 from module.ValueBased import DQN
 
 # Environment
 from module.envs.CarRacing import RacingEnv_v0
 
 MAX_EPISODES = 3000
-MAX_TIMESTEPS = 1000
+MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 1e-5 # learning rate
+ALPHA = 1e-4 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
@@ -28,7 +28,7 @@ env = RacingEnv_v0()
 # set ActorCritic
 num_actions = env.num_actions
 num_states = env.num_obs
-model = ANN_V2(num_states, num_actions).to(device)
+model = ANN_V3(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
@@ -39,19 +39,14 @@ params_dict = {
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
+    'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns lr=1e-5"
-    },
-    'eps': {
-        'start': 0.99,
-        'end': 0.0001,
-        'decay': 30000
+        'tag': "Averaged Returns/lr=1e-5"
     },
     'policy': {
-        'train': 'eps-stochastic',
+        'train': 'stochastic',
         'test': 'stochastic' 
     }
 }
@@ -63,4 +58,4 @@ DeepQN = DQN(**params_dict)
 DeepQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/DQN_RacingEnv_v0.obj")
+DeepQN.save("./saved_models/CarRacing_v0/DQN_lr1e-5.obj")
