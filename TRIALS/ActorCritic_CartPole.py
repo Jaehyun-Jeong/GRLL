@@ -6,8 +6,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ActorCritic.models import ANN_V1
-from module.ActorCritic import onestep_ActorCritic
+from module.PolicyGradient.models import ANN_V1
+from module.PolicyGradient import onestep_ActorCritic
 
 # Environment 
 import gym

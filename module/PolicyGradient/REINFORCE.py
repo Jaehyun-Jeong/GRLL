@@ -13,7 +13,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
-from module.ActorCritic import ActorCritic
+from module.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'next_state', 'reward'))
@@ -33,7 +33,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-class REINFORCE(ActorCritic):
+class REINFORCE(PolicyGradient):
 
     '''
     params_dict = {

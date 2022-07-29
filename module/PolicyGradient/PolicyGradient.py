@@ -1,5 +1,4 @@
 
-import random 
 from collections import namedtuple, deque
 from abc import abstractmethod
 
@@ -9,7 +8,7 @@ import torch.nn as nn
 
 from module.RL import RL
 
-class ActorCritic(RL):
+class PolicyGradient(RL):
 
     '''
     params_dict = {

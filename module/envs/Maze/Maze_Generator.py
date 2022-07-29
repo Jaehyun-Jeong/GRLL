@@ -5,7 +5,6 @@ import pygame  # needed only if running stand-alone and showing maze generation.
 from os.path import exists
 from sys import exit
 
-
 class Maze:
     """
     Generate a maze See https://en.wikipedia.org/wiki/Maze_generation_algorithm
@@ -212,8 +211,8 @@ if __name__ == '__main__':
     while running:
 
         # intialize a maze, given size (y, x)
-        maze = Maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
-        maze.screen = screen  # if this is set, the maze generation process will be displayed in a window. Otherwise not.
+        maze = maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
+        maze.screen = screen  # if this is set, the maze generation process will be displayed in a window. otherwise not.
         screen.fill((0, 0, 0))
         maze.screen_size = np.asarray(disp_size)
         maze.screen_block_size = np.min(rect[2:4] / np.flip(maze.block_size))

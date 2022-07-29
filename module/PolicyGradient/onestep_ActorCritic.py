@@ -13,12 +13,12 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
-from module.ActorCritic.ActorCritic import ActorCritic
+from module.PolicyGradient.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'done', 'next_state', 'reward'))
 
-class onestep_ActorCritic(ActorCritic):
+class onestep_ActorCritic(PolicyGradient):
 
     '''
     params_dict = {
