@@ -1,3 +1,3 @@
 from . import CarRacing
-from . import maze
+from . import Maze
 from . import atari

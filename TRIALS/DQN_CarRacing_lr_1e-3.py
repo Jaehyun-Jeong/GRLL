@@ -12,7 +12,7 @@ from module.ValueBased import DQN
 # Environment
 from module.envs.CarRacing import RacingEnv_v0
 
-MAX_EPISODES = 3000
+MAX_EPISODES = 10000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
@@ -53,6 +53,9 @@ params_dict = {
 
 # Initialize Actor-Critic Mehtod
 DeepQN = DQN(**params_dict)
+
+# load pretrained model
+DeepQN.load("./saved_models/CarRacing_v0/DQN_lr1e-3.obj")
 
 # TRAIN Agent
 DeepQN.train(MAX_EPISODES)
