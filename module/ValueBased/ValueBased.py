@@ -36,7 +36,8 @@ class ValueBased(RL):
 
     def __init__(
         self, 
-        env, 
+        trainEnv,
+        testEnv,
         model, 
         optimizer, 
         device, 
@@ -54,7 +55,8 @@ class ValueBased(RL):
         # init parameters 
         super().__init__(
             device = device,
-            env = env,
+            trainEnv = trainEnv,
+            testEnv = testEnv,
             model = model,
             optimizer = optimizer,
             eps = eps,

@@ -23,17 +23,19 @@ GAMMA = 0.99 # discount rate
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = RacingEnv_v0()
+trainEnv = RacingEnv_v0(ExploringStarts=True)
+testEnv = RacingEnv_v0()
 
 # set ActorCritic
-num_actions = env.num_actions
-num_states = env.num_obs
+num_actions = trainEnv.num_actions
+num_states = trainEnv.num_obs
 model = ANN_V2(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
     'device': device, # device to use, 'cuda' or 'cpu'
-    'env': env, # environment like gym
+    'trainEnv': trainEnv,
+    'testEnv': testEnv,
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
@@ -55,7 +57,7 @@ params_dict = {
 Averaged_DQN = ADQN(**params_dict)
 
 # load pretrained model
-#Averaged_DQN.load("./saved_models/CarRacing_v0/DQN_lr1e-3.obj")
+Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
 
 # TRAIN Agent
 Averaged_DQN.train(MAX_EPISODES)

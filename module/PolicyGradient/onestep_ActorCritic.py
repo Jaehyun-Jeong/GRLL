@@ -40,7 +40,8 @@ class onestep_ActorCritic(PolicyGradient):
 
     def __init__(
         self, 
-        env,
+        trainEnv,
+        testEnv,
         model,
         optimizer,
         device=torch.device('cpu'),
@@ -68,7 +69,8 @@ class onestep_ActorCritic(PolicyGradient):
 
         # init parameters 
         super().__init__(
-            env=env,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
             model=model,
             optimizer=optimizer,
             device=device,
@@ -117,7 +119,7 @@ class onestep_ActorCritic(PolicyGradient):
             
             for i_episode in range(maxEpisodes):
                 
-                state = self.env.reset()
+                state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
                 
@@ -130,10 +132,10 @@ class onestep_ActorCritic(PolicyGradient):
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
-                        self.env.render()
+                        self.trainEnv.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
-                    next_state, reward, done, _ = self.env.step(action.tolist())
+                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
 
                     # trans means transition 
                     trans = Transition(state, action, done, next_state, reward)
@@ -173,7 +175,7 @@ class onestep_ActorCritic(PolicyGradient):
         finally:
             plt.plot(range(len(returns)), returns)
 
-        self.env.close()
+        self.trainEnv.close()
 
 if __name__ == "__main__":
 

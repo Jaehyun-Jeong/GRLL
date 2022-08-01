@@ -50,7 +50,8 @@ class REINFORCE(PolicyGradient):
 
     def __init__(
         self, 
-        env, 
+        trainEnv,
+        testEnv,
         model,
         optimizer,
         device=torch.device('cpu'),
@@ -79,7 +80,8 @@ class REINFORCE(PolicyGradient):
 
         # init parameters 
         super().__init__(
-            env=env,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
             model=model,
             optimizer=optimizer,
             device=device,
@@ -142,7 +144,7 @@ class REINFORCE(PolicyGradient):
             for i_episode in range(maxEpisodes):
 
                 Transitions = ReplayMemory(maxEpisodes)
-                state = self.env.reset()
+                state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
                 
@@ -155,10 +157,10 @@ class REINFORCE(PolicyGradient):
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
-                        env.render()
+                        self.trainEnv.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
-                    next_state, reward, done, _ = self.env.step(action.tolist())
+                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
 
@@ -194,7 +196,7 @@ class REINFORCE(PolicyGradient):
         finally:
             plt.plot(range(len(returns)), returns)
 
-        self.env.close()
+        self.trainEnv.close()
 
 if __name__ == "__main__":
 

@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class RL():
 
     def __init__(
         self, 
-        env, 
+        trainEnv, 
+        testEnv, 
         model,
         optimizer,
         eps,
@@ -16,7 +17,8 @@ class RL():
     ):
 
         # init parameters
-        self.env = env 
+        self.trainEnv = trainEnv 
+        self.testEnv = testEnv 
         self.model = model
         self.optimizer = optimizer
         self.device = device
@@ -31,7 +33,7 @@ class RL():
 
         # check the time spent
         self.timePrevStep = datetime.now()
-        self.timeSpent = 0
+        self.timeSpent = timedelta(0)
 
         # init Summary Writer
         if self.useTensorboard:
@@ -67,15 +69,15 @@ class RL():
         returns = []
 
         for testIdx in range(testSize):
-            state = self.env.reset()
+            state = self.testEnv.reset()
             done = False
             rewards = []
             for timesteps in range(self.maxTimesteps):
                 if self.isRender['test']:
-                    self.env.render()
+                    self.testEnv.render()
 
                 action = self.get_action(state, useEps=self.useTestEps, useStochastic=self.useTestStochastic)
-                next_state, reward, done, _ = self.env.step(action.tolist())
+                next_state, reward, done, _ = self.testEnv.step(action.tolist())
 
                 rewards.append(reward)
                 state = next_state
@@ -121,7 +123,8 @@ class RL():
 
         # belows are impossible to dump
         save_dict.pop('tensorboardWriter', None)
-        save_dict.pop('env', None)
+        save_dict.pop('trainEnv', None)
+        save_dict.pop('testEnv', None)
         
         # save model state dict
         save_dict['modelStateDict'] = save_dict['model'].state_dict()

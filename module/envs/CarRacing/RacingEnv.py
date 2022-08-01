@@ -70,7 +70,7 @@ def draw_env(win, images, player_car, computer_car, game_info, lines):
 
 class RacingEnv_v0():
     
-    def __init__(self):
+    def __init__(self, ExploringStarts=False):
 
         self.run = True
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
@@ -79,6 +79,7 @@ class RacingEnv_v0():
         self.game_info = GameInfo()
         self.start_pos = (150, 200)
         self.start_angle = 0
+        self.ExploringStarts = ExploringStarts
 
         # make line
         self.lines = Lines(WIN)
@@ -112,12 +113,12 @@ class RacingEnv_v0():
         except:
             raise RuntimeError("No available display to render")
 
-    def reset(self, exploring_starts = False):
+    def reset(self):
         
         self.game_info.reset()
         self.computer_car.reset()
 
-        if exploring_starts:
+        if self.ExploringStarts:
             start_pos, start_angle = self.__get_random_pos_angle()
             self.player_car.START_POS = start_pos
             self.player_car.reset(start_angle)

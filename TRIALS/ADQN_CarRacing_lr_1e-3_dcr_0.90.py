@@ -16,8 +16,8 @@ MAX_EPISODES = 10000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 1e-4 # learning rate
-GAMMA = 0.99 # discount rate
+ALPHA = 1e-3 # learning rate
+GAMMA = 0.90 # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -45,7 +45,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/ADQN_CarRacing_v0",
-        'tag': "Averaged Returns/lr=1e-4"
+        'tag': "Averaged Returns/lr=1e-3 dcr=0.90"
     },
     'policy': {
         'train': 'stochastic',
@@ -57,10 +57,10 @@ params_dict = {
 Averaged_DQN = ADQN(**params_dict)
 
 # load pretrained model
-Averaged_DQN.load("./saved_models/CarRacing_v0/ADQN_lr1e-4.obj")
+#Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3_dcr0.90.obj")
 
 # TRAIN Agent
 Averaged_DQN.train(MAX_EPISODES)
 
 # save model
-Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-4.obj")
+Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3_dcr0.90.obj")
