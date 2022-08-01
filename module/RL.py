@@ -30,8 +30,8 @@ class RL():
         self.trainedTimesteps = 0
 
         # check the time spent
-        self.timeStart = datetime.now()
         self.timePrevStep = datetime.now()
+        self.timeSpent = 0
 
         # init Summary Writer
         if self.useTensorboard:
@@ -96,7 +96,10 @@ class RL():
         return averagedReturn
 
     def printResult(self, episode: int, timesteps: int, averagedReturn):
-        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(datetime.now()-self.timeStart):10} / {str(datetime.now()-self.timePrevStep):10} | "
+        
+        self.timeSpent += datetime.now() - self.timePrevStep
+
+        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
         print(results)
 
@@ -137,13 +140,21 @@ class RL():
         file = open(loadDir, 'rb')
         dataPickle = file.read()
         file.close()
+        
+        #=============================================================================
+        # LOAD TORCH MODEL 
+        #=============================================================================
 
         loadedDict = pickle.loads(dataPickle)
 
         self.model.load_state_dict(loadedDict.pop('modelStateDict'))
         self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
 
+        self.model.eval()
+
+        #=============================================================================
+
         for key, value in loadedDict.items():
             self.__dict__[key] = value
         
-        self.model.eval()
+        self.timePrevStep = datetime.now() # Recalculating time spent
