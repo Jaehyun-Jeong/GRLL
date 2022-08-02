@@ -1,6 +1,10 @@
 from collections import deque
 import torch
-from module.envs.CarRacing.main import *
+import numpy as np
+try:
+    from main import *
+except:
+    from module.envs.CarRacing.main import *
 
 class Lines():
 
@@ -10,7 +14,7 @@ class Lines():
         self.BLUE = (0, 0, 255)
 
         # 8 lines
-        self.DEGREES = [45*i for i in range(8)]
+        self.DEGREES = [-90, -45, 0, 45, 90]
         self.hit_points = deque([], maxlen=8)
 
         self.surface = win
@@ -75,7 +79,7 @@ class RacingEnv_v0():
         self.run = True
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
         self.player_car = PlayerCar(4, 4)
-        self.computer_car = ComputerCar(2, 4, PATH)
+        self.computer_car = ComputerCar(3, 4, PATH)
         self.game_info = GameInfo()
         self.start_pos = (150, 200)
         self.start_angle = 0
@@ -87,7 +91,7 @@ class RacingEnv_v0():
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
         self.num_actions = 3
-        self.num_obs = 8
+        self.num_obs = 5
 
         self.game_info.start_level()
         draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
@@ -100,7 +104,7 @@ class RacingEnv_v0():
         self.__move(action)
         self.computer_car.move()
 
-        next_state = self.__line_collide()
+        next_state = self.get_state()
         done, reward = self.__done_reward()
 
         draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
@@ -129,7 +133,7 @@ class RacingEnv_v0():
             pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
             pygame.display.update()
 
-        initial_state = self.__line_collide()
+        initial_state = self.get_state()
         
         return initial_state
 
@@ -162,7 +166,7 @@ class RacingEnv_v0():
 
         self.player_car.move_forward()
 
-    def __line_collide(self):
+    def get_state(self): # use collided distances as state
 
         # line collider
         hit_points = self.lines.collide()
@@ -203,15 +207,72 @@ class RacingEnv_v0():
         
         return done, reward
 
+class RacingEnv_v2(RacingEnv_v0):
+
+    def __init__(self, stackSize: int=4, ExploringStarts: bool=False):
+
+        super().__init__(
+            ExploringStarts=ExploringStarts
+        )
+
+        #=========================================================
+        # STACKED GRAYSCALE IMG DATA
+        #=========================================================
+
+        from collections import deque
+
+        self._inputSize = (84, 84)
+
+        self.stackedStates = deque([], maxlen=stackSize)
+        self.__init_stackedStates(stackSize)
+
+        # Number of actions and observations
+        # There are 3 actions left, center, and right, then 8 lines to check distance to wall
+        self.num_actions = 3
+        self.num_obs = self.get_state().shape
+
+        #=========================================================
+        
+    def get_state(self):
+        import torch.nn.functional as F
+
+        screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
+        screen = self.__grayscale(screen)
+        self.stackedStates.append(screen) # from RGB to grayscale img
+        
+        state = torch.from_numpy(np.array(self.stackedStates))
+        state = torch.unsqueeze(state, 0)
+        
+        state = F.interpolate(state, size=self._inputSize)
+        state = torch.squeeze(state, 0)
+
+        return state.to(torch.float).numpy()
+
+    def __init_stackedStates(self, frames: int):
+        screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
+        screen = self.__grayscale(screen) # from RGB to grayscale img
+        
+        self.stackedStates.extend([screen]*frames)
+
+    @staticmethod
+    def __grayscale(numpy_array: np.ndarray):
+        return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
+
 if __name__=="__main__":
-    RacingEnv = RacingEnv_v0()
+    from main import *
+
+    RacingEnv = RacingEnv_v2()
+    RacingEnv.render()
 
     for i in range(1000):
-        print(RacingEnv.step(0))
+        _, reward, done, _ = RacingEnv.step(0)
+        if done:
+            break
 
-    RacingEnv.reset()
-
+    RacingEnv.close()
+    '''
     for i in range(1000):
         print(RacingEnv.step(1))
 
     RacingEnv.close()
+    '''
