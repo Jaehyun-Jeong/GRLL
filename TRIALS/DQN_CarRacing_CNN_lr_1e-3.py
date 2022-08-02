@@ -57,10 +57,10 @@ params_dict = {
 DeepQN = DQN(**params_dict)
 
 # load pretrained model
-# DeepQN.load("./saved_models/CarRacing_v0/DQN_CNN_lr1e-3.obj")
+# DeepQN.load("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
 
 # TRAIN Agent
 DeepQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/CarRacing_v0/DQN_CNN_lr1e-3.obj")
+DeepQN.save("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
