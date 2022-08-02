@@ -1,3 +1,4 @@
+
 import sys
 sys.path.append("../") # to import module
 
@@ -6,61 +7,68 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
+from module.ValueBased.models import ANN_V1
 from module.ValueBased import DQN
 
-# Environment 
-import gym
+# Environment
+from module.envs.CarRacing import RacingEnv_v0
 
-MAX_EPISODES = 500
-MAX_TIMESTEPS = 1000
+MAX_EPISODES = 10000
+MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
-ALPHA = 0.0001 # learning rate
+ALPHA = 1e-3 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Environment 
+import gym
+
 # set environment
-env = gym.make('CartPole-v0')
+trainEnv = gym.make('CartPole-v0')
+testEnv = gym.make('CartPole-v0')
 
 # set ActorCritic
-num_actions = env.action_space.n
-num_states = env.observation_space.shape[0]
-model = ANN_V2(num_states, num_actions).to(device)
+num_actions = trainEnv.action_space.n
+num_states = trainEnv.observation_space.shape[0]
+model = ANN_V1(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
     'device': device, # device to use, 'cuda' or 'cpu'
-    'env': env, # environment like gym
+    'trainEnv': trainEnv,
+    'testEnv': testEnv,
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
+    'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "./runs/DQN_CartPole-v0",
-        'tag': "Averaged Returns (from 10 tests)"     
-    },
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 1000
+        'logdir': "./runs/ADQN_CarRacing_v0",
+        'tag': "Averaged Returns/lr=1e-3"
     },
     'policy': {
-        'train': 'eps-stochastic',
+        'train': 'stochastic',
         'test': 'stochastic' 
+    },
+    'isRender':{
+        'train': True,
+        'test': False
     }
 }
 
 # Initialize Actor-Critic Mehtod
-DeepQN = DQN(**params_dict)
+Averaged_DQN = DQN(**params_dict)
+
+# load pretrained model
+#Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES)
+Averaged_DQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/DQN_CartPole_v0.obj")
+Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")

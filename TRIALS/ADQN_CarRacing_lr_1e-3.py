@@ -50,6 +50,10 @@ params_dict = {
     'policy': {
         'train': 'stochastic',
         'test': 'stochastic' 
+    },
+    'isRender':{
+        'train': True,
+        'test': False
     }
 }
 
@@ -57,7 +61,7 @@ params_dict = {
 Averaged_DQN = ADQN(**params_dict)
 
 # load pretrained model
-Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
+#Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
 
 # TRAIN Agent
 Averaged_DQN.train(MAX_EPISODES)

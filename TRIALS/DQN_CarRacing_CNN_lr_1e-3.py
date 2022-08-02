@@ -50,6 +50,10 @@ params_dict = {
     'policy': {
         'train': 'stochastic',
         'test': 'stochastic' 
+    },
+    'isRender':{
+        'train': True,
+        'test': False
     }
 }
 

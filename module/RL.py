@@ -140,10 +140,11 @@ class RL():
 
         import pickle
 
-        file = open(loadDir, 'rb')
-        dataPickle = file.read()
+        file = open(loadDir, 'r')
+        dataPickle = CPU_Unpickler(file).load()
+        #dataPickle = file.read()
         file.close()
-        
+
         #=============================================================================
         # LOAD TORCH MODEL 
         #=============================================================================
@@ -161,3 +162,12 @@ class RL():
             self.__dict__[key] = value
         
         self.timePrevStep = datetime.now() # Recalculating time spent
+
+import pickle
+import torch
+import io
+class CPU_Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == 'torch.storage' and name == '_load_from_bytes':
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+        else: return super().find_class(module, name)

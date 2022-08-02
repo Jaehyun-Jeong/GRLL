@@ -6,51 +6,36 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
+from module.ValueBased.models import CNN_V2
 from module.ValueBased import DQN
 
-# Environment 
-from module.envs.CarRacing import RacingEnv_v0
-
-MAX_EPISODES = 3000
-MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
-
-ALPHA = 0.0001 # learning rate
-GAMMA = 0.99 # discount rate
-
-# device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Environment
+from module.envs.CarRacing import RacingEnv_v2
 
 # set environment
-env = RacingEnv_v0()
+trainEnv = RacingEnv_v2(ExploringStarts=True)
+testEnv = RacingEnv_v2()
 
 # set ActorCritic
-num_actions = env.num_actions
-num_states = env.num_obs
-model = ANN_V2(num_states, num_actions).to(device)
-optimizer = optim.Adam(model.parameters(), lr=ALPHA)
+num_actions = trainEnv.num_actions
+num_states = trainEnv.num_obs
+
+model = CNN_V2(num_states, num_actions)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 params_dict = {
-    'device': device, # device to use, 'cuda' or 'cpu'
-    'env': env, # environment like gym
+    'trainEnv': trainEnv, # environment like gym
+    'testEnv': testEnv, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'useTensorboard': True,
-    'tensorboardParams': {
-        'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns lr=2e-9"
-    },
 }
 
 # Initialize Actor-Critic Mehtod
 DeepQN = DQN(**params_dict)
 
 # load pretrained model
-DeepQN.load("./saved_models/DQN_RacingEnv_v0.obj")
+DeepQN.load("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES)
-
-# save model
-DeepQN.save("./saved_models/DQN_RacingEnv_v0.obj")
+DeepQN.isRender["test"] = True
+DeepQN.test()
