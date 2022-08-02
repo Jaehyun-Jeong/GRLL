@@ -45,7 +45,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns/lr=1e-3"
+        'tag': "Averaged Returns/CNN lr=1e-3"
     },
     'policy': {
         'train': 'stochastic',
@@ -57,10 +57,10 @@ params_dict = {
 DeepQN = DQN(**params_dict)
 
 # load pretrained model
-# DeepQN.load("./saved_models/CarRacing_v0/DQN_lr1e-3.obj")
+# DeepQN.load("./saved_models/CarRacing_v0/DQN_CNN_lr1e-3.obj")
 
 # TRAIN Agent
 DeepQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/CarRacing_v0/DQN_lr1e-3.obj")
+DeepQN.save("./saved_models/CarRacing_v0/DQN_CNN_lr1e-3.obj")
