@@ -139,6 +139,7 @@ class RL():
         save_dict.pop('tensorboardWriter', None)
         save_dict.pop('trainEnv', None)
         save_dict.pop('testEnv', None)
+        save_dict.pop('device', None)
         
         # save model state dict
         save_dict['modelStateDict'] = save_dict['model'].state_dict()
