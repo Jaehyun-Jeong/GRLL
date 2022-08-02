@@ -6,6 +6,7 @@ class RL():
         self, 
         trainEnv, 
         testEnv, 
+        env,
         model,
         optimizer,
         eps,
@@ -16,9 +17,23 @@ class RL():
         tensorboardParams,
     ):
 
+        # set Environment
+        
+
+        if env==None and trainEnv!=None and testEnv!=None:
+            self.trainEnv = trainEnv
+            self.testEnv = testEnv
+        elif env!=None and trainEnv==None and testEnv==None:
+            self.trainEnv = env
+            self.testEnv = env
+        else:
+            ValueError(
+                "No Environment or you just use one of trainEnv, or testEnv,"
+                "or you set the env with trainEnv or testEnv,"
+                "or you set the trainEnv or testEnv with env"
+            )    
+
         # init parameters
-        self.trainEnv = trainEnv 
-        self.testEnv = testEnv 
         self.model = model
         self.optimizer = optimizer
         self.device = device
@@ -116,6 +131,7 @@ class RL():
         self.timePrevStep = datetime.now()
 
     def save(self, saveDir: str = str(datetime)+".obj"):
+        import torch
 
         save_dict = self.__dict__
 
@@ -133,6 +149,7 @@ class RL():
         torch.save(save_dict, saveDir)
         
     def load(self, loadDir):
+        import torch
 
         #=============================================================================
         # LOAD TORCH MODEL 

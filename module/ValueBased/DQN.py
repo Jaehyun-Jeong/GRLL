@@ -55,10 +55,11 @@ class DQN(ValueBased):
 
     def __init__(
         self, 
-        trainEnv,
-        testEnv,
         model,
         optimizer,
+        trainEnv=None,
+        testEnv=None,
+        env=None,
         device=torch.device('cpu'),
         eps={
             'start': 0.99,
@@ -88,6 +89,7 @@ class DQN(ValueBased):
         super().__init__(
             trainEnv,
             testEnv,
+            env,
             model=model,
             optimizer=optimizer,
             device=device,
@@ -111,6 +113,7 @@ class DQN(ValueBased):
     @abstractmethod
     def value(self, s):
         s = torch.Tensor(s).to(self.device)
+
         value = self.model.forward(s)
         value = torch.squeeze(value, 0)
         return value

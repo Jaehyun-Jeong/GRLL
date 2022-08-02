@@ -14,7 +14,7 @@ class Lines():
         self.BLUE = (0, 0, 255)
 
         # 8 lines
-        self.DEGREES = [-90, -45, 0, 45, 90]
+        self.DEGREES = [45*i for i in range(8)]
         self.hit_points = deque([], maxlen=8)
 
         self.surface = win
@@ -91,7 +91,7 @@ class RacingEnv_v0():
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
         self.num_actions = 3
-        self.num_obs = 5
+        self.num_obs = 8
 
         self.game_info.start_level()
         draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)

@@ -38,6 +38,7 @@ class ValueBased(RL):
         self, 
         trainEnv,
         testEnv,
+        env,
         model, 
         optimizer, 
         device, 
@@ -54,16 +55,17 @@ class ValueBased(RL):
 
         # init parameters 
         super().__init__(
-            device = device,
-            trainEnv = trainEnv,
-            testEnv = testEnv,
-            model = model,
-            optimizer = optimizer,
-            eps = eps,
-            policy = policy,
-            isRender = isRender,
-            useTensorboard = useTensorboard,
-            tensorboardParams = tensorboardParams 
+            device=device,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
+            env=env,
+            model=model,
+            optimizer=optimizer,
+            eps=eps,
+            policy=policy,
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams 
         )
         
         self.maxTimesteps = maxTimesteps 

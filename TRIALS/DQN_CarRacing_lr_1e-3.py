@@ -28,6 +28,7 @@ env = RacingEnv_v0()
 # set ActorCritic
 num_actions = env.num_actions
 num_states = env.num_obs
+
 model = ANN_V3(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 

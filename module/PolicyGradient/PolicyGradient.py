@@ -32,6 +32,7 @@ class PolicyGradient(RL):
         self,
         trainEnv,
         testEnv,
+        env,
         model,
         optimizer,
         device,
@@ -46,16 +47,17 @@ class PolicyGradient(RL):
 
         # init parameters 
         super().__init__(
-            device = device,
-            trainEnv = trainEnv,
-            testEnv = testEnv,
-            model = model,
-            optimizer = optimizer,
-            eps = eps,
-            isRender = isRender,
-            useTensorboard = useTensorboard,
-            tensorboardParams = tensorboardParams,
-            policy = policy
+            device=device,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
+            env=env,
+            model=model,
+            optimizer=optimizer,
+            eps=eps,
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            policy=policy
         )
         
         self.maxTimesteps = maxTimesteps

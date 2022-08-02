@@ -57,10 +57,11 @@ class ADQN(ValueBased):
 
     def __init__(
         self, 
-        trainEnv,
-        testEnv,
         model,
         optimizer,
+        trainEnv=None,
+        testEnv=None,
+        env=None,
         device=torch.device('cpu'),
         eps={
             'start': 0.99,
@@ -91,6 +92,7 @@ class ADQN(ValueBased):
         super().__init__(
             trainEnv,
             testEnv,
+            env,
             model=model,
             optimizer=optimizer,
             device=device,
