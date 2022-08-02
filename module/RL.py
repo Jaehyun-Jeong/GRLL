@@ -117,8 +117,6 @@ class RL():
 
     def save(self, saveDir: str = str(datetime)+".obj"):
 
-        import pickle
-
         save_dict = self.__dict__
 
         # belows are impossible to dump
@@ -132,24 +130,15 @@ class RL():
         save_dict['optimizerStateDict'] = save_dict['optimizer'].state_dict()
         save_dict.pop('optimizer', None)
 
-        file = open(saveDir, 'wb')
-        file.write(pickle.dumps(save_dict))
-        file.close()
-
+        torch.save(save_dict, saveDir)
+        
     def load(self, loadDir):
-
-        import pickle
-
-        file = open(loadDir, 'r')
-        dataPickle = CPU_Unpickler(file).load()
-        #dataPickle = file.read()
-        file.close()
 
         #=============================================================================
         # LOAD TORCH MODEL 
         #=============================================================================
 
-        loadedDict = pickle.loads(dataPickle)
+        loadedDict = torch.load(loadDir, map_location=self.device)
 
         self.model.load_state_dict(loadedDict.pop('modelStateDict'))
         self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
@@ -162,12 +151,3 @@ class RL():
             self.__dict__[key] = value
         
         self.timePrevStep = datetime.now() # Recalculating time spent
-
-import pickle
-import torch
-import io
-class CPU_Unpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        if module == 'torch.storage' and name == '_load_from_bytes':
-            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
-        else: return super().find_class(module, name)
