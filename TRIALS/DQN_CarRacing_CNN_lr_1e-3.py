@@ -51,10 +51,6 @@ params_dict = {
         'train': 'stochastic',
         'test': 'stochastic' 
     },
-    'isRender': {
-        'train': False,
-        'test': True,
-    }
 }
 
 # Initialize Actor-Critic Mehtod
