@@ -51,23 +51,17 @@ class Lines():
     def collide(self):
         return list(self.hit_points)
 
-def draw_env(win, images, player_car, computer_car, game_info, lines):
+def draw_env(win, images, player_car, game_info, computer_car=None, lines=None):
     for img, pos in images:
         win.blit(img, pos)
 
-    level_text = MAIN_FONT.render(f"Level {game_info.level}", 1, (255, 255, 255))
-    win.blit(level_text, (10, HEIGHT - level_text.get_height() - 70))
-
-    time_text = MAIN_FONT.render(f"Time; {int(game_info.get_level_time())}s", 1, (255, 255, 255))
-    win.blit(time_text, (10, HEIGHT - level_text.get_height() - 40))
-
-    vel_text = MAIN_FONT.render(f"Vel; {round(player_car.vel, 1)}px/s", 1, (255, 255, 255))
-    win.blit(vel_text, (10, HEIGHT - level_text.get_height() - 10))
-
     player_car.draw(win)
-    computer_car.draw(win)
-    
-    lines.draw(win, TRACK_BORDER_MASK, player_car.rect.center, player_car.angle)
+
+    if computer_car != None:
+        computer_car.draw(win)
+
+    if lines != None: 
+        lines.draw(win, TRACK_BORDER_MASK, player_car.rect.center, player_car.angle)
 
     if pygame.display.get_active():
         pygame.display.update()
@@ -76,14 +70,13 @@ class RacingEnv_v0():
     
     def __init__(self, ExploringStarts=False):
 
-        self.run = True
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
         self.player_car = PlayerCar(4, 4)
-        self.computer_car = ComputerCar(3, 4, PATH)
         self.game_info = GameInfo()
         self.start_pos = (150, 200)
         self.start_angle = 0
         self.ExploringStarts = ExploringStarts
+        self.isRender = False
 
         # make line
         self.lines = Lines(WIN)
@@ -94,33 +87,33 @@ class RacingEnv_v0():
         self.num_obs = 8
 
         self.game_info.start_level()
-        draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
         
         # reward
         self._reward = 0
 
     def step(self, action: torch.tensor):
 
-        self.__move(action)
-        self.computer_car.move()
+        self.move(action)
 
         next_state = self.get_state()
         done, reward = self.__done_reward()
 
-        draw_env(WIN, self.images, self.player_car, self.computer_car, self.game_info, self.lines)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
         return next_state, reward, done, action 
 
     def render(self):
         try:
             pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+            if not self.isRender:
+                self.isRender = True
+                draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         except:
             raise RuntimeError("No available display to render")
 
     def reset(self):
         
         self.game_info.reset()
-        self.computer_car.reset()
 
         if self.ExploringStarts:
             start_pos, start_angle = self.__get_random_pos_angle()
@@ -131,7 +124,8 @@ class RacingEnv_v0():
 
         if pygame.display.get_active():
             pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
-            pygame.display.update()
+
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
         initial_state = self.get_state()
         
@@ -153,7 +147,7 @@ class RacingEnv_v0():
 
         return PATH[rand_ind], ANGLE[rand_ind]
 
-    def __move(self, action: torch.tensor):
+    def move(self, action: torch.tensor):
 
         if action == 0: # left
             self.player_car.rotate(left=True)
@@ -192,11 +186,6 @@ class RacingEnv_v0():
             done = True
             reward -= 1
 
-        computer_finish_poi_collide = self.computer_car.collide(FINISH_MASK, *FINISH_POSITION)
-        if computer_finish_poi_collide != None:
-            done = True
-            reward -= 1
-
         player_finish_poi_collide = self.player_car.collide(FINISH_MASK, *FINISH_POSITION)
         if player_finish_poi_collide != None:
             done = True
@@ -215,6 +204,9 @@ class RacingEnv_v2(RacingEnv_v0):
             ExploringStarts=ExploringStarts
         )
 
+        self.lines = None # delete the line
+        self.stackSize = stackSize
+
         #=========================================================
         # STACKED GRAYSCALE IMG DATA
         #=========================================================
@@ -226,15 +218,45 @@ class RacingEnv_v2(RacingEnv_v0):
             [T.Resize((84, 84)), T.Normalize(0, 255)]
         )
 
-        self.stackedStates = deque([], maxlen=stackSize)
-        self.__init_stackedStates(stackSize)
+        self.stackedStates = deque([], maxlen=self.stackSize)
+        self.__init_stackedStates(self.stackSize)
 
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
         self.num_actions = 3
-        self.num_obs = self.get_state().shape
+        self.num_obs = self.reset().shape
 
         #=========================================================
+
+    def step(self, action: torch.tensor):
+        # 3 frames per move
+        self.move(action)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        self.move(action)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        return super().step(action)
+
+    def reset(self):
+        
+        self.isRender = False
+        self.game_info.reset()
+
+        if self.ExploringStarts:
+            start_pos, start_angle = self.__get_random_pos_angle()
+            self.player_car.START_POS = start_pos
+            self.player_car.reset(start_angle)
+        else:
+            self.player_car.reset()
+
+        if pygame.display.get_active():
+            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
+        self.__init_stackedStates(self.stackSize)
+        initial_state = self.get_state()
+        
+        return initial_state
         
     def get_state(self):
 
@@ -248,7 +270,107 @@ class RacingEnv_v2(RacingEnv_v0):
         return state.to(torch.float).numpy()
 
     def __init_stackedStates(self, frames: int):
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
+        screen = self.__grayscale(screen) # from RGB to grayscale img
+        
+        self.stackedStates.extend([screen]*frames)
+
+    @staticmethod
+    def __grayscale(numpy_array: np.ndarray):
+        return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
+
+class RacingEnv_v3(RacingEnv_v0):
+
+    def __init__(self, stackSize: int=4, ExploringStarts: bool=False):
+
+        super().__init__(
+            ExploringStarts=ExploringStarts
+        )
+
+        self.lines = None # delete the line
+        self.stackSize = stackSize
+
+        #=========================================================
+        # STACKED GRAYSCALE IMG DATA
+        #=========================================================
+
+        from collections import deque
+        from torchvision import transforms as T
+
+        self._stateImgSize = (150, 150)
+
+        self._transforms = T.Compose(
+            [T.Resize(self._stateImgSize), T.Normalize(0, 255)]
+        )
+
+        self.stackedStates = deque([], maxlen=self.stackSize)
+        self.__init_stackedStates(self.stackSize)
+
+        # Number of actions and observations
+        # There are 3 actions left, center, and right, then 8 lines to check distance to wall
+        self.num_actions = 3
+        self.num_obs = self.reset().shape
+
+        #=========================================================
+        
+    def step(self, action: torch.tensor):
+        # 3 frames per move
+        self.move(action)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        self.move(action)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        return super().step(action)
+
+    def reset(self):
+        
+        self.isRender = False
+        self.game_info.reset()
+
+        if self.ExploringStarts:
+            start_pos, start_angle = self.__get_random_pos_angle()
+            self.player_car.START_POS = start_pos
+            self.player_car.reset(start_angle)
+        else:
+            self.player_car.reset()
+
+        if pygame.display.get_active():
+            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.HIDDEN)
+
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
+        self.__init_stackedStates(self.stackSize)
+        initial_state = self.get_state()
+        
+        return initial_state
+
+    def get_state(self):
+
+        # Getting self.player_car.rect at least one draw_env execution
+        center = self.player_car.rect.center
+        leftTop = (center[0]-self._stateImgSize[0]/2, center[1]-self._stateImgSize[1]/2)
+
+        screen = WIN.subsurface(leftTop[0], leftTop[1], self._stateImgSize[0], self._stateImgSize[1])
+        screen = pygame.surfarray.pixels3d(screen) # game screen img to numpy ndarray(RGB)
+        screen = self.__grayscale(screen) # from RGB to grayscale img
+
+        self.stackedStates.append(screen)
+
+        state = torch.from_numpy(np.array(self.stackedStates)).unsqueeze(0)
+        state = self._transforms(state).squeeze(0)
+
+        return state.to(torch.float).numpy()
+
+    def __init_stackedStates(self, frames: int):
+        
+        # Getting self.player_car.rect at least one draw_env execution
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        center = self.player_car.rect.center
+        leftTop = (center[0]-self._stateImgSize[0]/2, center[1]-self._stateImgSize[1]/2)
+
+        screen = WIN.subsurface(leftTop[0], leftTop[1], self._stateImgSize[0], self._stateImgSize[1])
+        screen = pygame.surfarray.pixels3d(screen) # game screen img to numpy ndarray(RGB)
         screen = self.__grayscale(screen) # from RGB to grayscale img
         
         self.stackedStates.extend([screen]*frames)
@@ -259,13 +381,31 @@ class RacingEnv_v2(RacingEnv_v0):
 
 if __name__=="__main__":
     from main import *
+    import matplotlib.pyplot as plt
 
     RacingEnv = RacingEnv_v2()
 
-    for i in range(1000):
-        _, reward, done, _ = RacingEnv.step(0)
-        if done:
-            break
+    for episode in range(3):
+
+        state = RacingEnv.reset()
+        RacingEnv.render()
+
+        for i in range(1000):
+
+            fig = plt.figure()
+            ax1 = fig.add_subplot(4, 1, 1)
+            ax1.imshow(state[0], cmap="gray")
+            ax2 = fig.add_subplot(4, 1, 2)
+            ax2.imshow(state[1], cmap="gray")
+            ax3 = fig.add_subplot(4, 1, 3)
+            ax3.imshow(state[2], cmap="gray")
+            ax4 = fig.add_subplot(4, 1, 4)
+            ax4.imshow(state[3], cmap="gray")
+            plt.show()
+
+            state, reward, done, _ = RacingEnv.step(episode)
+            if done:
+                break
 
     RacingEnv.close()
     '''
