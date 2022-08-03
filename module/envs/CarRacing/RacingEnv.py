@@ -220,8 +220,11 @@ class RacingEnv_v2(RacingEnv_v0):
         #=========================================================
 
         from collections import deque
+        from torchvision import transforms as T
 
-        self._inputSize = (84, 84)
+        self._transforms = T.Compose(
+            [T.Resize((84, 84)), T.Normalize(0, 255)]
+        )
 
         self.stackedStates = deque([], maxlen=stackSize)
         self.__init_stackedStates(stackSize)
@@ -234,17 +237,13 @@ class RacingEnv_v2(RacingEnv_v0):
         #=========================================================
         
     def get_state(self):
-        import torch.nn.functional as F
 
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
         screen = self.__grayscale(screen)
         self.stackedStates.append(screen) # from RGB to grayscale img
         
-        state = torch.from_numpy(np.array(self.stackedStates))
-        state = torch.unsqueeze(state, 0)
-        
-        state = F.interpolate(state, size=self._inputSize)
-        state = torch.squeeze(state, 0)
+        state = torch.from_numpy(np.array(self.stackedStates)).unsqueeze(0)
+        state = self._transforms(state).squeeze(0)
 
         return state.to(torch.float).numpy()
 
@@ -262,7 +261,6 @@ if __name__=="__main__":
     from main import *
 
     RacingEnv = RacingEnv_v2()
-    RacingEnv.render()
 
     for i in range(1000):
         _, reward, done, _ = RacingEnv.step(0)
