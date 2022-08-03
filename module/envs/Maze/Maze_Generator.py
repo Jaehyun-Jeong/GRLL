@@ -100,9 +100,6 @@ class Maze:
                 if np.size(cell) > 2:
                     # if cell already contains an array of cells, no more valid neighbors are available at all
                     cell = np.zeros((0, 0))  # this will end the while loop, the maze is finished.
-                    if self.screen is not None:
-                        # if screen is set, make sure it is updated as the maze is now finished.
-                        pygame.display.flip()
                 else:
                     # a dead end; make a new junction and continue from there
                     need_cell_range = True
@@ -153,19 +150,6 @@ class Maze:
 
         if self.slow_mode or pygame.time.get_ticks() > self.prev_update + 50:
             self.prev_update = pygame.time.get_ticks()
-            pygame.display.flip()
-
-            # when performing display flip, handle some pygame events as well.
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.running = False
-                    if event.key == pygame.K_f:
-                        self.toggle_fullscreen()
-                    if event.key == pygame.K_m:
-                        self.toggle_slow_mode()
 
         if self.slow_mode:
             pygame.time.wait(3)
@@ -181,7 +165,6 @@ class Maze:
         screen_copy = self.screen.copy()
         pygame.display.toggle_fullscreen()
         self.screen.blit(screen_copy, (0, 0))
-        pygame.display.flip()
 
     def save_image(self):
 
