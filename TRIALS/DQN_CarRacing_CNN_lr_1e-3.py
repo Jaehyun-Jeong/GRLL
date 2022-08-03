@@ -10,7 +10,7 @@ from module.ValueBased.models import CNN_V2
 from module.ValueBased import DQN
 
 # Environment
-from module.envs.CarRacing import RacingEnv_v2
+from module.envs.CarRacing import RacingEnv_v3
 
 MAX_EPISODES = 10000
 MAX_TIMESTEPS = 100000
@@ -23,7 +23,7 @@ GAMMA = 0.99 # discount rate
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = RacingEnv_v2()
+env = RacingEnv_v3()
 
 # set ActorCritic
 num_actions = env.num_actions
@@ -51,6 +51,10 @@ params_dict = {
         'train': 'stochastic',
         'test': 'stochastic' 
     },
+    'isRender': {
+        'train': False,
+        'test': True,
+    }
 }
 
 # Initialize Actor-Critic Mehtod

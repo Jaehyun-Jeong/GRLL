@@ -71,7 +71,11 @@ class RacingEnv_v0():
     def __init__(self, ExploringStarts=False):
 
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
+
+        # player car to full velocity
         self.player_car = PlayerCar(4, 4)
+        self.player_car.vel = self.player_car.max_vel
+
         self.game_info = GameInfo()
         self.start_pos = (150, 200)
         self.start_angle = 0
@@ -116,7 +120,7 @@ class RacingEnv_v0():
         self.game_info.reset()
 
         if self.ExploringStarts:
-            start_pos, start_angle = self.__get_random_pos_angle()
+            start_pos, start_angle = self.get_random_pos_angle()
             self.player_car.START_POS = start_pos
             self.player_car.reset(start_angle)
         else:
@@ -135,7 +139,7 @@ class RacingEnv_v0():
         pygame.quit()
     
     @staticmethod
-    def __get_random_pos_angle():
+    def get_random_pos_angle():
         
         import random
             
@@ -242,7 +246,7 @@ class RacingEnv_v2(RacingEnv_v0):
         self.game_info.reset()
 
         if self.ExploringStarts:
-            start_pos, start_angle = self.__get_random_pos_angle()
+            start_pos, start_angle = self.get_random_pos_angle()
             self.player_car.START_POS = start_pos
             self.player_car.reset(start_angle)
         else:
@@ -299,7 +303,8 @@ class RacingEnv_v3(RacingEnv_v0):
         from collections import deque
         from torchvision import transforms as T
 
-        self._stateImgSize = (150, 150)
+        self._sliceImgSize = (150, 150)
+        self._stateImgSize = (84, 84)
 
         self._transforms = T.Compose(
             [T.Resize(self._stateImgSize), T.Normalize(0, 255)]
@@ -329,7 +334,7 @@ class RacingEnv_v3(RacingEnv_v0):
         self.game_info.reset()
 
         if self.ExploringStarts:
-            start_pos, start_angle = self.__get_random_pos_angle()
+            start_pos, start_angle = self.get_random_pos_angle()
             self.player_car.START_POS = start_pos
             self.player_car.reset(start_angle)
         else:
@@ -345,17 +350,37 @@ class RacingEnv_v3(RacingEnv_v0):
         
         return initial_state
 
-    def get_state(self):
+    def crop_img_numpy(self):
 
         # Getting self.player_car.rect at least one draw_env execution
         center = self.player_car.rect.center
-        leftTop = (center[0]-self._stateImgSize[0]/2, center[1]-self._stateImgSize[1]/2)
+        leftTop = (center[0]-self._sliceImgSize[0]/2, center[1]-self._sliceImgSize[1]/2)
 
-        screen = WIN.subsurface(leftTop[0], leftTop[1], self._stateImgSize[0], self._stateImgSize[1])
+        sizeLst = [self._sliceImgSize[0], self._sliceImgSize[1]]
+        if leftTop[0] < 0:
+            sizeLst.append(center[0])
+        if leftTop[0]+self._sliceImgSize[0] > WIN.get_width():
+            sizeLst.append(WIN.get_width()-leftTop[0])
+        if leftTop[1] < 0:
+            sizeLst.append(center[1])
+        if leftTop[1]+self._sliceImgSize[1] > WIN.get_height():
+            sizeLst.append(WIN.get_height()-leftTop[1])
+
+        sliceSize = min(sizeLst)
+        leftTop = (center[0]-sliceSize/2, center[1]-sliceSize/2)
+
+        screen = WIN.subsurface(leftTop[0], leftTop[1], sliceSize, sliceSize)
         screen = pygame.surfarray.pixels3d(screen) # game screen img to numpy ndarray(RGB)
         screen = self.__grayscale(screen) # from RGB to grayscale img
 
-        self.stackedStates.append(screen)
+        if sliceSize < min(self._sliceImgSize):
+            from PIL import Image
+            screen = np.array(Image.fromarray(screen).resize(self._sliceImgSize))
+
+        return screen
+
+    def get_state(self):
+        self.stackedStates.append(self.crop_img_numpy())
 
         state = torch.from_numpy(np.array(self.stackedStates)).unsqueeze(0)
         state = self._transforms(state).squeeze(0)
@@ -363,17 +388,9 @@ class RacingEnv_v3(RacingEnv_v0):
         return state.to(torch.float).numpy()
 
     def __init_stackedStates(self, frames: int):
-        
-        # Getting self.player_car.rect at least one draw_env execution
-        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
-        center = self.player_car.rect.center
-        leftTop = (center[0]-self._stateImgSize[0]/2, center[1]-self._stateImgSize[1]/2)
 
-        screen = WIN.subsurface(leftTop[0], leftTop[1], self._stateImgSize[0], self._stateImgSize[1])
-        screen = pygame.surfarray.pixels3d(screen) # game screen img to numpy ndarray(RGB)
-        screen = self.__grayscale(screen) # from RGB to grayscale img
-        
-        self.stackedStates.extend([screen]*frames)
+        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        self.stackedStates.extend([self.crop_img_numpy()]*frames)
 
     @staticmethod
     def __grayscale(numpy_array: np.ndarray):
@@ -383,15 +400,19 @@ if __name__=="__main__":
     from main import *
     import matplotlib.pyplot as plt
 
-    RacingEnv = RacingEnv_v2()
+    RacingEnv = RacingEnv_v3(ExploringStarts = True)
 
     for episode in range(3):
 
         state = RacingEnv.reset()
-        RacingEnv.render()
+        
+        '''
+        if episode % 2 == 0:
+            RacingEnv.render()
+        '''
 
         for i in range(1000):
-
+            '''
             fig = plt.figure()
             ax1 = fig.add_subplot(4, 1, 1)
             ax1.imshow(state[0], cmap="gray")
@@ -402,6 +423,7 @@ if __name__=="__main__":
             ax4 = fig.add_subplot(4, 1, 4)
             ax4.imshow(state[3], cmap="gray")
             plt.show()
+            '''
 
             state, reward, done, _ = RacingEnv.step(episode)
             if done:
