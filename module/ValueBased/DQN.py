@@ -81,7 +81,7 @@ class DQN(ValueBased):
         },
         policy={
             'train': 'eps-greedy',
-            'test': 'stochastic'
+            'test': 'greedy'
         },
     ):
 

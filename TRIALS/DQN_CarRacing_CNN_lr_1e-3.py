@@ -47,9 +47,10 @@ params_dict = {
         'logdir': "./runs/DQN_CarRacing_v0",
         'tag': "Averaged Returns/CNN lr=1e-3"
     },
-    'policy': {
-        'train': 'stochastic',
-        'test': 'stochastic' 
+    'eps': { # for epsilon scheduling
+        'start': 0.99,
+        'end': 0.00001,
+        'decay': 100000
     },
 }
 

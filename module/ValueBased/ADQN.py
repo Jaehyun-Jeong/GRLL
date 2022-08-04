@@ -82,8 +82,8 @@ class ADQN(ValueBased):
             'tag': "DQN"
         },
         policy={
-            'train': 'eps-stochastic',
-            'test': 'stochastic'
+            'train': 'eps-greedy',
+            'test': 'greedy'
         },
         numPrevModels=10
     ):
