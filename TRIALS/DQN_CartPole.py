@@ -53,7 +53,7 @@ params_dict = {
     },
     'isRender':{
         'train': False,
-        'test': True
+        'test': False 
     }
 }
 
