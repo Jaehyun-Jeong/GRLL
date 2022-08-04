@@ -18,7 +18,8 @@ ALPHA = 1e-3 # learning rate
 GAMMA = 0.99 # discount rate
 
 # device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 
 # Environment 
 import gym
@@ -34,7 +35,7 @@ model = ANN_V1(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
-    #'device': device, # device to use, 'cuda' or 'cpu'
+    'device': device, # device to use, 'cuda' or 'cpu'
     'model': model, # torch models for policy and value funciton
     'env': env,
     'optimizer': optimizer, # torch optimizer
