@@ -92,7 +92,7 @@ class PolicyGradient(RL):
     @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
 
-        s = torch.tensor(s).to(self.device)
+        s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
 
@@ -116,7 +116,7 @@ class PolicyGradient(RL):
   
     # Returns a value of the state (state value function in Reinforcement learning)
     def value(self, s):
-        s = torch.tensor(s).to(self.device)
+        s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = torch.squeeze(value, 0)
 

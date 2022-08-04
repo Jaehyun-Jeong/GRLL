@@ -104,9 +104,9 @@ class ValueBased(RL):
     @abstractmethod
     @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
-        s = torch.tensor(s).to(self.device)
+        s = torch.Tensor(s).to(self.device)
         probs = self.value(s)
-
+        
         eps = self.__get_eps() if useEps else 0
         
         if random.random() >= eps:
@@ -129,7 +129,7 @@ class ValueBased(RL):
     def max_value(self, s):
         with torch.no_grad():
 
-            s = torch.tensor(s).to(self.device)
+            s = torch.Tensor(s).to(self.device)
             values = self.value(s)
             maxValues = torch.max(values)
 

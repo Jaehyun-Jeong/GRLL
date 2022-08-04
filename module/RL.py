@@ -18,13 +18,6 @@ class RL():
         tensorboardParams,
     ):
         
-        # set default dtype
-        self.dtype = torch.get_default_dtype()
-        
-        print("==========================================")
-        print(torch.get_default_dtype()) 
-        print("==========================================")
-
         # set Environment
         if env==None and trainEnv!=None and testEnv!=None:
             self.trainEnv = trainEnv
@@ -40,7 +33,7 @@ class RL():
             )    
 
         # init parameters
-        self.model = model.to(dtype=self.dtype) # set dtype to match
+        self.model = model # set dtype to match
         self.optimizer = optimizer
         self.device = device
         self.policy = policy
