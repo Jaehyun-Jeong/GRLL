@@ -34,7 +34,7 @@ model = ANN_V1(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
-    'device': device, # device to use, 'cuda' or 'cpu'
+    #'device': device, # device to use, 'cuda' or 'cpu'
     'model': model, # torch models for policy and value funciton
     'env': env,
     'optimizer': optimizer, # torch optimizer
