@@ -1,12 +1,15 @@
 try:
     #from module.envs.Maze.Maze_Generator import Maze
-    from module.envs.Maze.Maze_Generator import *
+    from module.envs.Maze.Maze_Generator import Maze
 except:
     #from Maze_Generator import Maze
-    from Maze_Generator import *
+    from Maze_Generator import Maze
 from random import choice
+import numpy as np
+import pygame
 
 class MazeEnv_v0():
+
     def __init__(self):
         
         # set blocks and character = 2, goal = 3
