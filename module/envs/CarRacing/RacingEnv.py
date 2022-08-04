@@ -405,25 +405,19 @@ if __name__=="__main__":
     for episode in range(3):
 
         state = RacingEnv.reset()
-        
-        '''
-        if episode % 2 == 0:
-            RacingEnv.render()
-        '''
+        RacingEnv.render()
 
         for i in range(1000):
-            '''
             fig = plt.figure()
-            ax1 = fig.add_subplot(4, 1, 1)
+            ax1 = fig.add_subplot(1, 4, 1)
             ax1.imshow(state[0], cmap="gray")
-            ax2 = fig.add_subplot(4, 1, 2)
+            ax2 = fig.add_subplot(1, 4, 2)
             ax2.imshow(state[1], cmap="gray")
-            ax3 = fig.add_subplot(4, 1, 3)
+            ax3 = fig.add_subplot(1, 4, 3)
             ax3.imshow(state[2], cmap="gray")
-            ax4 = fig.add_subplot(4, 1, 4)
+            ax4 = fig.add_subplot(1, 4, 4)
             ax4.imshow(state[3], cmap="gray")
             plt.show()
-            '''
 
             state, reward, done, _ = RacingEnv.step(episode)
             if done:

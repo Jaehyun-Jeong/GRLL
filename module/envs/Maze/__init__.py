@@ -1,2 +1,1 @@
-from .Maze_Generator import *
-from .Maze_Solver import *
+from .MazeEnv import MazeEnv_v0

@@ -1,4 +1,7 @@
-from Maze_Generator import *
+try:
+    from module.envs.Maze.Maze_Generator import *
+except:
+    from Maze_Generator import *
 from random import choice
 
 class MazeEnv_v0():

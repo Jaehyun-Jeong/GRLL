@@ -10,9 +10,6 @@ import torch.optim as optim
 from module.ValueBased.models import ANN_V1
 from module.ValueBased import DQN
 
-# Environment
-from module.envs.CarRacing import RacingEnv_v0
-
 MAX_EPISODES = 10000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
@@ -27,20 +24,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 import gym
 
 # set environment
-trainEnv = gym.make('CartPole-v0')
-testEnv = gym.make('CartPole-v0')
+env = gym.make('CartPole-v0')
+
 
 # set ActorCritic
-num_actions = trainEnv.action_space.n
-num_states = trainEnv.observation_space.shape[0]
+num_actions = env.action_space.n
+num_states = env.observation_space.shape[0]
 model = ANN_V1(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
     'device': device, # device to use, 'cuda' or 'cpu'
-    'trainEnv': trainEnv,
-    'testEnv': testEnv,
     'model': model, # torch models for policy and value funciton
+    'env': env,
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
@@ -48,7 +44,7 @@ params_dict = {
     'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "./runs/ADQN_CarRacing_v0",
+        'logdir': "./runs/DQN_CartPole_v0",
         'tag': "Averaged Returns/lr=1e-3"
     },
     'policy': {
@@ -56,8 +52,8 @@ params_dict = {
         'test': 'stochastic' 
     },
     'isRender':{
-        'train': True,
-        'test': False
+        'train': False,
+        'test': True
     }
 }
 

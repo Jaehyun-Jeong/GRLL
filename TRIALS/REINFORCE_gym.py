@@ -6,8 +6,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ActorCritic.models import ANN_V2
-from module.ActorCritic import REINFORCE
+from module.PolicyGradient.models import ANN_V2
+from module.PolicyGradient import REINFORCE
 
 # Environment 
 import gym
