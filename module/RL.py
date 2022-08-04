@@ -19,7 +19,7 @@ class RL():
     ):
         
         # set default dtype
-        self.dtype = torch.float64
+        self.dtype = torch.double
         torch.set_default_dtype(self.dtype)
 
         # set Environment
