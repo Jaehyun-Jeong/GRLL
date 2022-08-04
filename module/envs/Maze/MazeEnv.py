@@ -61,7 +61,7 @@ class MazeEnv_v0():
         rect = np.array([0, 0, disp_size[0], disp_size[1]])  # the rect inside which to draw the maze. Top x, top y, width, height.
         block_size = 20  # block size in pixels
         screen = pygame.Surface(disp_size)
-        pygame.display.set_caption('Maze Generator / KS 2022')
+        pygame.display.set_caption('Maze')
 
         # intialize a maze, given size (y, x)
         self.maze = Maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
