@@ -19,8 +19,12 @@ class RL():
     ):
         
         # set default dtype
-        self.dtype = torch.double
+        self.dtype = torch.get_default_dtype()
         torch.set_default_dtype(self.dtype)
+        
+        print("==========================================")
+        print(torch.get_default_dtype()) 
+        print("==========================================")
 
         # set Environment
         if env==None and trainEnv!=None and testEnv!=None:
