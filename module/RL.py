@@ -20,7 +20,6 @@ class RL():
         
         # set default dtype
         self.dtype = torch.get_default_dtype()
-        torch.set_default_dtype(self.dtype)
         
         print("==========================================")
         print(torch.get_default_dtype()) 
