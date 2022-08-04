@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import torch
 
 class RL():
 
@@ -16,10 +17,12 @@ class RL():
         useTensorboard, 
         tensorboardParams,
     ):
+        
+        # set default dtype
+        self.dtype = torch.float64
+        torch.set_default_dtype(self.dtype)
 
         # set Environment
-        
-
         if env==None and trainEnv!=None and testEnv!=None:
             self.trainEnv = trainEnv
             self.testEnv = testEnv
@@ -34,7 +37,7 @@ class RL():
             )    
 
         # init parameters
-        self.model = model
+        self.model = model.to(dtype=self.dtype) # set dtype to match
         self.optimizer = optimizer
         self.device = device
         self.policy = policy
