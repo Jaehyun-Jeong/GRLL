@@ -33,9 +33,9 @@ class RL():
             )    
 
         # init parameters
-        self.model = model # set dtype to match
-        self.optimizer = optimizer
         self.device = device
+        self.model = model.to(self.device) # set dtype to match
+        self.optimizer = optimizer
         self.policy = policy
         self.isRender = isRender
         self.useTensorboard = useTensorboard

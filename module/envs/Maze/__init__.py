@@ -1,1 +1,1 @@
-from .MazeEnv import MazeEnv_v0
+from module.envs.Maze.MazeEnv import MazeEnv_v0

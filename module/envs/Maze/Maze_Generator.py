@@ -6,6 +6,7 @@ from os.path import exists
 from sys import exit
 
 class Maze:
+
     """
     Generate a maze See https://en.wikipedia.org/wiki/Maze_generation_algorithm
     Returns either
@@ -16,7 +17,6 @@ class Maze:
     """
 
     def __init__(self, size_x, size_y):
-
         self.screen = None  # if this is set to a display surface, maze generation will be shown in a window
         self.screen_size = None
         self.screen_block_size = None

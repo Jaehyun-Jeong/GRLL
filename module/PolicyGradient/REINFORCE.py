@@ -13,7 +13,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
-from module.PolicyGradient import PolicyGradient
+from module.PolicyGradient.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
                        ('state', 'action', 'next_state', 'reward'))

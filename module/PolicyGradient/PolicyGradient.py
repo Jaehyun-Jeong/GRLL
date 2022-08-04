@@ -1,6 +1,7 @@
 
 from collections import namedtuple, deque
 from abc import abstractmethod
+import random
 
 # PyTorch
 import torch

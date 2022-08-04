@@ -1,6 +1,8 @@
 try:
+    #from module.envs.Maze.Maze_Generator import Maze
     from module.envs.Maze.Maze_Generator import *
 except:
+    #from Maze_Generator import Maze
     from Maze_Generator import *
 from random import choice
 
@@ -55,7 +57,7 @@ class MazeEnv_v0():
     def makeMaze(self):
 
         # set screen size and initialize it
-        disp_size = (700, 500)
+        disp_size = (500, 500)
         rect = np.array([0, 0, disp_size[0], disp_size[1]])  # the rect inside which to draw the maze. Top x, top y, width, height.
         block_size = 20  # block size in pixels
         screen = pygame.Surface(disp_size)

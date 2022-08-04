@@ -31,7 +31,7 @@ env = gym.make('CartPole-v0')
 # set ActorCritic
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
-model = ANN_V1(num_states, num_actions).to(device)
+model = ANN_V1(num_states, num_actions)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {

@@ -1,3 +1,1 @@
-from . import CarRacing
-from . import Maze
-from . import atari
+from module.envs import CarRacing, Maze, Atari

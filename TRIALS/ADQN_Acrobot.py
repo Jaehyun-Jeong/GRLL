@@ -7,8 +7,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from DQN.models import ANN_V2
-from DQN.ADQN import ADQN
+from module.ValueBased.models import ANN_V2
+from module.ValueBased.ADQN import ADQN
 
 # Environment 
 import gym
@@ -39,19 +39,10 @@ params_dict = {
     'env': env, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 1000
-    }
 }
 
 # Initialize Actor-Critic Mehtod
 averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
-averagedDQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="DQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
+averagedDQN.train(MAX_EPISODES, testPer=1)
