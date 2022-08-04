@@ -119,7 +119,6 @@ class ADQN(ValueBased):
     @abstractmethod
     def value(self, s):
 
-        s = torch.tensor(s).to(self.device)
         values = self.model.forward(s)
         for model in list(self.prevModels)[:-1]: # last model is equal to self.model
             values += model.forward(s)

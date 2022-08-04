@@ -112,7 +112,6 @@ class DQN(ValueBased):
     # ADQN has different type of value
     @abstractmethod
     def value(self, s):
-        s = torch.tensor(s).to(self.device)
         value = self.model.forward(s)
         value = torch.squeeze(value, 0)
         return value
