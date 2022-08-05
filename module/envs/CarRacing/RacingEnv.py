@@ -1,6 +1,7 @@
 from collections import deque
 import torch
 import numpy as np
+import math
 try:
     from main import *
 except:
@@ -360,11 +361,11 @@ class RacingEnv_v3(RacingEnv_v0):
         if leftTop[0] < 0:
             sizeLst.append(center[0])
         if leftTop[0]+self._sliceImgSize[0] > WIN.get_width():
-            sizeLst.append(WIN.get_width()-leftTop[0])
+            sizeLst.append(math.floor(WIN.get_width()-leftTop[0]))
         if leftTop[1] < 0:
             sizeLst.append(center[1])
         if leftTop[1]+self._sliceImgSize[1] > WIN.get_height():
-            sizeLst.append(WIN.get_height()-leftTop[1])
+            sizeLst.append(math.floor(WIN.get_height()-leftTop[1]))
 
         sliceSize = min(sizeLst)
         leftTop = (center[0]-sliceSize/2, center[1]-sliceSize/2)

@@ -10,11 +10,11 @@ from module.ValueBased.models import CNN_V2
 from module.ValueBased import DQN
 
 # Environment
-from module.envs.CarRacing import RacingEnv_v2
+from module.envs.CarRacing import RacingEnv_v3
 
 # set environment
-trainEnv = RacingEnv_v2(ExploringStarts=True)
-testEnv = RacingEnv_v2()
+trainEnv = RacingEnv_v3(ExploringStarts=True)
+testEnv = RacingEnv_v3()
 
 # set ActorCritic
 num_actions = trainEnv.num_actions
@@ -37,5 +37,6 @@ DeepQN = DQN(**params_dict)
 DeepQN.load("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
 
 # TRAIN Agent
-DeepQN.isRender["test"] = True
-DeepQN.test()
+DeepQN.train(10000)
+
+DeepQN.save("./saved_models/CarRacing_v3/DQN_lr1e-3.obj")
