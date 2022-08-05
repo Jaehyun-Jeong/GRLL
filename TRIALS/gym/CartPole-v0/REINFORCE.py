@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch

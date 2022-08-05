@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
@@ -8,7 +8,7 @@ import torch.optim as optim
 
 # import model
 from module.ValueBased.models import ANN_V2
-from module.ValueBased import ADQN
+from module.ValueBased.ADQN import ADQN
 
 # Environment 
 import gym
@@ -20,7 +20,7 @@ MAX_REPLAYMEMORY = 10000
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
 
-gym_name = 'CartPole-v1'
+gym_name = 'Acrobot-v1'
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,20 +39,6 @@ params_dict = {
     'env': env, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 100000
-    },
-    'useTensorboard': True,
-    'tensorboardParams': {
-        'logdir': './runs/ADQN',
-        'tag': 'CartPole'
-    }
 }
 
 # Initialize Actor-Critic Mehtod
@@ -60,5 +46,3 @@ averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
 averagedDQN.train(MAX_EPISODES, testPer=1)
-
-averagedDQN.save("./saved_models/ADQN_CartPole.obj")

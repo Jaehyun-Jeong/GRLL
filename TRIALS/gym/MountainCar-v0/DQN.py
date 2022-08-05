@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
@@ -54,4 +54,4 @@ params_dict = {
 DeepQN = DQN(**params_dict)
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES, testPer=1, useTensorboard=True, tensorboardTag="DQN_AL"+str(ALPHA)+"_GA"+str(GAMMA)+"_"+gym_name)
+DeepQN.train(MAX_EPISODES)

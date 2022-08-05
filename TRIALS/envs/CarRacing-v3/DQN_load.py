@@ -26,6 +26,7 @@ params_dict = {
     'testEnv': testEnv, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
+    'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/DQN_CarRacing_v3",
         'tag': "Averaged Returns/CNN_V2_lr=1e-3"

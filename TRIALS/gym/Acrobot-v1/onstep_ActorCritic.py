@@ -1,14 +1,13 @@
 import sys
-sys.path.append("../") # to import module
-from itertools import product
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
 import torch.optim as optim
 
 # import model
-from module.ActorCritic.models import ANN_V2
-from module.ActorCritic import onestep_ActorCritic
+from module.PolicyGradient.models import ANN_V2
+from module.PolicyGradient import onestep_ActorCritic
 
 # Environment 
 import gym
@@ -35,4 +34,4 @@ onestep_AC = onestep_ActorCritic(
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=3000, testPer=1, useTensorboard=True, tensorboardTag="ActorCritic_AL"+str(0.1e-3)+"_GA"+str(0.99)+"_"+gym_name)
+onestep_AC.train(maxEpisodes=3000)

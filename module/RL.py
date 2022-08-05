@@ -26,7 +26,7 @@ class RL():
             self.trainEnv = env
             self.testEnv = env
         else:
-            ValueError(
+            raise ValueError(
                 "No Environment or you just use one of trainEnv, or testEnv,"
                 "or you set the env with trainEnv or testEnv,"
                 "or you set the trainEnv or testEnv with env"
@@ -76,7 +76,7 @@ class RL():
             try:
                 self.tensorboardWriter.add_scalar(self.tensorboardParams['tag'], y, x)
             except:
-                ValueError("Can not use tensorboard!")
+                raise ValueError("Can not use tensorboard!")
 
     def test(self, testSize=10):
         
@@ -157,8 +157,11 @@ class RL():
 
         loadedDict = torch.load(loadDir, map_location=self.device)
 
-        self.model.load_state_dict(loadedDict.pop('modelStateDict'))
-        self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
+        try:
+            self.model.load_state_dict(loadedDict.pop('modelStateDict'))
+            self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
+        except:
+            raise ValueError("No matching torch.nn.Module, please use equally shaped torch.nn.Module as you've done!")
 
         self.model.eval()
 

@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
@@ -27,7 +27,6 @@ import gym
 # set environment
 env = gym.make('CartPole-v0')
 
-
 # set ActorCritic
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
@@ -45,7 +44,7 @@ params_dict = {
     'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "./runs/DQN_CartPole_v0",
+        'logdir': "../../runs/DQN_CartPole_v0",
         'tag': "Averaged Returns/lr=1e-3"
     },
     'policy': {
@@ -59,13 +58,10 @@ params_dict = {
 }
 
 # Initialize Actor-Critic Mehtod
-Averaged_DQN = DQN(**params_dict)
-
-# load pretrained model
-#Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
+DeepQN = DQN(**params_dict)
 
 # TRAIN Agent
-Averaged_DQN.train(MAX_EPISODES)
+DeepQN.train(MAX_EPISODES)
 
 # save model
-Averaged_DQN.save("./saved_models/CarRacing_v0/ADQN_lr1e-3.obj")
+DeepQN.save("../../saved_models/CartPole-v0/DQN_lr1e-3.obj")

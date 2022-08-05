@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
@@ -50,7 +50,7 @@ params_dict = {
     },
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': './runs/ADQN',
+        'logdir': '../../runs/ADQN',
         'tag': 'MoutainCar'
     }
 }
@@ -61,4 +61,4 @@ averagedDQN = ADQN(**params_dict)
 # TRAIN Agent
 averagedDQN.train(MAX_EPISODES, testPer=10)
 
-averagedDQN.save("./saved_models/ADQN_MountainCar.obj")
+averagedDQN.save("../../saved_models/MountainCar-v0/ADQN.obj")
