@@ -359,15 +359,15 @@ class RacingEnv_v3(RacingEnv_v0):
 
         sizeLst = [self._sliceImgSize[0], self._sliceImgSize[1]]
         if leftTop[0] < 0:
-            sizeLst.append(center[0])
+            sizeLst.append(center[0]*2)
         if leftTop[0]+self._sliceImgSize[0] > WIN.get_width():
-            sizeLst.append(WIN.get_width()-leftTop[0])
+            sizeLst.append(2*(WIN.get_width()-center[0]))
         if leftTop[1] < 0:
-            sizeLst.append(center[1])
+            sizeLst.append(center[1]*2)
         if leftTop[1]+self._sliceImgSize[1] > WIN.get_height():
-            sizeLst.append(WIN.get_height()-leftTop[1])
+            sizeLst.append(2*(WIN.get_height()-center[1]))
 
-        sliceSize = math.floor(min(sizeLst))
+        sliceSize = min(sizeLst)
         leftTop = (center[0]-sliceSize/2, center[1]-sliceSize/2)
 
         screen = WIN.subsurface(leftTop[0], leftTop[1], sliceSize, sliceSize)
