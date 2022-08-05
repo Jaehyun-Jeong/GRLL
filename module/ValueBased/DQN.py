@@ -122,6 +122,31 @@ class DQN(ValueBased):
         batches = self.replayMemory.sample(batch_size)
         lenLoss = len(batches)
 
+        #====================================================================
+        #test================================================================
+        #====================================================================
+
+        S_t = [transition.state for transition in batches]
+        A_t = [transition.action for transition in batches]
+        done = [transition.done for transition in batches]
+        S_tt = [transition.next_state for transition in batches]
+        R_tt = [transition.reward for transition in batches]
+
+        S_t = np.array(S_t)
+        A_t = np.array(A_t)
+        done = np.array(done)
+        S_tt = np.array(S_tt)
+        R_tt = np.array(R_tt)
+        
+        print(S_t)
+        print(A_t)
+        print(done)
+        print(S_tt)
+        print(R_tt)
+        print("===================================================")
+
+        #====================================================================
+
         # update by using mini-batch Gradient Descent
         for Transition in batches:
             s_t = Transition.state

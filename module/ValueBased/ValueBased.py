@@ -85,7 +85,12 @@ class ValueBased(RL):
     def pi(self, s, a):
         s = torch.Tensor(s).to(self.device)
         value = self.model.forward(s)
+
+        print(value)
+
         value = torch.squeeze(value, 0)
+
+        print(value)
         return value[a]
     
     # Epsilon scheduling
