@@ -97,9 +97,8 @@ class REINFORCE(PolicyGradient):
         )
         
         self.useBaseline=useBaseline
-        
-        # torch.log makes nan(not a number) error, so we have to add some small number in log function
-        self.ups=1e-7
+
+        self.printInit()
 
     # Update weights by using Actor Critic Method
     def __update_weight(self, Transitions, entropy_term = 0):

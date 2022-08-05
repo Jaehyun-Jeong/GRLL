@@ -106,18 +106,29 @@ class RL():
         elif testSize == 0:
             averagedReturn = "no Test"
         else:
-            #ERROR!
-            print("error")
+            raise ValueError("testSize can't be smaller than 0")
 
         return averagedReturn
 
-    def printResult(self, episode: int, timesteps: int, averagedReturn):
+    def printInit(self):
+        import os
+        printLength = os.get_terminal_size().columns
         
+        print("="*printLength)
+        print("Initialized Parameters\n")
+
+        for key, value in self.__dict__.items():
+            print(f"{key}: {value}")
+
+        print("="*printLength)
+
+    def printResult(self, episode: int, timesteps: int, averagedReturn):
+        import os
+        printLength = os.get_terminal_size().columns
+
         self.timeSpent += datetime.now() - self.timePrevStep
 
         results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
-
-        print(results)
 
         splited = results.split('|')[1:-1]
         frameString = "+"
@@ -125,6 +136,16 @@ class RL():
         for split in splited:
             frameString += "-"*len(split) + "+"
 
+        # if it's first call from start
+        
+        if len(frameString) > printLength:
+            frameString = frameString[:printLength]    
+        if len(results) > printLength:
+            results = results[:printLength-3]
+            results += "..."
+
+        print(frameString)
+        print(results)
         print(frameString)
 
         self.timePrevStep = datetime.now()

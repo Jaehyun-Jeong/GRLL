@@ -112,8 +112,7 @@ class ADQN(ValueBased):
         # save last K previously learned Q-networks
         self.prevModels = deque([], maxlen=numPrevModels)
 
-        # torch.log makes nan(not a number) error, so we have to add some small number in log function
-        self.ups=1e-7
+        self.printInit()
 
     # action seleted from previous K models by averaging it
     @abstractmethod

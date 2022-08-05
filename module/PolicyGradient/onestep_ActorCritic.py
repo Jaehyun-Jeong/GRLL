@@ -85,6 +85,8 @@ class onestep_ActorCritic(PolicyGradient):
             policy=policy
         )
 
+        self.printInit()
+
     # Update weights by using Actor Critic Method
     def update_weight(self, Transition, entropy_term = 0):
         s_t = Transition.state

@@ -13,8 +13,7 @@ from module.PolicyGradient import onestep_ActorCritic
 import gym
 
 # device to use
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
 gym_name = 'CartPole-v0'
@@ -24,7 +23,7 @@ env = gym.make(gym_name)
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
-ActorCritic_model = ANN_V2(num_states, num_actions).to(device)
+ActorCritic_model = ANN_V2(num_states, num_actions)
 optimizer = optim.Adam(ActorCritic_model.parameters(), lr=0.1e-3)
 
 # Initialize Actor-Critic Mehtod
@@ -33,7 +32,11 @@ onestep_AC = onestep_ActorCritic(
     trainEnv=env,
     testEnv=env,
     model=ActorCritic_model,
-    optimizer=optimizer
+    optimizer=optimizer,
+    isRender={
+        'train': False,
+        'test': True,
+    },
 )
 
 # TRAIN Agent

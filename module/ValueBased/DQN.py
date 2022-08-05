@@ -105,9 +105,8 @@ class DQN(ValueBased):
         )
         
         self.replayMemory = ReplayMemory(maxMemory)
-
-        # torch.log makes nan(not a number) error, so we have to add some small number in log function
-        self.ups=1e-7
+        
+        self.printInit()
     
     # ADQN has different type of value
     @abstractmethod
