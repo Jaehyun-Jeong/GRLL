@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
@@ -23,19 +23,18 @@ GAMMA = 0.99 # discount rate
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = RacingEnv_v3()
-
-# set ActorCritic
-num_actions = env.num_actions
-num_states = env.num_obs
+trainEnv = RacingEnv_v3(ExploringStarts=True)
+testEnv = RacingEnv_v3()
+num_actions = trainEnv.num_actions
+num_states = testEnv.num_obs
 
 model = CNN_V2(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
     'device': device, # device to use, 'cuda' or 'cpu'
-    'trainEnv': env, # environment like gym
-    'testEnv': env, # environment like gym
+    'trainEnv': trainEnv, # environment like gym
+    'testEnv': testEnv, # environment like gym
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
@@ -44,13 +43,13 @@ params_dict = {
     'numBatch': 100,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "./runs/DQN_CarRacing_v0",
-        'tag': "Averaged Returns/CNN lr=1e-3"
+        'logdir': "../../runs/DQN_CarRacing_v3",
+        'tag': "Averaged Returns/CNN_V2_lr=1e-3"
     },
     'eps': { # for epsilon scheduling
         'start': 0.99,
         'end': 0.00001,
-        'decay': 100000
+        'decay': 300000
     },
 }
 
@@ -64,4 +63,4 @@ DeepQN = DQN(**params_dict)
 DeepQN.train(MAX_EPISODES)
 
 # save model
-DeepQN.save("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
+DeepQN.save("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
