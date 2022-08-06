@@ -82,16 +82,11 @@ class ValueBased(RL):
 
     # In Reinforcement learning, pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
-    def pi(self, s, a):
-        s = torch.Tensor(s).to(self.device)
-        value = self.model.forward(s)
+    def pi(self, value, a):
+        a = torch.tensor(a).unsqueeze(axis=-1)
+        actionValue = torch.gather(torch.clone(value), 1, a).squeeze(axis=1)
 
-        print(value)
-
-        value = torch.squeeze(value, 0)
-
-        print(value)
-        return value[a]
+        return actionValue
     
     # Epsilon scheduling
     def __get_eps(self):
@@ -130,12 +125,21 @@ class ValueBased(RL):
 
         return action
 
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def max_value(self, s):
+    def max_action_value(self, s, a):
+        s = torch.Tensor(s).to(self.device)
+        value = self.value(s)
+        
+        # max value
         with torch.no_grad():
+            maxValue = self.max_value(torch.clone(value))
 
-            s = torch.Tensor(s).to(self.device)
-            values = self.value(s)
-            maxValues = torch.max(values)
+        # action_values
+        actionValue = self.pi(torch.clone(value), a)
 
-            return maxValues
+        return maxValue, actionValue
+
+    def max_value(self, value):
+        with torch.no_grad():
+            maxValue = torch.max(torch.clone(value), dim=1).values
+        
+        return maxValue

@@ -111,9 +111,7 @@ class DQN(ValueBased):
     # ADQN has different type of value
     @abstractmethod
     def value(self, s):
-        value = self.model.forward(s)
-        value = torch.squeeze(value, 0)
-        return value
+        return self.model.forward(s)
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -135,31 +133,18 @@ class DQN(ValueBased):
         S_t = np.array(S_t)
         A_t = np.array(A_t)
         done = np.array(done)
+        notDone = torch.Tensor(~done)
         S_tt = np.array(S_tt)
-        R_tt = np.array(R_tt)
-        
-        print(S_t)
-        print(A_t)
-        print(done)
-        print(S_tt)
-        print(R_tt)
-        print("===================================================")
+        R_tt = torch.Tensor(np.array(R_tt))
 
-        #====================================================================
+        maxValue, actionValue = self.max_action_value(S_t, A_t)
+        nextValue = self.value(torch.Tensor(S_tt))
+        nextMaxValue = self.max_value(nextValue)
 
-        # update by using mini-batch Gradient Descent
-        for Transition in batches:
-            s_t = Transition.state
-            a_t = Transition.action
-            done = Transition.done
-            s_tt = Transition.next_state
-            r_tt = Transition.reward
-            
-            target = Variable(r_tt + self.discount_rate * self.max_value(s_tt) * (not done))
-            loss += 1/2 * (target - self.pi(s_t, a_t)).pow(2)
+        target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
+        loss += 1/2 * (target - actionValue).pow(2)
+        loss = torch.sum(loss)/lenLoss
 
-        loss = loss/lenLoss
-        
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

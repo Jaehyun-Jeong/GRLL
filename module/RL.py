@@ -114,13 +114,13 @@ class RL():
         import os
         printLength = os.get_terminal_size().columns
         
-        print("="*printLength)
+        print("="*printLength+"\n")
         print("Initialized Parameters\n")
 
         for key, value in self.__dict__.items():
             print(f"{key}: {value}")
 
-        print("="*printLength)
+        print("\n"+"="*printLength)
 
     def printResult(self, episode: int, timesteps: int, averagedReturn):
         import os
