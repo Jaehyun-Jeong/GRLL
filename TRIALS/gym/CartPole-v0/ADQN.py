@@ -58,4 +58,4 @@ params_dict = {
 averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
-averagedDQN.train(MAX_EPISODES, testPer=1)
+averagedDQN.train(MAX_EPISODES)

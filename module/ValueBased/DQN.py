@@ -111,18 +111,14 @@ class DQN(ValueBased):
     # ADQN has different type of value
     @abstractmethod
     def value(self, s):
+        s = torch.Tensor(s).to(self.device)
         return self.model.forward(s)
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
-        loss = 0
         batch_size = self.numBatch if self.numBatch <= self.replayMemory.memory.__len__() else self.replayMemory.__len__() # if memory is smaller then numBatch, then just use all data
         batches = self.replayMemory.sample(batch_size)
         lenLoss = len(batches)
-
-        #====================================================================
-        #test================================================================
-        #====================================================================
 
         S_t = [transition.state for transition in batches]
         A_t = [transition.action for transition in batches]
@@ -133,16 +129,15 @@ class DQN(ValueBased):
         S_t = np.array(S_t)
         A_t = np.array(A_t)
         done = np.array(done)
-        notDone = torch.Tensor(~done)
+        notDone = torch.Tensor(~done).to(self.device)
         S_tt = np.array(S_tt)
-        R_tt = torch.Tensor(np.array(R_tt))
+        R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-        maxValue, actionValue = self.max_action_value(S_t, A_t)
-        nextValue = self.value(torch.Tensor(S_tt))
-        nextMaxValue = self.max_value(nextValue)
+        actionValue = self.pi(S_t, A_t)
+        nextMaxValue = self.max_value(S_tt)
 
         target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
-        loss += 1/2 * (target - actionValue).pow(2)
+        loss = 1/2 * (target - actionValue).pow(2)
         loss = torch.sum(loss)/lenLoss
 
         self.optimizer.zero_grad()
@@ -163,6 +158,7 @@ class DQN(ValueBased):
 
             for i_episode in range(maxEpisodes):
                 state = self.trainEnv.reset()
+
                 done = False
                 self.trainedEpisodes += 1
                 
@@ -172,12 +168,14 @@ class DQN(ValueBased):
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
                        self.trainEnv.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
+
                     next_state, reward, done, _ = self.trainEnv.step(action.tolist())
                     self.replayMemory.push(state, action, done, next_state, reward)
                     state = next_state

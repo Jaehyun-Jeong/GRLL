@@ -24,7 +24,6 @@ class CNN_V2(nn.Module):
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         state = x
-        state = torch.unsqueeze(state, 0)
 
         value = F.relu(self.conv1(state))
         value = F.relu(self.conv2(value))

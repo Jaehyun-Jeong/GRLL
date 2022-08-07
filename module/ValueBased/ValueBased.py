@@ -82,8 +82,9 @@ class ValueBased(RL):
 
     # In Reinforcement learning, pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
-    def pi(self, value, a):
-        a = torch.tensor(a).unsqueeze(axis=-1)
+    def pi(self, s, a):
+        value = self.value(s)
+        a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
         actionValue = torch.gather(torch.clone(value), 1, a).squeeze(axis=1)
 
         return actionValue
@@ -104,20 +105,20 @@ class ValueBased(RL):
     @abstractmethod
     @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
-        s = torch.Tensor(s).to(self.device)
-        probs = self.value(s)
+        s = torch.Tensor(s).to(self.device).unsqueeze(0)
+        probs = self.model.forward(s).squeeze(0)
         
         eps = self.__get_eps() if useEps else 0
         
         if random.random() >= eps:
             if useStochastic:
                 probs = self.softmax(probs)
-
-                a = probs.multinomial(num_samples=1) 
+                a = probs.multinomial(num_samples=1)
                 a = a.data
                 action = a[0]
             else:
-                action = torch.argmax(probs, dim=0)
+                # all actions must be in cpu, but all states in gpu if it using
+                action = torch.argmax(probs, dim=0).cpu()
         else:
             a = torch.rand(probs.shape).multinomial(num_samples=1)
             a = a.data
@@ -125,20 +126,9 @@ class ValueBased(RL):
 
         return action
 
-    def max_action_value(self, s, a):
-        s = torch.Tensor(s).to(self.device)
+    def max_value(self, s):
         value = self.value(s)
-        
-        # max value
-        with torch.no_grad():
-            maxValue = self.max_value(torch.clone(value))
 
-        # action_values
-        actionValue = self.pi(torch.clone(value), a)
-
-        return maxValue, actionValue
-
-    def max_value(self, value):
         with torch.no_grad():
             maxValue = torch.max(torch.clone(value), dim=1).values
         

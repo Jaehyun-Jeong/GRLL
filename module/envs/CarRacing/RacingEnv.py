@@ -4,8 +4,10 @@ import numpy as np
 import math
 try:
     from main import *
+    from utils import action_to_int
 except:
     from module.envs.CarRacing.main import *
+    from module.envs.CarRacing.utils import action_to_int
 
 class Lines():
 
@@ -97,7 +99,7 @@ class RacingEnv_v0():
         self._reward = 0
 
     def step(self, action: torch.tensor):
-
+        action = action_to_int(action)
         self.move(action)
 
         next_state = self.get_state()
@@ -235,6 +237,7 @@ class RacingEnv_v2(RacingEnv_v0):
 
     def step(self, action: torch.tensor):
         # 3 frames per move
+        action = action_to_int(action)
         self.move(action)
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         self.move(action)
@@ -269,8 +272,8 @@ class RacingEnv_v2(RacingEnv_v0):
         screen = self.__grayscale(screen)
         self.stackedStates.append(screen) # from RGB to grayscale img
         
-        state = torch.from_numpy(np.array(self.stackedStates)).unsqueeze(0)
-        state = self._transforms(state).squeeze(0)
+        state = torch.from_numpy(np.array(self.stackedStates))
+        state = self._transforms(state)
 
         return state.to(torch.float).numpy()
 
@@ -323,6 +326,7 @@ class RacingEnv_v3(RacingEnv_v0):
         
     def step(self, action: torch.tensor):
         # 3 frames per move
+        action = action_to_int(action)
         self.move(action)
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         self.move(action)
@@ -383,8 +387,8 @@ class RacingEnv_v3(RacingEnv_v0):
     def get_state(self):
         self.stackedStates.append(self.crop_img_numpy())
 
-        state = torch.from_numpy(np.array(self.stackedStates)).unsqueeze(0)
-        state = self._transforms(state).squeeze(0)
+        state = torch.from_numpy(np.array(self.stackedStates))
+        state = self._transforms(state)
 
         return state.to(torch.float).numpy()
 

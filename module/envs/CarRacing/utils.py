@@ -16,4 +16,30 @@ def blit_text_center(win, font, text):
     render = font.render(text, 1, (200, 200, 200))
     win.blit(render, (win.get_width()/2 - render.get_width()/2, win.get_height()/2 - render.get_height()/2))
 
+# convert action type to int
+def action_to_int(action):
+    import torch
+
+    if not type(action) in [torch.Tensor, list]:
+        try:
+            return action
+        except:
+            raise ValueError("action must be torch.Tensor or list")
+
+    if type(action)==torch.Tensor:
+        actionLst = action.tolist()
+        if action.dim==1 and len(actionLst)==1:
+            return actionLst[0]
+        elif action.dim==0:
+            return actionLst
+        else:
+            raise ValueError("Action Tensor dimension must be smaller than 2") 
+            
+    if type(action)==list:
+        if len(action)==1:
+            return action[0]
+        else:
+            raise ValueError("Action list dimension must be smaller than 2") 
+   
+    
 
