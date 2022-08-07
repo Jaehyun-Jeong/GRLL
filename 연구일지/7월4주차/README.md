@@ -96,7 +96,7 @@ onestep_AC = onestep_ActorCritic(
 
 이는 에이전트가 더 다양한 경험을 하게 만듦으로써 원활한 학습을 도와준다.
 
-# 3. 다음주 계획
+# 3. 다음 주 계획
 
 ## 3.1. Continuous Action Space로 MountainCar Continuous 문제 해결
 
