@@ -19,7 +19,7 @@ MAX_REPLAYMEMORY = 10000
 ALPHA = 0.0001 # learning rate
 GAMMA = 0.99 # discount rate
 
-gym_name = 'CartPole-v1'
+gym_name = 'CartPole-v0'
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

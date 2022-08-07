@@ -42,4 +42,4 @@ DeepQN.load("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
 # TRAIN Agent
 DeepQN.train(10000)
 
-DeepQN.save("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
+#DeepQN.save("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
