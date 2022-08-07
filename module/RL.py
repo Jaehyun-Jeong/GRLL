@@ -132,7 +132,7 @@ class RL():
             import os
             printLength = os.get_terminal_size().columns
         except:
-            printLength = 30
+            printLength = 30000
 
         self.timeSpent += datetime.now() - self.timePrevStep
 
@@ -144,8 +144,6 @@ class RL():
         for split in splited:
             frameString += "-"*len(split) + "+"
 
-        # if it's first call from start
-        
         if len(frameString) > printLength:
             frameString = frameString[:printLength]    
         if len(results) > printLength:
