@@ -111,8 +111,12 @@ class RL():
         return averagedReturn
 
     def printInit(self):
-        import os
-        printLength = os.get_terminal_size().columns
+        try:
+            # Not working with nohup command
+            import os
+            printLength = os.get_terminal_size().columns
+        except:
+            printLength = 30
         
         print("="*printLength+"\n")
         print("Initialized Parameters\n")
@@ -123,8 +127,12 @@ class RL():
         print("\n"+"="*printLength)
 
     def printResult(self, episode: int, timesteps: int, averagedReturn):
-        import os
-        printLength = os.get_terminal_size().columns
+        try:
+            # Not working with nohup command
+            import os
+            printLength = os.get_terminal_size().columns
+        except:
+            printLength = 30
 
         self.timeSpent += datetime.now() - self.timePrevStep
 
