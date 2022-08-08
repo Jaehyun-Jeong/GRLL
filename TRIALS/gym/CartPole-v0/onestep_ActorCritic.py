@@ -29,8 +29,7 @@ optimizer = optim.Adam(ActorCritic_model.parameters(), lr=0.1e-3)
 # Initialize Actor-Critic Mehtod
 onestep_AC = onestep_ActorCritic(
     device=device,
-    trainEnv=env,
-    testEnv=env,
+    env=env,
     model=ActorCritic_model,
     optimizer=optimizer,
     isRender={
