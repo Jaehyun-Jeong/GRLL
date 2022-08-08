@@ -12,21 +12,33 @@ from module.RL import RL
 class PolicyGradient(RL):
 
     '''
-    params_dict = {
-        'device': device to use, 'cuda' or 'cpu'
-        'env': environment like gym
-        'model': torch models for policy and value funciton
-        'optimizer': torch optimizer
-        'maxTimesteps': maximum timesteps agent take 
-        'discount_rate': GAMMA # step-size for updating Q value
-        'eps': {
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        }, 
-        'trainPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
-        'testPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
-    }
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        optimizer: torch optimizer
+        trainEnv: Environment which is used to train
+        testEnv: Environment which is used to test
+        env: only for when it don't need to be split by trainEnv, testEnv
+        device: Device used for training, like Backpropagation
+        eps={
+            'start': Start epsilon value for epsilon greedy policy
+            'end': Final epsilon value for epsilon greedy policy
+            'decay': It determines how small epsilon is
+        }
+        maxTimesteps: Permitted timesteps in the environment
+        discount_rate: Discount rate for calculating return(accumulated reward)
+        isRender={
+            'train': If it's True, then render environment screen while training, or vice versa
+            'test': If it's True, then render environment screen while testing, or vice versa
+        }
+        useTensorboard: False means not using TensorBaord
+        tensorboardParams={ TensorBoard parameters
+            'logdir': Saved directory
+            'tag':
+        }
+        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+            'train': e.g. 'eps-stochastic'
+            'test': e.g. 'stochastic'
+        }
     '''
 
     def __init__(
@@ -71,6 +83,7 @@ class PolicyGradient(RL):
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
 
+    # Epsilon scheduling method
     def __get_eps(self):
         import math
 
@@ -83,16 +96,19 @@ class PolicyGradient(RL):
     # In Reinforcement learning, pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
     def pi(self, s, a):
-        s = torch.Tensor(s).to(self.device)
+
+        s = torch.Tensor(s).to(self.device) 
+        a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
+
         _, probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
-        return probs[a]
+        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(axis=1)
+
+        return actionValue
     
     # Returns the action from state s by using multinomial distribution
     @abstractmethod
     @torch.no_grad()
     def get_action(self, s, useEps, useStochastic):
-
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
@@ -119,7 +135,6 @@ class PolicyGradient(RL):
     def value(self, s):
         s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
-        value = torch.squeeze(value, 0)
+        value = value.squeeze(-1)
 
-        return value    
-
+        return value

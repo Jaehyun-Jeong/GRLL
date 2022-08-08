@@ -21,21 +21,33 @@ Transition = namedtuple('Transition',
 class onestep_ActorCritic(PolicyGradient):
 
     '''
-    params_dict = {
-        'device': device to use, 'cuda' or 'cpu'
-        'env': environment like gym
-        'model': torch models for policy and value funciton
-        'optimizer': torch optimizer
-        #MAX_EPISODES = maximum episodes you want to learn
-        'maxTimesteps': maximum timesteps agent take 
-        'discount_rate': GAMMA # step-size for updating Q value
-        'eps': {
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        }, 
-        'trainPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
-    }
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        optimizer: torch optimizer
+        trainEnv: Environment which is used to train
+        testEnv: Environment which is used to test
+        env: only for when it don't need to be split by trainEnv, testEnv
+        device: Device used for training, like Backpropagation
+        eps={
+            'start': Start epsilon value for epsilon greedy policy
+            'end': Final epsilon value for epsilon greedy policy
+            'decay': It determines how small epsilon is
+        }
+        maxTimesteps: Permitted timesteps in the environment
+        discount_rate: Discount rate for calculating return(accumulated reward)
+        isRender={
+            'train': If it's True, then render environment screen while training, or vice versa
+            'test': If it's True, then render environment screen while testing, or vice versa
+        }
+        useTensorboard: False means not using TensorBaord
+        tensorboardParams={ TensorBoard parameters
+            'logdir': Saved directory
+            'tag':
+        }
+        policy={ There are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+            'train': e.g. 'eps-stochastic'
+            'test': e.g. 'stochastic'
+        }
     '''
 
     def __init__(
@@ -86,6 +98,21 @@ class onestep_ActorCritic(PolicyGradient):
         )
 
         self.printInit()
+
+    # Overrided method from PolicyGradient for single pi
+    def pi(self, s, a):
+        s = torch.Tensor(s).to(self.device)
+        _, probs = self.model.forward(s)
+        probs = torch.squeeze(probs, 0)
+        return probs[a]
+    
+    # Overrided method from PolicyGradient for single state value
+    def value(self, s):
+        s = torch.Tensor(s).to(self.device)
+        value, _ = self.model.forward(s)
+        value = torch.squeeze(value, 0)
+
+        return value
 
     # Update weights by using Actor Critic Method
     def update_weight(self, Transition, entropy_term = 0):
@@ -171,54 +198,10 @@ class onestep_ActorCritic(PolicyGradient):
                     self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
-            print("==============================================")
-            print("KEYBOARD INTERRUPTION!!=======================")
-            print("==============================================")
+            print("KeyboardInterruption occured")
 
             plt.plot(range(len(returns)), returns)
         finally:
             plt.plot(range(len(returns)), returns)
 
         self.trainEnv.close()
-
-if __name__ == "__main__":
-
-    from models import ANN_V1 # import model
-    import gym # Environment 
-
-    MAX_EPISODES = 10000
-    MAX_TIMESTEPS = 1000
-
-    ALPHA = 0.1e-3 # learning rate
-    GAMMA = 0.99 # discount_rate
-    epsilon = 0 # for epsilon greedy action
-
-    # device to use
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # set environment
-    env = gym.make("CartPole-v0")
-    #env = gym.make("Acrobot-v1")
-    #env = gym.make("MountainCar-v0")
-
-    num_actions = env.action_space.n
-    num_states = env.observation_space.shape[0]
-
-    ACmodel = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
-
-    ActorCritic_parameters = {
-        'device': device, # device to use, 'cuda' or 'cpu'
-        'env': env, # environment like gym
-        'model': ACmodel, # torch models for policy and value funciton
-        'optimizer': optimizer, # torch optimizer
-        'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA, # step-size for updating Q value
-        'epsilon': epsilon, # epsilon greedy action for training
-    }
-
-    # Initialize ActorCritic Mehtod
-    AC = ActorCritic(**ActorCritic_parameters)
-
-    # TRAIN Agent
-    AC.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")

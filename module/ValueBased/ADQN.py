@@ -37,22 +37,36 @@ class ReplayMemory(object):
 class ADQN(ValueBased):
 
     '''
-    param_dict = {
-        'device': device to use, 'cuda' or 'cpu'
-        'env':  environment like gym
-        'model': torch models for policy and value funciton
-        'optimizer': torch optimizer
-        'maxTimesteps': maximum timesteps agent take 
-        'discount_rate': step-size for updating Q value
-        'maxMemory': capacitiy of Replay Memory
-        'numBatch': number of batches
-        'eps': { # for epsilon scheduling
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        },
-        'kFold': to save last K previously learnd Q-networks
-    }
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        optimizer: torch optimizer
+        trainEnv: Environment which is used to train
+        testEnv: Environment which is used to test
+        env: only for when it don't need to be split by trainEnv, testEnv
+        device: Device used for training, like Backpropagation
+        eps={
+            'start': Start epsilon value for epsilon greedy policy
+            'end': Final epsilon value for epsilon greedy policy
+            'decay': It determines how small epsilon is
+        }
+        maxTimesteps: Permitted timesteps in the environment
+        discount_rate: Discount rate for calculating return(accumulated reward)
+        maxMemory: Memory size for Experience Replay
+        numBatch: Batch size for mini-batch gradient descent
+        isRender={
+            'train': If it's True, then render environment screen while training, or vice versa
+            'test': If it's True, then render environment screen while testing, or vice versa
+        }
+        useTensorboard: False means not using TensorBaord
+        tensorboardParams={ TensorBoard parameters
+            'logdir': Saved directory
+            'tag':
+        }
+        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+            'train': e.g. 'eps-stochastic'
+            'test': e.g. 'stochastic'
+        }
+        numPrevModels: ADQN averages last k models, this parameter determines how many models it save
     '''
 
     def __init__(
@@ -79,7 +93,7 @@ class ADQN(ValueBased):
         useTensorboard=False,
         tensorboardParams={
             'logdir': "./runs",
-            'tag': "DQN"
+            'tag': "DQN",
         },
         policy={
             'train': 'eps-greedy',
@@ -216,60 +230,10 @@ class ADQN(ValueBased):
                     self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
-            print("==============================================")
-            print("KEYBOARD INTERRUPTION!!=======================")
-            print("==============================================")
+            print("KeyboardInterruption occured")
 
             plt.plot(range(len(returns)), returns)
         finally:
             plt.plot(range(len(returns)), returns)
 
         self.trainEnv.close()
-
-if __name__ == "__main__":
-
-    from models import ANN_V1 # import model
-    import gym # Environment 
-
-    MAX_EPISODES = 10000
-    MAX_TIMESTEPS = 1000
-    MAX_REPLAYMEMORY = 10000
-
-    ALPHA = 0.1e-3 # learning rate
-    GAMMA = 0.99 # discount_rate
-
-    # device to use
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # set environment
-    env = gym.make("CartPole-v0")
-    #env = gym.make("Acrobot-v1")
-    #env = gym.make("MountainCar-v0")
-
-    num_actions = env.action_space.n
-    num_states = env.observation_space.shape[0]
-
-    ACmodel = ANN_V1(num_states, num_actions).to(device)
-    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
-
-    param_dict = {
-        'device': device, # device to use, 'cuda' or 'cpu'
-        'env': env, # environment like gym
-        'model': ACmodel, # torch models for policy and value funciton
-        'optimizer': optimizer, # torch optimizer
-        'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-        'discount_rate': GAMMA, # step-size for updating Q value
-        'maxMemory': MAX_REPLAYMEMORY, # capacitiy of Replay Memory
-        'numBatch': 64, # number of batches
-        'eps': { # for epsilon scheduling
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        }
-    }
-
-    # Initialize DQN Mehtod
-    averagedDQN = ADQN(**param_dict)
-
-    # TRAIN Agent
-    averagedDQN.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")

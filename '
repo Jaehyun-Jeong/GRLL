@@ -16,54 +16,26 @@ from torch.autograd import Variable
 from module.PolicyGradient.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'next_state', 'reward'))
+                       ('state', 'action', 'done', 'next_state', 'reward'))
 
-class ReplayMemory(object):
-
-    def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
-
-    def push(self, *args):
-        """Save a transition"""
-        self.memory.append(Transition(*args))
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-class REINFORCE(PolicyGradient):
+class onestep_ActorCritic(PolicyGradient):
 
     '''
-    parameters
-        model: torch.nn.Module based model for state_value, and action_value
-        optimizer: torch optimizer
-        trainEnv: Environment which is used to train
-        testEnv: Environment which is used to test
-        env: only for when it don't need to be split by trainEnv, testEnv
-        device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
-        maxTimesteps: Permitted timesteps in the environment
-        discount_rate: Discount rate for calculating return(accumulated reward)
-        isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
-        }
-        useTensorboard: False means not using TensorBaord
-        tensorboardParams={ TensorBoard parameters
-            'logdir': Saved directory
-            'tag':
-        }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
-        }
-        useBaseline: True means use baseline term for REINFORCE algorithm
+    params_dict = {
+        'device': device to use, 'cuda' or 'cpu'
+        'env': environment like gym
+        'model': torch models for policy and value funciton
+        'optimizer': torch optimizer
+        #MAX_EPISODES = maximum episodes you want to learn
+        'maxTimesteps': maximum timesteps agent take 
+        'discount_rate': GAMMA # step-size for updating Q value
+        'eps': {
+            'start': 0.9,
+            'end': 0.05,
+            'decay': 200
+        }, 
+        'trainPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
+    }
     '''
 
     def __init__(
@@ -87,14 +59,13 @@ class REINFORCE(PolicyGradient):
         },
         useTensorboard=False,
         tensorboardParams={
-            'logdir': "./runs/REINFORCE",
+            'logdir': "./runs/onestep_ActorCritic",
             'tag': "Returns"
         },
         policy={
             'train': 'eps-stochastic',
             'test': 'stochastic'
         },
-        useBaseline=True,
     ):
 
         # init parameters 
@@ -113,42 +84,29 @@ class REINFORCE(PolicyGradient):
             tensorboardParams=tensorboardParams,
             policy=policy
         )
-        
-        self.useBaseline=useBaseline
 
         self.printInit()
 
     # Update weights by using Actor Critic Method
-    def __update_weight(self, Transitions, entropy_term = 0):
+    def update_weight(self, Transition, entropy_term = 0):
+        s_t = Transition.state
+        a_t = Transition.action
+        s_tt = Transition.next_state
+        r_tt = Transition.reward
+        done = Transition.done
 
-        lenLoss = Transitions.memory.__len__()
-
-        S_t = [transition.state for transition in Transitions.memory]
-        A_t = [transition.action for transition in Transitions.memory]
-        R_tt = [transition.reward for transition in Transitions.memory]
-
-        S_t = np.array(S_t)
-        A_t = np.array(A_t)
-
-        # calculate Q-value
-        Qval = [R_tt[-1]]
-        for r_tt in R_tt[:-1]:
-            Qval = [r_tt + self.discount_rate * Qval[0]] + Qval
-        Qval = torch.Tensor(Qval).to(self.device)
+        print(self.pi(s_t, a_t))
 
         # get actor loss
-        log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
-        advantage = Variable(Qval - self.value(S_t) * self.useBaseline)
+        log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
+        advantage = Variable(r_tt + self.value(s_tt)*(not done) - self.value(s_t))
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        value = self.value(S_t)
-        critic_loss = 1/2 * (Qval - value).pow(2)
+        critic_loss = 1/2 * (r_tt + self.value(s_tt)*(not done) - self.value(s_t)).pow(2)
 
-        # calculate loss
         loss = actor_loss + critic_loss + 0.001 * entropy_term
-        loss = torch.sum(loss)/lenLoss
-
+    
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -156,18 +114,17 @@ class REINFORCE(PolicyGradient):
         self.steps_done += 1
 
     def train(
-        self, 
+        self,
         maxEpisodes, 
         testPer=10, 
-        testSize=10,
+        testSize=10, # size is 0 or positive integer
     ):
 
         try:
             returns = []
             
             for i_episode in range(maxEpisodes):
-
-                Transitions = ReplayMemory(maxEpisodes)
+                
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
@@ -185,19 +142,23 @@ class REINFORCE(PolicyGradient):
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
                     next_state, reward, done, _ = self.trainEnv.step(action.tolist())
-                    Transitions.push(state, action, next_state, reward)
+
+                    # trans means transition 
+                    trans = Transition(state, action, done, next_state, reward)
+
                     state = next_state
 
+                    # Train
                     if done or timesteps == self.maxTimesteps-1:
                         break
-                # train
-                self.__update_weight(Transitions)
+                    
+                    self.update_weight(trans)
 
                 #==========================================================================
                 # TEST
                 #==========================================================================
 
-                if self.trainedEpisodes % testPer == 0: 
+                if self.trainedEpisodes % testPer == 0:
 
                     cumulative_rewards = self.test(testSize=testSize)   
                     returns.append(cumulative_rewards)
@@ -212,10 +173,54 @@ class REINFORCE(PolicyGradient):
                     self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
-            print("KeyboardInterruption occured")
+            print("==============================================")
+            print("KEYBOARD INTERRUPTION!!=======================")
+            print("==============================================")
 
             plt.plot(range(len(returns)), returns)
         finally:
             plt.plot(range(len(returns)), returns)
 
         self.trainEnv.close()
+
+if __name__ == "__main__":
+
+    from models import ANN_V1 # import model
+    import gym # Environment 
+
+    MAX_EPISODES = 10000
+    MAX_TIMESTEPS = 1000
+
+    ALPHA = 0.1e-3 # learning rate
+    GAMMA = 0.99 # discount_rate
+    epsilon = 0 # for epsilon greedy action
+
+    # device to use
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # set environment
+    env = gym.make("CartPole-v0")
+    #env = gym.make("Acrobot-v1")
+    #env = gym.make("MountainCar-v0")
+
+    num_actions = env.action_space.n
+    num_states = env.observation_space.shape[0]
+
+    ACmodel = ANN_V1(num_states, num_actions).to(device)
+    optimizer = optim.Adam(ACmodel.parameters(), lr=ALPHA)
+
+    ActorCritic_parameters = {
+        'device': device, # device to use, 'cuda' or 'cpu'
+        'env': env, # environment like gym
+        'model': ACmodel, # torch models for policy and value funciton
+        'optimizer': optimizer, # torch optimizer
+        'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
+        'discount_rate': GAMMA, # step-size for updating Q value
+        'epsilon': epsilon, # epsilon greedy action for training
+    }
+
+    # Initialize ActorCritic Mehtod
+    AC = ActorCritic(**ActorCritic_parameters)
+
+    # TRAIN Agent
+    AC.train(MAX_EPISODES, isRender=False, useTensorboard=True, tensorboardTag="CartPole-v1")

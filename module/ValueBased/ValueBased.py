@@ -15,23 +15,35 @@ from module.RL import RL
 class ValueBased(RL):
 
     '''
-    param_dict = {
-        'device': device to use, 'cuda' or 'cpu'
-        'env':  environment like gym
-        'model': torch models for policy and value funciton
-        'optimizer': torch optimizer
-        'maxTimesteps': maximum timesteps agent take 
-        'discount_rate': step-size for updating Q value
-        'maxMemory': capacitiy of Replay Memory
-        'numBatch': number of batches
-        'eps': { # for epsilon scheduling
-            'start': 0.9,
-            'end': 0.05,
-            'decay': 200
-        },
-        'trainPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
-        'testPolicy': select from greedy, eps-greedy, stochastic, eps-stochastic
-    }
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        optimizer: torch optimizer
+        trainEnv: Environment which is used to train
+        testEnv: Environment which is used to test
+        env: only for when it don't need to be split by trainEnv, testEnv
+        device: Device used for training, like Backpropagation
+        eps={
+            'start': Start epsilon value for epsilon greedy policy
+            'end': Final epsilon value for epsilon greedy policy
+            'decay': It determines how small epsilon is
+        }
+        maxTimesteps: Permitted timesteps in the environment
+        discount_rate: Discount rate for calculating return(accumulated reward)
+        maxMemory: Memory size for Experience Replay
+        numBatch: Batch size for mini-batch gradient descent
+        isRender={
+            'train': If it's True, then render environment screen while training, or vice versa
+            'test': If it's True, then render environment screen while testing, or vice versa
+        }
+        useTensorboard: False means not using TensorBaord
+        tensorboardParams={ TensorBoard parameters
+            'logdir': Saved directory
+            'tag':
+        }
+        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+            'train': e.g. 'eps-stochastic'
+            'test': e.g. 'stochastic'
+        }
     '''
 
     def __init__(
@@ -126,6 +138,7 @@ class ValueBased(RL):
 
         return action
 
+    # get max Q-value
     def max_value(self, s):
         value = self.value(s)
 

@@ -3,6 +3,34 @@ import torch
 
 class RL():
 
+    '''
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        optimizer: torch optimizer
+        trainEnv: Environment which is used to train
+        testEnv: Environment which is used to test
+        env: only for when it don't need to be split by trainEnv, testEnv
+        device: Device used for training, like Backpropagation
+        eps={
+            'start': Start epsilon value for epsilon greedy policy
+            'end': Final epsilon value for epsilon greedy policy
+            'decay': It determines how small epsilon is
+        }
+        isRender={
+            'train': If it's True, then render environment screen while training, or vice versa
+            'test': If it's True, then render environment screen while testing, or vice versa
+        }
+        useTensorboard: False means not using TensorBaord
+        tensorboardParams={ TensorBoard parameters
+            'logdir': Saved directory
+            'tag':
+        }
+        policy={ There are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+            'train': e.g. 'eps-stochastic'
+            'test': e.g. 'stochastic'
+        }
+    '''
+
     def __init__(
         self, 
         trainEnv, 
@@ -54,7 +82,10 @@ class RL():
             from tensorboardX import SummaryWriter 
             self.tensorboardWriter = SummaryWriter(self.tensorboardParams['logdir'])
 
+        #==================================================================================
         # select train, test policy
+        #==================================================================================
+
         policyDict = {'greedy': [False, False], 'stochastic': [False, True], 'eps-greedy': [True, False], 'eps-stochastic': [True, True]} # [ useEpsilon, useStochastic ]
 
         if ( not self.policy['train'] in policyDict.keys() ) or ( not self.policy['test'] in policyDict.keys() ):
@@ -71,6 +102,9 @@ class RL():
         self.useTestEps = testPolicyList[0]
         self.useTestStochastic = testPolicyList[1]
 
+        #==================================================================================
+    
+    # Draw graph in TensorBoard only when It use TensorBoard
     def writeTensorboard(self, y, x: int):
         if self.useTensorboard:
             try:
@@ -78,6 +112,7 @@ class RL():
             except:
                 raise ValueError("Can not use tensorboard!")
 
+    # Test to measure performance
     def test(self, testSize=10):
         
         returns = []
@@ -110,6 +145,7 @@ class RL():
 
         return averagedReturn
 
+    # Print all Initialized Properties
     def printInit(self):
         try:
             # Not working with nohup command
@@ -126,6 +162,7 @@ class RL():
 
         print("\n"+"="*printLength)
 
+    # Print all measured performance
     def printResult(self, episode: int, timesteps: int, averagedReturn):
         try:
             # Not working with nohup command
@@ -155,7 +192,8 @@ class RL():
         print(frameString)
 
         self.timePrevStep = datetime.now()
-
+    
+    # save class
     def save(self, saveDir: str = str(datetime)+".obj"):
         import torch
 
@@ -175,6 +213,7 @@ class RL():
 
         torch.save(save_dict, saveDir)
         
+    # load class
     def load(self, loadDir):
         import torch
 
