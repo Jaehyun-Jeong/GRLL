@@ -35,7 +35,7 @@ onestep_AC = onestep_ActorCritic(
     optimizer=optimizer,
     isRender={
         'train': False,
-        'test': True,
+        'test': False,
     },
 )
 
