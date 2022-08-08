@@ -39,4 +39,4 @@ onestep_AC = onestep_ActorCritic(
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=3000, testPer=1)
+onestep_AC.train(maxEpisodes=3000)
