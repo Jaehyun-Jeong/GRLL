@@ -12,7 +12,7 @@ from module.PolicyGradient import REINFORCE
 # Environment 
 import gym
 
-MAX_EPISODES = 100000
+MAX_EPISODES = 30000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate

@@ -121,16 +121,15 @@ class PolicyGradient(RL):
 
                 a = probs.multinomial(num_samples=1) 
                 a = a.data
-                action = a[0]
+                action = a[0].cpu()
             else:
-                # actions are must be in cpu
-                action = torch.argmax(probs, dim=0).cpu()
+                action = torch.argmax(probs, dim=0)
         else:
             a = torch.rand(probs.shape).multinomial(num_samples=1)
             a = a.data
             action = a[0]
 
-        return action
+        return action.detach()
   
     # Returns a value of the state (state value function in Reinforcement learning)
     def value(self, s):

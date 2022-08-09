@@ -32,20 +32,11 @@ onestep_AC = onestep_ActorCritic(
     env=env,
     model=ActorCritic_model,
     optimizer=optimizer,
-    eps={
-        'start': 0.90,
-        'end': 0.05,
-        'decay': 200 
-    },
     isRender={
         'train': False,
         'test': False,
     },
-    policy={
-        'train': 'stochastic',
-        'test': 'stochastic',
-    }
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=30000, testPer=10)
+onestep_AC.train(maxEpisodes=100000, testPer=100)
