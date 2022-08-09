@@ -75,7 +75,7 @@ class onestep_ActorCritic(PolicyGradient):
             'tag': "Returns"
         },
         policy={
-            'train': 'stochastic',
+            'train': 'eps-stochastic',
             'test': 'stochastic'
         },
     ):

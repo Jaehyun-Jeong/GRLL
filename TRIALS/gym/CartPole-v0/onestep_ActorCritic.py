@@ -32,6 +32,11 @@ onestep_AC = onestep_ActorCritic(
     env=env,
     model=ActorCritic_model,
     optimizer=optimizer,
+    eps={
+        'start': 0.90,
+        'end': 0.05,
+        'decay': 200 
+    },
     isRender={
         'train': False,
         'test': False,

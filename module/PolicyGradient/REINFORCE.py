@@ -91,7 +91,7 @@ class REINFORCE(PolicyGradient):
             'tag': "Returns"
         },
         policy={
-            'train': 'stochastic',
+            'train': 'eps-stochastic',
             'test': 'stochastic'
         },
         useBaseline=True,
