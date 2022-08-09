@@ -10,6 +10,9 @@ model = DQN("MlpPolicy", env, verbose=1,
             train_freq=(1, 'step'),
             learning_starts=1)
 
+print(model.policy)
+
+'''
 model.learn(total_timesteps=10_0000, n_eval_episodes=0, eval_freq=1)
 
 obs = env.reset()
@@ -32,3 +35,4 @@ for i in range(1000):
 print(returns)
 
 env.close()
+'''
