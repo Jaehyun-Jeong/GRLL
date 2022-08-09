@@ -175,10 +175,10 @@ class onestep_ActorCritic(PolicyGradient):
                     state = next_state
 
                     # Train
+                    self.update_weight(trans)
+
                     if done or timesteps == self.maxTimesteps-1:
                         break
-                    
-                    self.update_weight(trans)
 
                 #==========================================================================
                 # TEST
