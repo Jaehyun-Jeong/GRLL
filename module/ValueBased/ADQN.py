@@ -96,7 +96,7 @@ class ADQN(ValueBased):
             'tag': "DQN",
         },
         policy={
-            'train': 'eps-greedy',
+            'train': 'stochastic',
             'test': 'greedy'
         },
         numPrevModels=10
