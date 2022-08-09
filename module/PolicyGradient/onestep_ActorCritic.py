@@ -75,7 +75,7 @@ class onestep_ActorCritic(PolicyGradient):
             'tag': "Returns"
         },
         policy={
-            'train': 'eps-stochastic',
+            'train': 'stochastic',
             'test': 'stochastic'
         },
     ):
@@ -104,6 +104,7 @@ class onestep_ActorCritic(PolicyGradient):
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
+
         return probs[a]
     
     # Overrided method from PolicyGradient for single state value
