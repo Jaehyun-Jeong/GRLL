@@ -103,7 +103,6 @@ class onestep_ActorCritic(PolicyGradient):
     def pi(self, s, a):
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
 
         return probs[a]
     
