@@ -36,7 +36,11 @@ onestep_AC = onestep_ActorCritic(
         'train': False,
         'test': False,
     },
+    policy={
+        'train': 'stochastic',
+        'test': 'stochastic',
+    }
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=3000)
+onestep_AC.train(maxEpisodes=30000, testPer=100)
