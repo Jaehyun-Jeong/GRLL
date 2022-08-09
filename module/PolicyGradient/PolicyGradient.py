@@ -123,7 +123,8 @@ class PolicyGradient(RL):
                 a = a.data
                 action = a[0]
             else:
-                action = torch.argmax(probs, dim=0)
+                # actions are must be in cpu
+                action = torch.argmax(probs, dim=0).cpu()
         else:
             a = torch.rand(probs.shape).multinomial(num_samples=1)
             a = a.data
