@@ -103,4 +103,161 @@ Batch 크기가 100인 경우 데이터가 1개만 있다면, 어떻게 학습�
 
 stable-baselines3와 같이, 출력의 정도를 결정하는 verbose 파라미터를 추가하고자 한다.
 
+# 3. stable-baselines3에서 유용하다고 생각되는 파라미터 추가
 
+## 3.1. Timestep 단위로 학습을 진행하도록 코드 수정
+
+**다음은 수정 후에 학습이 진행되는 그림이다. timestep 단위로 진행하고 있음을 알 수 있다.**<br/>
+![](timesteps_base_print.png)<br/>
+
+**학습 메소드 또한 다음과 같이 사용 가능하다.**<br/>
+```python
+DQN.train(trainTimesteps=100000)
+```
+
+## 3.2. GradientStepPer, epoch, trainStarts 파라미터 추가
+
+각각의 파라미터는 다음과 같은 역할을 한다.<br/>
+- GradientStepPer: 뉴럴넷의 업데이트를 몇 스텝마다 진행할지 결정하는 양의 정수 파라미터
+- epoch: 주어진 Replay Memory에서 몇번의 epoch을 진행할지 결정하는 양의 정수 파라미터
+- trainStarts: 2.4.2.에서 stable-baselines3의 learning_starts 파라미터와 정확히 같은 역할을 하는 양의 정수 파라미터
+
+# 4. 모듈 개선 후, stable-baselines3와 더 정확한 성능 비교
+
+## 4.1. 비교 환경
+
+- 전과 동일하게, 작성자의 노트북에서 테스트하고, cpu만 사용한다.
+- GradientStepPer, epoch, trainStarts는 각각 4, 1, 50000으로 stable-baselines3의 기본 값과 일치하게 설정했다.
+- Experience Replay를 위한 버퍼 크기를 stable-baselines3의 기본 값과 일치하는 100000으로 설정했다.
+- Batch 크기는 stable-baselines3의 기본 값인 32로 설정했다.
+- 환경은 OpenAI gym의 CartPole-v0를 사용했다.
+- 10만 번의 스텝 후, 걸린 시간을 비교한다.
+- Policy 뉴럴 넷은 같은 모양을 사용했다.
+
+## 4.2. 비교하는 코드
+
+### 4.2.1 stable-baselines3
+
+```python
+# 시간 측정
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
+import gym
+from stable_baselines3 import DQN
+env = gym.make("CartPole-v0")
+
+model = DQN("MlpPolicy", env, verbose=0) # 학습 중 아무것도 출력하지 않도록 설정
+
+# 모듈 초기화가 끝난 시간
+print(f"Init Time: {datetime.now() - startTime}")
+
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
+
+model.learn(total_timesteps=10_0000, n_eval_episodes=0)
+
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 성능 비교를 위한 테스트
+obs = env.reset()
+rewards = 0
+returns = []
+done_num = 0
+for i in range(1000):
+    action, _states = model.predict(obs, deterministic=True)
+    obs, reward, done, info = env.step(action)
+    rewards += reward
+    env.render()
+    if done:
+      obs = env.reset()
+      returns.append(rewards)
+      rewards = 0
+      done_num += 1
+      if done_num == 10:
+          break
+      
+print(returns)
+
+env.close()
+```
+
+### 4.2.2. 작성자의 모듈
+
+```python
+# 시간 측정
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
+# 파이토치
+import torch
+import torch.optim as optim
+
+# 작성자의 모듈 임포트
+from module.ValueBased.models import ANN_V3
+from module.ValueBased import DQN
+
+# 학습 환경 설정
+import gym
+env = gym.make('CartPole-v0')
+num_actions = env.action_space.n
+num_states = env.observation_space.shape[0]
+
+model = ANN_V3(num_states, num_actions)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+# 작성자의 모듈 설정은 stable-baselines3와 같도록 설정
+DeepQN = DQN(
+    model=model, # torch models for policy and value funciton
+    env=env,
+    optimizer=optimizer, # torch optimizer
+    maxMemory=100000,
+    numBatch=32,
+    verbose=0, # 학습 중 아무것도 출력하지 않도록 설정
+)
+
+# 모듈 초기화가 끝난 시간
+print(f"Init Time: {datetime.now() - startTime}")
+
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
+
+DeepQN.train(trainTimesteps=100000, testSize=0)
+
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 10번의 테스트를 진행한 다음 평균적인 성능을 출력 
+print(DeepQN.test(testSize=10))
+```
+
+## 4.3. 결과
+
+![](stable-baselines3_retest.png)<br/>
+*stable-baselines3에 10번의 테스트를 진행*
+
+![](module_retest.png)<br/>
+*작성자의 모듈에 10번의 테스트를 진행*
+
+**10번 실행하여 평균을 계산하면 다음과 같은 결과가 나온다.**
+
+### 4.3.1. stable-baselines3 결과
+
+**모듈 초기화: 2.33초**<br/>
+**학습: 1분 9.41초**<br/>
+**평균적 보상합: 188.25**
+
+### 4.3.1. 작성자 모듈의 결과
+
+**모듈 초기화: 2.77초**<br/>
+**학습: 1분 10.79초**<br/>
+**평균적 보상합: 199.01**
+
+### 평균적 차이
+
+**10만 번의 timestep을 10번 진행했을 때, 평균적으로 stable-baselines3가 약, 1.82초 빨랐다.**
