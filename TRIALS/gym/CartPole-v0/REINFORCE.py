@@ -43,5 +43,5 @@ REINFORCE_parameters= {
 RF = REINFORCE(**REINFORCE_parameters)
 
 # TRAIN Agent
-RF.train(MAX_EPISODES, testPer=100)
+RF.train(MAX_EPISODES, testPer=10)
 

@@ -51,7 +51,8 @@ params_dict = {
     'tensorboardParams': {
         'logdir': '../../runs/ADQN',
         'tag': 'CartPole'
-    }
+    },
+    'verbose': 2,
 }
 
 # Initialize Actor-Critic Mehtod
