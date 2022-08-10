@@ -12,7 +12,7 @@ from module.ValueBased import DQN
 # Environment
 from module.envs.CarRacing import RacingEnv_v3
 
-MAX_EPISODES = 10000
+TRAIN_TIMESTEPS = 10000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
@@ -51,6 +51,10 @@ params_dict = {
         'end': 0.00001,
         'decay': 300000
     },
+    'isRender': {
+        'train': True,
+        'test': True
+    }
 }
 
 # Initialize Actor-Critic Mehtod
@@ -60,7 +64,7 @@ DeepQN = DQN(**params_dict)
 # DeepQN.load("./saved_models/CarRacing_v2/DQN_lr1e-3.obj")
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES)
+DeepQN.train(TRAIN_TIMESTEPS)
 
 # save model
 DeepQN.save("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")

@@ -42,6 +42,10 @@ params_dict = {
     'discount_rate': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
     'numBatch': 100,
+    'isRender': {
+        'train': True,
+        'test': False,
+    }
 }
 
 # Initialize Actor-Critic Mehtod

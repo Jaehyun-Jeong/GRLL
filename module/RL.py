@@ -123,7 +123,7 @@ class RL():
         rewards = []
         spentTimesteps = 0
 
-        while testSize >= spentTimesteps:
+        while testSize > spentTimesteps:
             state = self.testEnv.reset()
             done = False
             for timesteps in range(self.maxTimesteps):
