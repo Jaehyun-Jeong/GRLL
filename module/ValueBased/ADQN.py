@@ -66,6 +66,7 @@ class ADQN(ValueBased):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
         numPrevModels: ADQN averages last k models, this parameter determines how many models it save
     '''
 
@@ -99,7 +100,8 @@ class ADQN(ValueBased):
             'train': 'stochastic',
             'test': 'greedy'
         },
-        numPrevModels=10
+        verbose=1,
+        numPrevModels=10,
     ):
 
         # init parameters 
@@ -118,7 +120,8 @@ class ADQN(ValueBased):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy
+            policy=policy,
+            verbose=verbose,
         )
         
         self.replayMemory = ReplayMemory(maxMemory)

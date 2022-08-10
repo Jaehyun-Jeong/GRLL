@@ -44,6 +44,7 @@ class ValueBased(RL):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
     '''
 
     def __init__(
@@ -62,7 +63,8 @@ class ValueBased(RL):
         isRender,
         useTensorboard,
         tensorboardParams,
-        policy
+        policy,
+        verbose,
     ):
 
         # init parameters 
@@ -77,7 +79,8 @@ class ValueBased(RL):
             policy=policy,
             isRender=isRender,
             useTensorboard=useTensorboard,
-            tensorboardParams=tensorboardParams 
+            tensorboardParams=tensorboardParams,
+            verbose=verbose
         )
         
         self.maxTimesteps = maxTimesteps 

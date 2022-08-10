@@ -39,6 +39,7 @@ class PolicyGradient(RL):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
     '''
 
     def __init__(
@@ -56,6 +57,7 @@ class PolicyGradient(RL):
         useTensorboard,
         tensorboardParams,
         policy,
+        verbose,
     ):
 
         # init parameters 
@@ -70,7 +72,8 @@ class PolicyGradient(RL):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy
+            policy=policy,
+            verbose=verbose,
         )
         
         self.maxTimesteps = maxTimesteps

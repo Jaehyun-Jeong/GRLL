@@ -29,6 +29,7 @@ class RL():
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
     '''
 
     def __init__(
@@ -44,6 +45,7 @@ class RL():
         isRender, 
         useTensorboard, 
         tensorboardParams,
+        verbose,
     ):
         
         # set Environment
@@ -68,6 +70,7 @@ class RL():
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
+        self.verbose = verbose
         
         # Init trained Episode
         self.trainedEpisodes = 0
@@ -147,51 +150,53 @@ class RL():
 
     # Print all Initialized Properties
     def printInit(self):
-        try:
-            # Not working with nohup command
-            import os
-            printLength = os.get_terminal_size().columns
-        except:
-            printLength = 30
-        
-        print("="*printLength+"\n")
-        print("Initialized Parameters\n")
+        if self.verbose >= 2: # Print After checking verbosity level
+            try:
+                # Not working with nohup command
+                import os
+                printLength = os.get_terminal_size().columns
+            except:
+                printLength = 30
+            
+            print("="*printLength+"\n")
+            print("Initialized Parameters\n")
 
-        for key, value in self.__dict__.items():
-            print(f"{key}: {value}")
+            for key, value in self.__dict__.items():
+                print(f"{key}: {value}")
 
-        print("\n"+"="*printLength)
+            print("\n"+"="*printLength)
 
     # Print all measured performance
     def printResult(self, episode: int, timesteps: int, averagedReturn):
-        try:
-            # Not working with nohup command
-            import os
-            printLength = os.get_terminal_size().columns
-        except:
-            printLength = 30000
+        if self.verbose >= 1: # Print After checking verbosity level
+            try:
+                # Not working with nohup command
+                import os
+                printLength = os.get_terminal_size().columns
+            except:
+                printLength = 30000
 
-        self.timeSpent += datetime.now() - self.timePrevStep
+            self.timeSpent += datetime.now() - self.timePrevStep
 
-        results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
+            results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
-        splited = results.split('|')[1:-1]
-        frameString = "+"
+            splited = results.split('|')[1:-1]
+            frameString = "+"
 
-        for split in splited:
-            frameString += "-"*len(split) + "+"
+            for split in splited:
+                frameString += "-"*len(split) + "+"
 
-        if len(frameString) > printLength:
-            frameString = frameString[:printLength]    
-        if len(results) > printLength:
-            results = results[:printLength-3]
-            results += "..."
+            if len(frameString) > printLength:
+                frameString = frameString[:printLength]    
+            if len(results) > printLength:
+                results = results[:printLength-3]
+                results += "..."
 
-        print(frameString)
-        print(results)
-        print(frameString)
+            print(frameString)
+            print(results)
+            print(frameString)
 
-        self.timePrevStep = datetime.now()
+            self.timePrevStep = datetime.now()
     
     # save class
     def save(self, saveDir: str = str(datetime)+".obj"):

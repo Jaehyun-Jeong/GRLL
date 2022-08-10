@@ -64,6 +64,7 @@ class REINFORCE(PolicyGradient):
             'test': e.g. 'stochastic'
         }
         useBaseline: True means use baseline term for REINFORCE algorithm
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
     '''
 
     def __init__(
@@ -94,6 +95,7 @@ class REINFORCE(PolicyGradient):
             'train': 'eps-stochastic',
             'test': 'stochastic'
         },
+        verbose=1,
         useBaseline=True,
     ):
 
@@ -111,7 +113,8 @@ class REINFORCE(PolicyGradient):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy
+            policy=policy,
+            verbose=verbose,
         )
         
         self.useBaseline=useBaseline

@@ -65,6 +65,7 @@ class DQN(ValueBased):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
     '''
 
     def __init__(
@@ -97,6 +98,7 @@ class DQN(ValueBased):
             'train': 'eps-greedy',
             'test': 'greedy'
         },
+        verbose=1,
     ):
 
         # init parameters 
@@ -115,7 +117,8 @@ class DQN(ValueBased):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy
+            policy=policy,
+            verbose=verbose,
         )
         
         self.replayMemory = ReplayMemory(maxMemory)
