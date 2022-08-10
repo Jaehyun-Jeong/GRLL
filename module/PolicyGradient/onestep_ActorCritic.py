@@ -143,15 +143,15 @@ class onestep_ActorCritic(PolicyGradient):
 
     def train(
         self,
-        maxEpisodes, 
-        testPer=10, 
-        testSize=10, # size is 0 or positive integer
+        trainTimesteps,
+        testPer=1000,
+        testSize=1000, # size is 0 or positive integer
     ):
 
         try:
-            returns = []
+            rewards = []
             
-            for i_episode in range(maxEpisodes):
+            while trainTimesteps >= self.trainedTimesteps:
                 
                 state = self.trainEnv.reset()
                 done = False
@@ -169,6 +169,7 @@ class onestep_ActorCritic(PolicyGradient):
                         self.trainEnv.render()
 
                     action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
+
                     next_state, reward, done, _ = self.trainEnv.step(action.tolist())
 
                     # trans means transition 
@@ -179,32 +180,33 @@ class onestep_ActorCritic(PolicyGradient):
                     # Train
                     self.update_weight(trans)
 
+                    #==========================================================================
+                    # TEST
+                    #==========================================================================
+
+                    if self.trainedTimesteps % testPer == 0: 
+
+                        averagedRewards = self.test(testSize=testSize)   
+                        rewards.append(averagedRewards)
+
+                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # TENSORBOARD
+
+                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+
+                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+
                     if done or timesteps == self.maxTimesteps-1:
                         break
 
-                #==========================================================================
-                # TEST
-                #==========================================================================
-
-                if self.trainedEpisodes % testPer == 0:
-
-                    cumulative_rewards = self.test(testSize=testSize)   
-                    returns.append(cumulative_rewards)
-
-                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                    # TENSORBOARD
-
-                    self.writeTensorboard(returns[-1], self.trainedEpisodes)
-
-                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
 
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
         finally:
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()

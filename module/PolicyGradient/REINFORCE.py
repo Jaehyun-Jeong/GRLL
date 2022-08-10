@@ -160,17 +160,17 @@ class REINFORCE(PolicyGradient):
 
     def train(
         self, 
-        maxEpisodes, 
-        testPer=10, 
-        testSize=10,
+        trainTimesteps,
+        testPer=1000,
+        testSize=1000,
     ):
 
         try:
-            returns = []
+            rewards = []
             
-            for i_episode in range(maxEpisodes):
+            while trainTimesteps > self.trainedTimesteps:
 
-                Transitions = ReplayMemory(maxEpisodes)
+                Transitions = ReplayMemory(self.maxTimesteps)
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
@@ -191,34 +191,35 @@ class REINFORCE(PolicyGradient):
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
 
+                    #==========================================================================
+                    # TEST
+                    #==========================================================================
+
+                    if self.trainedTimesteps % testPer == 0: 
+
+                        averagedRewards = self.test(testSize=testSize)   
+                        rewards.append(averagedRewards)
+
+                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # TENSORBOARD
+
+                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+
+                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+
                     if done or timesteps == self.maxTimesteps-1:
                         break
                 # train
                 self.__update_weight(Transitions)
 
-                #==========================================================================
-                # TEST
-                #==========================================================================
-
-                if self.trainedEpisodes % testPer == 0: 
-
-                    cumulative_rewards = self.test(testSize=testSize)   
-                    returns.append(cumulative_rewards)
-
-                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                    # TENSORBOARD
-
-                    self.writeTensorboard(returns[-1], self.trainedEpisodes)
-
-                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
 
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
         finally:
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()

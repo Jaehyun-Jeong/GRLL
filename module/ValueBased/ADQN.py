@@ -178,15 +178,15 @@ class ADQN(ValueBased):
 
     def train(
         self, 
-        maxEpisodes, 
-        testPer=10, 
-        testSize=10,
+        trainTimesteps,
+        testPer=1000, 
+        testSize=1000,
     ):
         try:
-            returns = []
+            rewards = []
             self.prevModels.append(deepcopy(self.model)) # save initial model
 
-            for i_episode in range(maxEpisodes):
+            while trainTimesteps > self.trainedTimesteps:
 
                 state = self.trainEnv.reset()
                 done = False
@@ -208,35 +208,36 @@ class ADQN(ValueBased):
                     self.replayMemory.push(state, action, done, next_state, reward)
                     state = next_state
 
-                    if done or timesteps == self.maxTimesteps-1:
-                        break
-
                     # train
                     self.update_weight()
                     self.prevModels.append(deepcopy(self.model)) # save updated model
 
-                #==========================================================================
-                # TEST
-                #==========================================================================
-                if self.trainedEpisodes % testPer == 0: 
+                    #==========================================================================
+                    # TEST
+                    #==========================================================================
+                    if self.trainedTimesteps % testPer == 0: 
 
-                    cumulative_rewards = self.test(testSize=testSize)
-                    returns.append(cumulative_rewards)
+                        averagedRewards = self.test(testSize=testSize)
+                        rewards.append(averagedRewards)
 
-                    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                    # TENSORBOARD
+                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # TENSORBOARD
 
-                    self.writeTensorboard(returns[-1], self.trainedEpisodes)
+                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
 
-                    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                    self.printResult(self.trainedEpisodes, self.trainedTimesteps, returns[-1])
+                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+
+                    if done or timesteps == self.maxTimesteps-1:
+                        break
+
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
 
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
         finally:
-            plt.plot(range(len(returns)), returns)
+            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()

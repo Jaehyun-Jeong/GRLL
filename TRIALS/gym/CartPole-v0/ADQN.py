@@ -12,7 +12,7 @@ from module.ValueBased import ADQN
 # Environment 
 import gym
 
-MAX_EPISODES = 3000
+TRAIN_TIMESTEPS = 100000
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 10000
 
@@ -41,17 +41,6 @@ params_dict = {
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount_rate': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 100000
-    },
-    'useTensorboard': True,
-    'tensorboardParams': {
-        'logdir': '../../runs/ADQN',
-        'tag': 'CartPole'
-    },
     'verbose': 2,
 }
 
@@ -59,4 +48,4 @@ params_dict = {
 averagedDQN = ADQN(**params_dict)
 
 # TRAIN Agent
-averagedDQN.train(MAX_EPISODES)
+averagedDQN.train(TRAIN_TIMESTEPS)

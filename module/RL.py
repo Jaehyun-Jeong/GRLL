@@ -53,8 +53,10 @@ class RL():
             self.trainEnv = trainEnv
             self.testEnv = testEnv
         elif env!=None and trainEnv==None and testEnv==None:
+            from copy import deepcopy
+
             self.trainEnv = env
-            self.testEnv = env
+            self.testEnv = deepcopy(env)
         else:
             raise ValueError(
                 "No Environment or you just use one of trainEnv, or testEnv,"
@@ -116,15 +118,16 @@ class RL():
                 raise ValueError("Can not use tensorboard!")
 
     # Test to measure performance
-    def test(self, testSize=10):
+    def test(self, testSize):
         
-        returns = []
+        rewards = []
+        spentTimesteps = 0
 
-        for testIdx in range(testSize):
+        while testSize >= spentTimesteps:
             state = self.testEnv.reset()
             done = False
-            rewards = []
             for timesteps in range(self.maxTimesteps):
+                spentTimesteps += 1 
                 if self.isRender['test']:
                     self.testEnv.render()
 
@@ -134,19 +137,20 @@ class RL():
                 rewards.append(reward)
                 state = next_state
 
+                if spentTimesteps == testSize:
+                    break
+
                 if done or timesteps == self.maxTimesteps-1:
                     break
-            
-            returns.append(sum(rewards))
         
         if testSize > 0:
-            averagedReturn = sum(returns) / testSize
+            averagedRewards = sum(rewards) / testSize
         elif testSize == 0:
-            averagedReturn = "no Test"
+            averagedRewards = "no Test"
         else:
             raise ValueError("testSize can't be smaller than 0")
 
-        return averagedReturn
+        return averagedRewards
 
     # Print all Initialized Properties
     def printInit(self):
@@ -167,7 +171,7 @@ class RL():
             print("\n"+"="*printLength)
 
     # Print all measured performance
-    def printResult(self, episode: int, timesteps: int, averagedReturn):
+    def printResult(self, episode: int, timesteps: int, averagedRewards):
         if self.verbose >= 1: # Print After checking verbosity level
             try:
                 # Not working with nohup command
@@ -178,7 +182,7 @@ class RL():
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
-            results = f"| Episode / Timesteps : {str(episode)[0:10]:>10} / {str(timesteps)[0:10]:>10} | Averaged Return: {str(averagedReturn)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
+            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10}  | Averaged Rewards: {str(averagedRewards)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
             splited = results.split('|')[1:-1]
             frameString = "+"

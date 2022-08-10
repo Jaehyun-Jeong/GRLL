@@ -12,7 +12,7 @@ from module.PolicyGradient import REINFORCE
 # Environment 
 import gym
 
-MAX_EPISODES = 30000
+TRAIN_TIMESTEPS = 100000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
@@ -43,5 +43,5 @@ REINFORCE_parameters= {
 RF = REINFORCE(**REINFORCE_parameters)
 
 # TRAIN Agent
-RF.train(MAX_EPISODES, testPer=10)
+RF.train(TRAIN_TIMESTEPS)
 

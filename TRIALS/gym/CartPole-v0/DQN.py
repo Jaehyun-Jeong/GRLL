@@ -10,7 +10,7 @@ import torch.optim as optim
 from module.ValueBased.models import ANN_V3
 from module.ValueBased import DQN
 
-MAX_EPISODES = 100000
+TRAIN_TIMESTEPS = 100000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
@@ -48,7 +48,7 @@ params_dict = {
 DeepQN = DQN(**params_dict)
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES, testSize=0)
+DeepQN.train(TRAIN_TIMESTEPS)
 
 DeepQN.test(testSize = 5)
 
