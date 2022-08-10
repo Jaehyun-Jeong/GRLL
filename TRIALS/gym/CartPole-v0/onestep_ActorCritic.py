@@ -24,7 +24,7 @@ num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
 ActorCritic_model = ANN_V1(num_states, num_actions)
-optimizer = optim.Adam(ActorCritic_model.parameters(), lr=0.1e-3)
+optimizer = optim.Adam(ActorCritic_model.parameters(), lr=1e-3)
 
 # Initialize Actor-Critic Mehtod
 onestep_AC = onestep_ActorCritic(
@@ -32,14 +32,15 @@ onestep_AC = onestep_ActorCritic(
     env=env,
     model=ActorCritic_model,
     optimizer=optimizer,
-    isRender={
-        'train': False,
-        'test': False,
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "../../runs/onestep_AC_CartPole-v0",
+        'tag': "Averaged Returns/ANN_V1_lr=1e-3"
     },
 )
 
 # TRAIN Agent
-onestep_AC.train(maxEpisodes=100000, testPer=100)
+onestep_AC.train(maxEpisodes=100000, testPer=10)
 
 # save model
 onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")
