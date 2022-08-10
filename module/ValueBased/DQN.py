@@ -66,6 +66,9 @@ class DQN(ValueBased):
             'test': e.g. 'stochastic'
         }
         verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+        gradientStepPer: Update the neural network model every gradientStepPer timesteps
+        epoch: Epoch size to train from given data(Replay Memory)
+        trainStarts: how many steps of the model to collect transitions for before learning starts
     '''
 
     def __init__(
@@ -83,7 +86,7 @@ class DQN(ValueBased):
         },
         maxTimesteps=1000,
         discount_rate=0.99,
-        maxMemory=10000,
+        maxMemory=1e6,
         numBatch=64,
         isRender={
             'train': False,
@@ -99,6 +102,9 @@ class DQN(ValueBased):
             'test': 'greedy'
         },
         verbose=1,
+        gradientStepPer=4,
+        epoch=1,
+        trainStarts=50000,
     ):
 
         # init parameters 
@@ -119,6 +125,9 @@ class DQN(ValueBased):
             tensorboardParams=tensorboardParams,
             policy=policy,
             verbose=verbose,
+            gradientStepPer=gradientStepPer,
+            epoch=epoch,
+            trainStarts=trainStarts,
         )
         
         self.replayMemory = ReplayMemory(maxMemory)
@@ -133,41 +142,48 @@ class DQN(ValueBased):
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
-        batch_size = self.numBatch if self.numBatch <= self.replayMemory.memory.__len__() else self.replayMemory.__len__() # if memory is smaller then numBatch, then just use all data
-        batches = self.replayMemory.sample(batch_size)
-        lenLoss = len(batches)
+        if self.is_trainable():
+            for _ in range(self.epoch):
 
-        S_t = [transition.state for transition in batches]
-        A_t = [transition.action for transition in batches]
-        done = [transition.done for transition in batches]
-        S_tt = [transition.next_state for transition in batches]
-        R_tt = [transition.reward for transition in batches]
+                # if memory is smaller then numBatch, then just use all data
+                batch_size = self.numBatch \
+                    if self.numBatch <= self.replayMemory.memory.__len__() \
+                    else self.replayMemory.__len__() 
 
-        S_t = np.array(S_t)
-        A_t = np.array(A_t)
-        done = np.array(done)
-        notDone = torch.Tensor(~done).to(self.device)
-        S_tt = np.array(S_tt)
-        R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
+                batches = self.replayMemory.sample(batch_size)
+                lenLoss = len(batches)
 
-        actionValue = self.pi(S_t, A_t)
-        nextMaxValue = self.max_value(S_tt)
+                S_t = [transition.state for transition in batches]
+                A_t = [transition.action for transition in batches]
+                done = [transition.done for transition in batches]
+                S_tt = [transition.next_state for transition in batches]
+                R_tt = [transition.reward for transition in batches]
 
-        target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
-        loss = 1/2 * (target - actionValue).pow(2)
-        loss = torch.sum(loss)/lenLoss
+                S_t = np.array(S_t)
+                A_t = np.array(A_t)
+                done = np.array(done)
+                notDone = torch.Tensor(~done).to(self.device)
+                S_tt = np.array(S_tt)
+                R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+                actionValue = self.pi(S_t, A_t)
+                nextMaxValue = self.max_value(S_tt)
 
-        self.steps_done += 1
+                target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
+                loss = 1/2 * (target - actionValue).pow(2)
+                loss = torch.sum(loss)/lenLoss
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+                self.steps_done += 1
 
     def train(
         self, 
         trainTimesteps, # Training Timesteps
         testPer=1000, # Test per testPer timesteps
-        testSize=1000, # The Timesteps to test, trainTimesteps doesn't include it
+        testSize=10, # The episode size to test
     ):
 
         try:
@@ -205,8 +221,8 @@ class DQN(ValueBased):
                     #==========================================================================
                     if (self.trainedTimesteps) % testPer == 0: 
 
-                        averagedRewards = self.test(testSize=testSize)
-                        rewards.append(averagedRewards)
+                        averageRewards = self.test(testSize=testSize)
+                        rewards.append(averageRewards)
 
                         #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD

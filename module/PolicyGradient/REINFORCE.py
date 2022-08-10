@@ -162,7 +162,7 @@ class REINFORCE(PolicyGradient):
         self, 
         trainTimesteps, # Training Timesteps
         testPer=1000, # Test per testPer timesteps
-        testSize=1000, # The Timesteps to test, trainTimesteps doesn't include it
+        testSize=10, # The episode size to test
     ):
 
         try:
@@ -197,8 +197,8 @@ class REINFORCE(PolicyGradient):
 
                     if self.trainedTimesteps % testPer == 0: 
 
-                        averagedRewards = self.test(testSize=testSize)   
-                        rewards.append(averagedRewards)
+                        averagRewards = self.test(testSize=testSize)   
+                        rewards.append(averagRewards)
 
                         #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD

@@ -121,36 +121,36 @@ class RL():
     def test(self, testSize):
         
         rewards = []
-        spentTimesteps = 0
 
-        while testSize > spentTimesteps:
+        for _ in range(testSize):
+
             state = self.testEnv.reset()
             done = False
+            cumulativeRewards = 0
+
             for timesteps in range(self.maxTimesteps):
-                spentTimesteps += 1 
                 if self.isRender['test']:
                     self.testEnv.render()
 
                 action = self.get_action(state, useEps=self.useTestEps, useStochastic=self.useTestStochastic)
                 next_state, reward, done, _ = self.testEnv.step(action.tolist())
 
-                rewards.append(reward)
+                cumulativeRewards += reward
                 state = next_state
-
-                if spentTimesteps == testSize:
-                    break
 
                 if done or timesteps == self.maxTimesteps-1:
                     break
+            
+            rewards.append(cumulativeRewards)
         
         if testSize > 0:
-            averagedRewards = sum(rewards) / testSize
+            averagRewards = sum(rewards) / testSize
         elif testSize == 0:
-            averagedRewards = "no Test"
+            averagRewards = "no Test"
         else:
             raise ValueError("testSize can't be smaller than 0")
 
-        return averagedRewards
+        return averagRewards
 
     # Print all Initialized Properties
     def printInit(self):
@@ -171,7 +171,7 @@ class RL():
             print("\n"+"="*printLength)
 
     # Print all measured performance
-    def printResult(self, episode: int, timesteps: int, averagedRewards):
+    def printResult(self, episode: int, timesteps: int, averageReward):
         if self.verbose >= 1: # Print After checking verbosity level
             try:
                 # Not working with nohup command
@@ -182,7 +182,7 @@ class RL():
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
-            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10}  | Averaged Rewards: {str(averagedRewards)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
+            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10}  | Averag Reward: {str(averageReward)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
 
             splited = results.split('|')[1:-1]
             frameString = "+"

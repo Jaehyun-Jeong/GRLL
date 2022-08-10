@@ -45,6 +45,9 @@ class ValueBased(RL):
             'test': e.g. 'stochastic'
         }
         verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+        gradientStepPer: Update the neural network model every gradientStepPer timesteps
+        epoch: Epoch size to train from given data(Replay Memory)
+        trainStarts: how many steps of the model to collect transitions for before learning starts
     '''
 
     def __init__(
@@ -65,6 +68,9 @@ class ValueBased(RL):
         tensorboardParams,
         policy,
         verbose,
+        gradientStepPer,
+        epoch,
+        trainStarts,
     ):
 
         # init parameters 
@@ -87,6 +93,9 @@ class ValueBased(RL):
         self.maxMemory = maxMemory
         self.discount_rate = discount_rate
         self.numBatch = numBatch
+        self.gradientStepPer = gradientStepPer
+        self.epoch = epoch
+        self.trainStarts = trainStarts
         self.steps_done = 0 # eps scheduling
         
         # Stochastic action selection
@@ -94,6 +103,15 @@ class ValueBased(RL):
         
         # torch.log makes nan(not a number) error, so we have to add some small number in log function
         self.ups=1e-7
+
+    def is_trainable(self):
+
+        # check train condition
+        condition = True if self.trainedTimesteps % self.gradientStepPer == 0 \
+                    and self.trainedTimesteps >= self.trainStarts \
+                    else False
+
+        return condition
 
     # In Reinforcement learning, pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
