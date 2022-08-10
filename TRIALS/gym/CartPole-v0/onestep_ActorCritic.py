@@ -40,3 +40,6 @@ onestep_AC = onestep_ActorCritic(
 
 # TRAIN Agent
 onestep_AC.train(maxEpisodes=100000, testPer=100)
+
+# save model
+onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")
