@@ -165,9 +165,9 @@ class DQN(ValueBased):
 
     def train(
         self, 
-        trainTimesteps,
-        testPer=1000, 
-        testSize=1000,
+        trainTimesteps, # Training Timesteps
+        testPer=1000, # Test per testPer timesteps
+        testSize=1000, # The Timesteps to test, trainTimesteps doesn't include it
     ):
 
         try:
