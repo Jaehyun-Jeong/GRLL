@@ -88,7 +88,7 @@ class ADQN(ValueBased):
         },
         maxTimesteps=1000,
         discount_rate=0.99,
-        maxMemory=10000,
+        maxMemory:int=100000,
         numBatch=64,
         isRender={
             'train': False,

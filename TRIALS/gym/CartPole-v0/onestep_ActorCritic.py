@@ -6,7 +6,7 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.PolicyGradient.models import ANN_V1
+from module.PolicyGradient.models import ANN_V2
 from module.PolicyGradient import onestep_ActorCritic
 
 # Environment 
@@ -23,8 +23,8 @@ env = gym.make(gym_name)
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
-ActorCritic_model = ANN_V1(num_states, num_actions)
-optimizer = optim.Adam(ActorCritic_model.parameters(), lr=1e-3)
+ActorCritic_model = ANN_V2(num_states, num_actions)
+optimizer = optim.Adam(ActorCritic_model.parameters(), lr=1e-4)
 
 # Initialize Actor-Critic Mehtod
 onestep_AC = onestep_ActorCritic(
@@ -35,7 +35,7 @@ onestep_AC = onestep_ActorCritic(
     useTensorboard=True,
     tensorboardParams={
         'logdir': "../../runs/onestep_AC_CartPole-v0",
-        'tag': "Averaged Returns/ANN_V1_lr=1e-3"
+        'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
 )
 

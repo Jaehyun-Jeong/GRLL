@@ -86,7 +86,7 @@ class DQN(ValueBased):
         },
         maxTimesteps=1000,
         discount_rate=0.99,
-        maxMemory=1e6,
+        maxMemory: int=100000,
         numBatch=64,
         isRender={
             'train': False,
