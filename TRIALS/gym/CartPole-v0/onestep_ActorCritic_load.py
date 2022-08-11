@@ -39,8 +39,11 @@ onestep_AC = onestep_ActorCritic(
     },
 )
 
+# load model
+onestep_AC.load("../../saved_models/CartPole-v0/onestep_AC.obj")
+
 # TRAIN Agent
-onestep_AC.train(trainTimesteps=100)
+onestep_AC.train(1000000)
 
 # save model
 onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")

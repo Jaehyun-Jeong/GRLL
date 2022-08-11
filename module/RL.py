@@ -239,10 +239,10 @@ class RL():
             raise ValueError("No matching torch.nn.Module, please use equally shaped torch.nn.Module as you've done!")
 
         self.model.eval()
-
+        
         #=============================================================================
 
         for key, value in loadedDict.items():
             self.__dict__[key] = value
-        
+
         self.timePrevStep = datetime.now() # Recalculating time spent
