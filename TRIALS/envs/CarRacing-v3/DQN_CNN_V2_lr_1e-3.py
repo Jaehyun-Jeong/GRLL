@@ -12,7 +12,7 @@ from module.ValueBased import DQN
 # Environment
 from module.envs.CarRacing import RacingEnv_v3
 
-TRAIN_TIMESTEPS = 10000
+TRAIN_TIMESTEPS = 100000
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
@@ -51,10 +51,6 @@ params_dict = {
         'end': 0.00001,
         'decay': 300000
     },
-    'isRender': {
-        'train': True,
-        'test': True
-    }
 }
 
 # Initialize Actor-Critic Mehtod
