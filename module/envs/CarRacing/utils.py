@@ -1,4 +1,5 @@
 import pygame
+import torch
 
 def scale_image(img, factor):
     size = round(img.get_width() * factor), round(img.get_height() * factor)
@@ -28,9 +29,9 @@ def action_to_int(action):
 
     if type(action)==torch.Tensor:
         actionLst = action.tolist()
-        if action.dim==1 and len(actionLst)==1:
+        if action.dim()==1 and len(actionLst)==1:
             return actionLst[0]
-        elif action.dim==0:
+        elif action.dim()==0:
             return actionLst
         else:
             raise ValueError("Action Tensor dimension must be smaller than 2") 
@@ -40,6 +41,17 @@ def action_to_int(action):
             return action[0]
         else:
             raise ValueError("Action list dimension must be smaller than 2") 
-   
-    
 
+# check action list [accel, left, center, or right]
+# [0, 0] => [no accel, turn left], [1, 2] => [accel, turn right]
+def check_actionList(action: torch.Tensor):
+    
+    # Check dimension, and length of the action
+    if type(action) != torch.Tensor \
+        or action.dim() != 1 \
+        or (action.dim() == 0 and len(action) != 2): 
+        
+        raise ValueError("action must be 1 dimension torch.tensor")
+
+    else:
+        return True

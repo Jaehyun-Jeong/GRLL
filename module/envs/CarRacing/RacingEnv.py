@@ -1,13 +1,15 @@
+from typing import Type
+
 from collections import deque
 import torch
 import numpy as np
 import math
 try:
     from main import *
-    from utils import action_to_int
+    from utils import action_to_int, check_actionList
 except:
     from module.envs.CarRacing.main import *
-    from module.envs.CarRacing.utils import action_to_int
+    from module.envs.CarRacing.utils import action_to_int, check_actionList
 
 class Lines():
 
@@ -98,12 +100,12 @@ class RacingEnv_v0():
         # reward
         self._reward = 0
 
-    def step(self, action: torch.tensor):
+    def step(self, action: torch.Tensor):
         action = action_to_int(action)
         self.move(action)
 
         next_state = self.get_state()
-        done, reward = self.__done_reward()
+        done, reward = self.done_reward()
 
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
@@ -154,7 +156,7 @@ class RacingEnv_v0():
 
         return PATH[rand_ind], ANGLE[rand_ind]
 
-    def move(self, action: torch.tensor):
+    def move(self, action: torch.Tensor):
 
         if action == 0: # left
             self.player_car.rotate(left=True)
@@ -184,7 +186,7 @@ class RacingEnv_v0():
     def __line_preprocess(self, dist):
         return dist / self.lines.LINE_LEN
 
-    def __done_reward(self):
+    def done_reward(self):
 
         done = False
         reward = 0.004 # Every step it have -0.04 reward 
@@ -226,7 +228,7 @@ class RacingEnv_v2(RacingEnv_v0):
         )
 
         self.stackedStates = deque([], maxlen=self.stackSize)
-        self.__init_stackedStates(self.stackSize)
+        self.init_stackedStates(self.stackSize)
 
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
@@ -235,7 +237,7 @@ class RacingEnv_v2(RacingEnv_v0):
 
         #=========================================================
 
-    def step(self, action: torch.tensor):
+    def step(self, action: torch.Tensor):
         # 3 frames per move
         action = action_to_int(action)
         self.move(action)
@@ -261,7 +263,7 @@ class RacingEnv_v2(RacingEnv_v0):
 
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
-        self.__init_stackedStates(self.stackSize)
+        self.init_stackedStates(self.stackSize)
         initial_state = self.get_state()
         
         return initial_state
@@ -269,7 +271,7 @@ class RacingEnv_v2(RacingEnv_v0):
     def get_state(self):
 
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
-        screen = self.__grayscale(screen)
+        screen = self.grayscale(screen)
         self.stackedStates.append(screen) # from RGB to grayscale img
         
         state = torch.from_numpy(np.array(self.stackedStates))
@@ -277,16 +279,16 @@ class RacingEnv_v2(RacingEnv_v0):
 
         return state.to(torch.float).numpy()
 
-    def __init_stackedStates(self, frames: int):
+    def init_stackedStates(self, frames: int):
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
-        screen = self.__grayscale(screen) # from RGB to grayscale img
+        screen = self.grayscale(screen) # from RGB to grayscale img
         
         self.stackedStates.extend([screen]*frames)
 
     @staticmethod
-    def __grayscale(numpy_array: np.ndarray):
+    def grayscale(numpy_array: np.ndarray):
         return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
 
 class RacingEnv_v3(RacingEnv_v0):
@@ -315,7 +317,7 @@ class RacingEnv_v3(RacingEnv_v0):
         )
 
         self.stackedStates = deque([], maxlen=self.stackSize)
-        self.__init_stackedStates(self.stackSize)
+        self.init_stackedStates(self.stackSize)
 
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
@@ -324,7 +326,7 @@ class RacingEnv_v3(RacingEnv_v0):
 
         #=========================================================
         
-    def step(self, action: torch.tensor):
+    def step(self, action: torch.Tensor):
         # 3 frames per move
         action = action_to_int(action)
         self.move(action)
@@ -350,7 +352,7 @@ class RacingEnv_v3(RacingEnv_v0):
 
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
-        self.__init_stackedStates(self.stackSize)
+        self.init_stackedStates(self.stackSize)
         initial_state = self.get_state()
         
         return initial_state
@@ -376,7 +378,7 @@ class RacingEnv_v3(RacingEnv_v0):
 
         screen = WIN.subsurface(leftTop[0], leftTop[1], sliceSize, sliceSize)
         screen = pygame.surfarray.pixels3d(screen) # game screen img to numpy ndarray(RGB)
-        screen = self.__grayscale(screen) # from RGB to grayscale img
+        screen = self.grayscale(screen) # from RGB to grayscale img
 
         if sliceSize < min(self._sliceImgSize):
             from PIL import Image
@@ -392,20 +394,53 @@ class RacingEnv_v3(RacingEnv_v0):
 
         return state.to(torch.float).numpy()
 
-    def __init_stackedStates(self, frames: int):
+    def init_stackedStates(self, frames: int):
 
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         self.stackedStates.extend([self.crop_img_numpy()]*frames)
 
     @staticmethod
-    def __grayscale(numpy_array: np.ndarray):
+    def grayscale(numpy_array: np.ndarray):
         return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
 
+class RacingEnv_v4(RacingEnv_v3):
+        
+    def step(self, action: torch.Tensor):
+        if check_actionList(action):
+            self.move(action)
+            draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+            self.move(action)
+
+            next_state = self.get_state()
+            done, reward = self.done_reward()
+
+            draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
+            return next_state, reward, done, action 
+
+    def move(self, action: torch.Tensor):
+        if check_actionList(action):
+
+            if action[0] == 0: # no accel
+                pass
+            elif action[0] == 1: # accel
+                self.player_car.move_forward()
+            else:
+                raise ValueError("Action is out of bound!")
+
+            if action[1] == 0: # turn left
+                self.player_car.rotate(left=True)
+            elif action[1] == 1: # center
+                pass
+            elif action[1] == 2: # turn right
+                self.player_car.rotate(right=True)
+            else:
+                raise ValueError("Action is out of bound!")
+
 if __name__=="__main__":
-    from main import *
     import matplotlib.pyplot as plt
 
-    RacingEnv = RacingEnv_v3(ExploringStarts = True)
+    RacingEnv = RacingEnv_v4(ExploringStarts = True)
 
     for episode in range(3):
 
@@ -424,7 +459,8 @@ if __name__=="__main__":
             ax4.imshow(state[3], cmap="gray")
             plt.show()
 
-            state, reward, done, _ = RacingEnv.step(episode)
+            action = torch.Tensor([1, 1])
+            state, reward, done, _ = RacingEnv.step(action)
             if done:
                 break
 
