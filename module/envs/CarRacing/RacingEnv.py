@@ -4,10 +4,11 @@ from collections import deque
 import torch
 import numpy as np
 import math
-try:
+
+if __name__=="__main__":
     from main import *
     from utils import action_to_int, check_actionList
-except:
+else:
     from module.envs.CarRacing.main import *
     from module.envs.CarRacing.utils import action_to_int, check_actionList
 
