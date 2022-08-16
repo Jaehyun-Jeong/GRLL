@@ -29,10 +29,10 @@ config["evaluation_interval"] = 10
 config["evaluation_duration"] = 10
 config["evaluation_duration_unit"] = "episodes"
 config["create_env_on_driver"] = True
-config["learning_starts"] = 50000
 config["dueling"] = False
 config["double_q"] = False
 config["replay_buffer_config"]["capacity"] = 100000
+config["replay_buffer_config"]["learning_starts"] = 50000
 config["model"]["fcnet_hiddens"] = [64]
 config["model"]["fcnet_activation"] = 'relu'
 config["framework"] = "torch" # 작성자의 모듈과 동일하게 PyTorch를 사용한다.
@@ -54,4 +54,4 @@ for i in range(100):
 print(f"Train Time: {datetime.now() - startTrainTime}")
 
 # 마지막 학습에서 얻어진 결과 출력
-print(result)
+print(pretty_print(result))
