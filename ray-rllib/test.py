@@ -1,8 +1,17 @@
+# 시간 측정
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
 import ray
 import ray.rllib.agents.dqn as dqn
 from ray.tune.logger import pretty_print
 
 ray.init()
+
+# 모듈 초기화에 걸린 시간
+print(f"Init Time: {datetime.now() - startTime}")
 
 # === 저번주의 테스트와 동일하게 파라미터 설정 ===
 config = dqn.DEFAULT_CONFIG.copy()
@@ -16,26 +25,33 @@ config["exploration_config"] = {
     'final_epsilon': 0.0001,
     'epsilon_timesteps': 10000
 }
-config["evaluation_duration"] = 4
-config["evaluation_duration_unit"] = "timesteps"
+config["evaluation_interval"] = 10
+config["evaluation_duration"] = 10
+config["evaluation_duration_unit"] = "episodes"
+config["create_env_on_driver"] = True
 config["learning_starts"] = 50000
 config["dueling"] = False
 config["double_q"] = False
-config["buffer_size"] = 100000
-config["hiddens"] = [64]
+config["replay_buffer_config"]["capacity"] = 100000
+config["model"]["fcnet_hiddens"] = [64]
+config["model"]["fcnet_activation"] = 'relu'
 config["framework"] = "torch" # 작성자의 모듈과 동일하게 PyTorch를 사용한다.
 #=================================================
 
-trainer = dqn.DQNTrainer(config=config, env="CartPole-v0")
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
 
-trainer.validate_env()
-raise ValueError("test")
+trainer = dqn.DQNTrainer(config=config, env="CartPole-v0")
 
 # 한 번의 반복에 1000번의 timestep이 진행된다. 따라서 100 * 1000 = 10만 번의 timestep이 진행된다.
 for i in range(100):
-    if i <= 99:
-        result = trainer.train()
+    if i < 99:
+        trainer.train()
     else:
-        trainer.train() 
+        result = trainer.train() 
 
-print(pretty_print(result))
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 마지막 학습에서 얻어진 결과 출력
+print(result)
