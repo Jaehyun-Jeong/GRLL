@@ -6,3 +6,4 @@
 **/*.out
 **saved_models/
 **/*.sh
+.vimspector.json

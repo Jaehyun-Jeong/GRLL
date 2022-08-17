@@ -15,8 +15,10 @@ print(f"Init Time: {datetime.now() - startTime}")
 
 # === 저번주의 테스트와 동일하게 파라미터 설정 ===
 config = dqn.DEFAULT_CONFIG.copy()
-config["num_gpus"] = 0 # gpu는 사용하지 않는다.
-config["num_workers"] = 1 # 하나의 에이전트만 실행한다.
+# gpu는 사용하지 않는다.
+config["num_gpus"] = 0
+# 하나의 에이전트만 실행한다.
+config["num_workers"] = 1 
 config["lr"] = 0.001
 config["train_batch_size"] = 32
 config["exploration_config"] = {
@@ -25,18 +27,15 @@ config["exploration_config"] = {
     'final_epsilon': 0.0001,
     'epsilon_timesteps': 10000
 }
-config["evaluation_interval"] = 10
-config["evaluation_duration"] = 10
-config["evaluation_duration_unit"] = "episodes"
-config["create_env_on_driver"] = True
 config["dueling"] = False
 config["double_q"] = False
 config["replay_buffer_config"]["capacity"] = 100000
 config["replay_buffer_config"]["learning_starts"] = 50000
 config["model"]["fcnet_hiddens"] = [64]
 config["model"]["fcnet_activation"] = 'relu'
-config["framework"] = "torch" # 작성자의 모듈과 동일하게 PyTorch를 사용한다.
-#=================================================
+# 작성자의 모듈과 동일하게 PyTorch를 사용한다.
+config["framework"] = "torch" 
+# ================================================
 
 # 학습이 시작되는 시간
 startTrainTime = datetime.now()
