@@ -18,7 +18,7 @@ config = dqn.DEFAULT_CONFIG.copy()
 # gpu는 사용하지 않는다.
 config["num_gpus"] = 0
 # 하나의 에이전트만 실행한다.
-config["num_workers"] = 1 
+config["num_workers"] = 1
 config["lr"] = 0.001
 config["train_batch_size"] = 32
 config["exploration_config"] = {
@@ -34,7 +34,7 @@ config["replay_buffer_config"]["learning_starts"] = 50000
 config["model"]["fcnet_hiddens"] = [64]
 config["model"]["fcnet_activation"] = 'relu'
 # 작성자의 모듈과 동일하게 PyTorch를 사용한다.
-config["framework"] = "torch" 
+config["framework"] = "torch"
 # ================================================
 
 # 학습이 시작되는 시간
@@ -47,7 +47,7 @@ for i in range(100):
     if i < 99:
         trainer.train()
     else:
-        result = trainer.train() 
+        result = trainer.train()
 
 # 학습이 끝나는 시간
 print(f"Train Time: {datetime.now() - startTrainTime}")
