@@ -1,22 +1,18 @@
+from typing import Dict, List, Union
 
-import numpy as np
-import random 
 import matplotlib.pyplot as plt
-from collections import namedtuple, deque
+from collections import namedtuple
 
 # PyTorch
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
 from module.PolicyGradient.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'done', 'next_state', 'reward'))
+                        ('state', 'action', 'done', 'next_state', 'reward'))
+
 
 class onestep_ActorCritic(PolicyGradient):
 
@@ -36,53 +32,70 @@ class onestep_ActorCritic(PolicyGradient):
         maxTimesteps: Permitted timesteps in the environment
         discount_rate: Discount rate for calculating return(accumulated reward)
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ There are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
     '''
 
     def __init__(
-        self, 
-        model,
-        optimizer,
+        self,
+        model: torch.nn.Module,
+        optimizer: torch.optim,
         trainEnv=None,
         testEnv=None,
         env=None,
-        device=torch.device('cpu'),
-        eps={
+        device: torch.device = torch.device('cpu'),
+        eps: dict[str, Union[int, float]] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
         },
-        maxTimesteps=1000,
-        discount_rate=0.99,
-        isRender={
+        maxTimesteps: int = 1000,
+        discount_rate: float = 0.99,
+        isRender: Dict[str, bool] = {
             'train': False,
             'test': False,
         },
-        useTensorboard=False,
-        tensorboardParams={
-            'logdir': "./runs/onestep_ActorCritic",
+        useTensorboard: bool = False,
+        tensorboardParams: Dict[str, str] = {
+            'logdir': "./runs/REINFORCE",
             'tag': "Returns"
         },
-        policy={
+        policy: Dict[str, str] = {
             'train': 'eps-stochastic',
             'test': 'stochastic'
         },
-        verbose=1,
+        verbose: int = 1,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             trainEnv=trainEnv,
             testEnv=testEnv,
@@ -103,14 +116,15 @@ class onestep_ActorCritic(PolicyGradient):
         self.printInit()
 
     # Overrided method from PolicyGradient for single pi
-    def pi(self, s, a):
+    def pi(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
+
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
 
         return probs[a]
-    
+
     # Overrided method from PolicyGradient for single state value
-    def value(self, s):
+    def value(self, s: torch.Tensor) -> torch.Tensor:
         s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = torch.squeeze(value, 0)
@@ -118,7 +132,7 @@ class onestep_ActorCritic(PolicyGradient):
         return value
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, Transition, entropy_term = 0):
+    def update_weight(self, Transition: Transition, entropy_term: float = 0):
         s_t = Transition.state
         a_t = Transition.action
         s_tt = Transition.next_state
@@ -127,14 +141,16 @@ class onestep_ActorCritic(PolicyGradient):
 
         # get actor loss
         log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-        advantage = Variable(r_tt + self.value(s_tt)*(not done) - self.value(s_t))
+        advantage = r_tt + self.value(s_tt)*(not done) - self.value(s_t)
+        advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        critic_loss = 1/2 * (r_tt + self.value(s_tt)*(not done) - self.value(s_t)).pow(2)
+        critic_loss = r_tt + self.value(s_tt)*(not done) - self.value(s_t)
+        critic_loss = 1/2 * (critic_loss).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term
-    
+
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -143,23 +159,23 @@ class onestep_ActorCritic(PolicyGradient):
 
     def train(
         self,
-        trainTimesteps, # Training Timesteps
-        testPer=1000, # Test per testPer timesteps
-        testSize=10, # The episode size to test
+        trainTimesteps: int,  # Training Timesteps
+        testPer: int = 1000,  # Test per testPer timesteps
+        testSize: int = 10,  # The episode size to test
     ):
 
         try:
             rewards = []
-            
+
             while trainTimesteps >= self.trainedTimesteps:
-                
+
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
-                
-                #==========================================================================
+
+                # ==========================================================================
                 # MAKE TRAIN DATA
-                #==========================================================================
+                # ==========================================================================
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
@@ -168,11 +184,15 @@ class onestep_ActorCritic(PolicyGradient):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
+                    action = self.get_action(
+                            state,
+                            useEps=self.useTrainEps,
+                            useStochastic=self.useTrainStochastic)
+                    action = action.tolist()
 
-                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
+                    next_state, reward, done, _ = self.trainEnv.step(action)
 
-                    # trans means transition 
+                    # trans means transition
                     trans = Transition(state, action, done, next_state, reward)
 
                     state = next_state
@@ -180,27 +200,31 @@ class onestep_ActorCritic(PolicyGradient):
                     # Train
                     self.update_weight(trans)
 
-                    #==========================================================================
+                    # ==========================================================================
                     # TEST
-                    #==========================================================================
+                    # ==========================================================================
 
-                    if self.trainedTimesteps % testPer == 0: 
+                    if self.trainedTimesteps % testPer == 0:
 
-                        averagRewards = self.test(testSize=testSize)   
+                        averagRewards = self.test(testSize=testSize)
                         rewards.append(averagRewards)
 
-                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
 
-                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+                        self.writeTensorboard(
+                                rewards[-1],
+                                self.trainedEpisodes)
 
-                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+                        self.printResult(
+                                self.trainedEpisodes,
+                                self.trainedTimesteps,
+                                rewards[-1])
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
-
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
