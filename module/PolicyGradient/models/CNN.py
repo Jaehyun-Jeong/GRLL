@@ -4,7 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class CNN_V1(nn.Module):
-    def __init__(self, h, w, outputs):
+    def __init__(self, h: int, w: int, outputs: int):
+
         super(CNN_V1, self).__init__()
         self.actor_conv1 = nn.Conv2d(5, 16, kernel_size=3, stride=1)
         self.actor_conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1)
@@ -16,7 +17,7 @@ class CNN_V1(nn.Module):
 
         # Number of Linear input connections depends on output of conv2d layers
         # and therefore the input image size, so compute it.
-        def conv2d_size_out(size, kernel_size = 3, stride = 1):
+        def conv2d_size_out(size, kernel_size: int = 3, stride: int = 1):
             return (size - (kernel_size - 1) - 1) // stride  + 1
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
@@ -29,7 +30,9 @@ class CNN_V1(nn.Module):
 
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) \
+            -> tuple[torch.Tensor, torch.Tensor]:
+
         state = x
         state = torch.unsqueeze(state, 0)
         

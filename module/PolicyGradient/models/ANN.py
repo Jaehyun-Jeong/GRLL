@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ANN_V1(nn.Module):
-    def __init__(self, inputs, outputs):
+    def __init__(self, inputs: int, outputs: int):
         super(ANN_V1, self).__init__()
 
         # for Actor
@@ -16,7 +16,9 @@ class ANN_V1(nn.Module):
         self.critic_fc1 = nn.Linear(inputs, 256)
         self.critic_fc2 = nn.Linear(256, 1)
         
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) \
+            -> tuple[torch.Tensor, torch.Tensor]:
+
         state = x
 
         probs = F.relu(self.actor_fc1(state))
@@ -28,7 +30,7 @@ class ANN_V1(nn.Module):
         return value, probs
 
 class ANN_V2(nn.Module):
-    def __init__(self, inputs, outputs):
+    def __init__(self, inputs: int, outputs: int):
         super(ANN_V2, self).__init__()
 
         # for Actor
@@ -42,7 +44,9 @@ class ANN_V2(nn.Module):
         self.critic_fc2 = nn.Linear(256, 256)
         self.critic_fc3 = nn.Linear(256, 1)
         
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) \
+            -> tuple[torch.Tensor, torch.Tensor]:
+
         state = x
 
         probs = F.relu(self.actor_fc1(state))
