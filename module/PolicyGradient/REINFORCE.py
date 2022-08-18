@@ -2,7 +2,6 @@ from typing import Dict, Union
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 
 # PyTorch
@@ -245,9 +244,5 @@ class REINFORCE(PolicyGradient):
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
-
-            plt.plot(range(len(rewards)), rewards)
-        finally:
-            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()

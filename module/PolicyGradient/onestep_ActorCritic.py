@@ -1,6 +1,5 @@
 from typing import Dict, Union
 
-import matplotlib.pyplot as plt
 from collections import namedtuple
 
 # PyTorch
@@ -228,9 +227,5 @@ class onestep_ActorCritic(PolicyGradient):
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
-
-            plt.plot(range(len(rewards)), rewards)
-        finally:
-            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()
