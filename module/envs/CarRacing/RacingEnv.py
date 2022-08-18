@@ -1,9 +1,8 @@
-from typing import Type
-
 from collections import deque
 import torch
 import numpy as np
 import math
+import pygame
 
 if __name__=="__main__":
     from main import *
@@ -11,6 +10,7 @@ if __name__=="__main__":
 else:
     from module.envs.CarRacing.main import *
     from module.envs.CarRacing.utils import action_to_int, check_actionList
+
 
 class Lines():
 
@@ -34,11 +34,13 @@ class Lines():
             end_x = self.LINE_LEN * -math.sin(radian)
             end_y = self.LINE_LEN * -math.cos(radian)
             end_pos = (end_x, end_y)
-            
+
             is_hit = False
             for length_mag in range(1000):
                 line_mag = (length_mag+1) / 1000
-                test_pos = (line_mag*end_pos[0]+start_pos[0], line_mag*end_pos[1]+start_pos[1])
+                test_pos = (line_mag*end_pos[0]+start_pos[0],
+                            line_mag*end_pos[1]+start_pos[1])
+
                 if mask.get_at(test_pos):
                     end_pos = test_pos
                     is_hit = True
@@ -53,11 +55,18 @@ class Lines():
             pygame.draw.line(self.surface, self.GREEN, start_pos, end_pos, 1)
 
         win.blit(self.surface, self.surface.get_rect())
-    
+
     def collide(self):
         return list(self.hit_points)
 
-def draw_env(win, images, player_car, game_info, computer_car=None, lines=None):
+
+def draw_env(win: pygame.Surface,
+             images: list[pygame.Surface],
+             player_car: PlayerCar,
+             game_info: GameInfo,
+             computer_car: ComputerCar= None,
+             lines: Lines = None):
+
     for img, pos in images:
         win.blit(img, pos)
 
@@ -74,7 +83,7 @@ def draw_env(win, images, player_car, game_info, computer_car=None, lines=None):
 
 class RacingEnv_v0():
     
-    def __init__(self, ExploringStarts=False):
+    def __init__(self, ExploringStarts: bool = False):
 
         self.images = [(GRASS, (0, 0)), (TRACK, (0, 0)), (FINISH, FINISH_POSITION), (TRACK_BORDER, (0,0))]
 
@@ -101,7 +110,9 @@ class RacingEnv_v0():
         # reward
         self._reward = 0
 
-    def step(self, action: torch.Tensor):
+    def step(self, action: torch.Tensor) \
+            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+
         action = action_to_int(action)
         self.move(action)
 
@@ -145,7 +156,7 @@ class RacingEnv_v0():
         pygame.quit()
     
     @staticmethod
-    def get_random_pos_angle():
+    def get_random_pos_angle() -> tuple[tuple[int, int], int] :
         
         import random
             
@@ -170,7 +181,7 @@ class RacingEnv_v0():
 
         self.player_car.move_forward()
 
-    def get_state(self): # use collided distances as state
+    def get_state(self) -> list[float]: # use collided distances as state
 
         # line collider
         hit_points = self.lines.collide()
@@ -184,10 +195,10 @@ class RacingEnv_v0():
         return dists
 
     # dists length from 0 to 1
-    def __line_preprocess(self, dist):
+    def __line_preprocess(self, dist: float) -> float:
         return dist / self.lines.LINE_LEN
 
-    def done_reward(self):
+    def done_reward(self) -> tuple[bool, float]:
 
         done = False
         reward = 0.004 # Every step it have -0.04 reward 
@@ -208,7 +219,9 @@ class RacingEnv_v0():
 
 class RacingEnv_v2(RacingEnv_v0):
 
-    def __init__(self, stackSize: int=4, ExploringStarts: bool=False):
+    def __init__(self,
+                 stackSize: int=4,
+                 ExploringStarts: bool=False):
 
         super().__init__(
             ExploringStarts=ExploringStarts
@@ -238,16 +251,19 @@ class RacingEnv_v2(RacingEnv_v0):
 
         #=========================================================
 
-    def step(self, action: torch.Tensor):
+    def step(self, action: torch.Tensor) \
+            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+
         # 3 frames per move
         action = action_to_int(action)
         self.move(action)
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         self.move(action)
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
         return super().step(action)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         
         self.isRender = False
         self.game_info.reset()
@@ -269,7 +285,7 @@ class RacingEnv_v2(RacingEnv_v0):
         
         return initial_state
         
-    def get_state(self):
+    def get_state(self) -> np.ndarray:
 
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
         screen = self.grayscale(screen)
@@ -289,7 +305,7 @@ class RacingEnv_v2(RacingEnv_v0):
         self.stackedStates.extend([screen]*frames)
 
     @staticmethod
-    def grayscale(numpy_array: np.ndarray):
+    def grayscale(numpy_array: np.ndarray) -> np.ndarray:
         return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
 
 class RacingEnv_v3(RacingEnv_v0):
@@ -327,7 +343,9 @@ class RacingEnv_v3(RacingEnv_v0):
 
         #=========================================================
         
-    def step(self, action: torch.Tensor):
+    def step(self, action: torch.Tensor) \
+            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+
         # 3 frames per move
         action = action_to_int(action)
         self.move(action)
@@ -336,7 +354,7 @@ class RacingEnv_v3(RacingEnv_v0):
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
         return super().step(action)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         
         self.isRender = False
         self.game_info.reset()
@@ -358,7 +376,7 @@ class RacingEnv_v3(RacingEnv_v0):
         
         return initial_state
 
-    def crop_img_numpy(self):
+    def crop_img_numpy(self) -> np.ndarray:
 
         # Getting self.player_car.rect at least one draw_env execution
         center = self.player_car.rect.center
@@ -387,7 +405,7 @@ class RacingEnv_v3(RacingEnv_v0):
 
         return screen
 
-    def get_state(self):
+    def get_state(self) -> np.ndarray:
         self.stackedStates.append(self.crop_img_numpy())
 
         state = torch.from_numpy(np.array(self.stackedStates))
@@ -401,12 +419,14 @@ class RacingEnv_v3(RacingEnv_v0):
         self.stackedStates.extend([self.crop_img_numpy()]*frames)
 
     @staticmethod
-    def grayscale(numpy_array: np.ndarray):
+    def grayscale(numpy_array: np.ndarray) -> np.ndarray:
         return np.dot(numpy_array[..., :3], [0.299, 0.587, 0.114])
 
 class RacingEnv_v4(RacingEnv_v3):
         
-    def step(self, action: torch.Tensor):
+    def step(self, action: torch.Tensor) \
+            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+
         if check_actionList(action):
             self.move(action)
             draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
