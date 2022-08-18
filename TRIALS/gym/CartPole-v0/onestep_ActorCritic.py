@@ -40,7 +40,7 @@ onestep_AC = onestep_ActorCritic(
 )
 
 # TRAIN Agent
-onestep_AC.train(trainTimesteps=100)
+onestep_AC.train(trainTimesteps=100000)
 
 # save model
 onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")

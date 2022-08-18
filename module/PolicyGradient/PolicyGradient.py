@@ -122,10 +122,10 @@ class PolicyGradient(RL):
     def pi(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)
-        a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
+        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
 
         _, probs = self.model.forward(s)
-        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(axis=1)
+        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
 
         return actionValue
 
