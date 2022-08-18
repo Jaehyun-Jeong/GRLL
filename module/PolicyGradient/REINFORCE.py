@@ -1,27 +1,25 @@
+from typing import Dict, Union
 
 import numpy as np
-import random 
+import random
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
 
 # PyTorch
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-import torch.optim as optim
 from torch.autograd import Variable
 
 # Parent Class
 from module.PolicyGradient.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'next_state', 'reward'))
+                        ('state', 'action', 'next_state', 'reward'))
+
 
 class ReplayMemory(object):
 
     def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
+        self.memory = deque([], maxlen=capacity)
 
     def push(self, *args):
         """Save a transition"""
@@ -32,6 +30,7 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
+
 
 class REINFORCE(PolicyGradient):
 
@@ -51,55 +50,73 @@ class REINFORCE(PolicyGradient):
         maxTimesteps: Permitted timesteps in the environment
         discount_rate: Discount rate for calculating return(accumulated reward)
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
         useBaseline: True means use baseline term for REINFORCE algorithm
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
     '''
 
     def __init__(
-        self, 
-        model,
-        optimizer,
+        self,
+        model: torch.nn.Module,
+        optimizer: torch.optim,
         trainEnv=None,
         testEnv=None,
         env=None,
-        device=torch.device('cpu'),
-        eps={
+        device: torch.device = torch.device('cpu'),
+        eps: dict[str, Union[int, float]] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
         },
-        maxTimesteps=1000,
-        discount_rate=0.99,
-        isRender={
+        maxTimesteps: int = 1000,
+        discount_rate: float = 0.99,
+        isRender: Dict[str, bool] = {
             'train': False,
             'test': False,
         },
-        useTensorboard=False,
-        tensorboardParams={
+        useTensorboard: bool = False,
+        tensorboardParams: Dict[str, str] = {
             'logdir': "./runs/REINFORCE",
             'tag': "Returns"
         },
-        policy={
+        policy: Dict[str, str] = {
             'train': 'eps-stochastic',
             'test': 'stochastic'
         },
-        verbose=1,
-        useBaseline=True,
+        verbose: int = 1,
+        useBaseline: bool = True,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             trainEnv=trainEnv,
             testEnv=testEnv,
@@ -116,13 +133,15 @@ class REINFORCE(PolicyGradient):
             policy=policy,
             verbose=verbose,
         )
-        
-        self.useBaseline=useBaseline
+
+        self.useBaseline = useBaseline
 
         self.printInit()
 
     # Update weights by using Actor Critic Method
-    def __update_weight(self, Transitions, entropy_term = 0):
+    def __update_weight(self,
+                        Transitions: ReplayMemory,
+                        entropy_term: float = 0):
 
         lenLoss = Transitions.memory.__len__()
 
@@ -159,25 +178,25 @@ class REINFORCE(PolicyGradient):
         self.steps_done += 1
 
     def train(
-        self, 
-        trainTimesteps, # Training Timesteps
-        testPer=1000, # Test per testPer timesteps
-        testSize=10, # The episode size to test
+        self,
+        trainTimesteps: int,  # Training Timesteps
+        testPer: int = 1000,  # Test per testPer timesteps
+        testSize: int = 10,  # The episode size to test
     ):
 
         try:
             rewards = []
-            
+
             while trainTimesteps > self.trainedTimesteps:
 
                 Transitions = ReplayMemory(self.maxTimesteps)
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
-                
-                #==========================================================================
+
+                # ==========================================================================
                 # MAKE TRAIN DATA
-                #==========================================================================
+                # ==========================================================================
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
@@ -186,34 +205,43 @@ class REINFORCE(PolicyGradient):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
-                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
+                    action = self.get_action(
+                        state,
+                        useEps=self.useTrainEps,
+                        useStochastic=self.useTrainStochastic)
+                    action = action.tolist()
+
+                    next_state, reward, done, _ = self.trainEnv.step(action)
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
 
-                    #==========================================================================
+                    # ==========================================================================
                     # TEST
-                    #==========================================================================
+                    # ==========================================================================
 
-                    if self.trainedTimesteps % testPer == 0: 
+                    if self.trainedTimesteps % testPer == 0:
 
-                        averagRewards = self.test(testSize=testSize)   
+                        averagRewards = self.test(testSize=testSize)
                         rewards.append(averagRewards)
 
-                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
 
-                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+                        self.writeTensorboard(
+                                rewards[-1],
+                                self.trainedEpisodes)
 
-                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+                        self.printResult(
+                                self.trainedEpisodes,
+                                self.trainedTimesteps,
+                                rewards[-1])
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
                 # train
                 self.__update_weight(Transitions)
-
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
