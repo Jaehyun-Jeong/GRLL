@@ -1,5 +1,5 @@
+from typing import Dict, List, Union
 
-from collections import namedtuple, deque
 from abc import abstractmethod
 import random
 
@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from module.RL import RL
+
 
 class PolicyGradient(RL):
 
@@ -27,19 +28,36 @@ class PolicyGradient(RL):
         maxTimesteps: Permitted timesteps in the environment
         discount_rate: Discount rate for calculating return(accumulated reward)
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
     '''
 
     def __init__(
@@ -60,7 +78,7 @@ class PolicyGradient(RL):
         verbose,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             device=device,
             trainEnv=trainEnv,
@@ -75,43 +93,51 @@ class PolicyGradient(RL):
             policy=policy,
             verbose=verbose,
         )
-        
+
         self.maxTimesteps = maxTimesteps
         self.discount_rate = discount_rate
-        self.steps_done = 0 # for epsilon scheduling
-        
+        self.steps_done = 0  # for epsilon scheduling
+
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
 
-        # torch.log makes nan(not a number) error, so we have to add some small number in log function
-        self.ups=1e-7
+        # torch.log makes nan(not a number) error,
+        # so we have to add some small number in log function
+        self.ups = 1e-7
 
     # Epsilon scheduling method
-    def __get_eps(self):
+    def __get_eps(self) -> float:
         import math
 
         eps_start = self.eps['start']
         eps_end = self.eps['end']
         eps_decay = self.eps['decay']
 
-        return eps_end + (eps_start + eps_end) * math.exp(-1. * self.steps_done / eps_decay)
+        return eps_end + \
+            (eps_start + eps_end) * math.exp(-1. * self.steps_done / eps_decay)
 
-    # In Reinforcement learning, pi means the function from state space to action probability distribution
+    # In Reinforcement learning,
+    # pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
-    def pi(self, s, a):
+    def pi(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
 
-        s = torch.Tensor(s).to(self.device) 
+        s = torch.Tensor(s).to(self.device)
         a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
 
         _, probs = self.model.forward(s)
         actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(axis=1)
 
         return actionValue
-    
+
     # Returns the action from state s by using multinomial distribution
     @abstractmethod
     @torch.no_grad()
-    def get_action(self, s, useEps, useStochastic):
+    def get_action(
+            self,
+            s: torch.Tensor,
+            useEps: bool,
+            useStochastic: bool) -> torch.Tensor:
+
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
         probs = torch.squeeze(probs, 0)
@@ -122,7 +148,7 @@ class PolicyGradient(RL):
             if useStochastic:
                 probs = self.softmax(probs)
 
-                a = probs.multinomial(num_samples=1) 
+                a = probs.multinomial(num_samples=1)
                 a = a.data
                 action = a[0].cpu()
             else:
@@ -133,9 +159,10 @@ class PolicyGradient(RL):
             action = a[0]
 
         return action.detach()
-  
-    # Returns a value of the state (state value function in Reinforcement learning)
-    def value(self, s):
+
+    # Returns a value of the state
+    # (state value function in Reinforcement learning)
+    def value(self, s: torch.Tensor) -> torch.Tensor:
         s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = value.squeeze(-1)

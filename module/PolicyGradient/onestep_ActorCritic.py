@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 import matplotlib.pyplot as plt
 from collections import namedtuple
