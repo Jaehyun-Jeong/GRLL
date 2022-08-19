@@ -1,30 +1,30 @@
-try:
-    #from module.envs.Maze.Maze_Generator import Maze
+
+if __name__ == "__main__":
     from module.envs.Maze.Maze_Generator import Maze
-except:
-    #from Maze_Generator import Maze
+else:
     from Maze_Generator import Maze
 from random import choice
 import numpy as np
 import pygame
 
-class MazeEnv_v0():
+
+class MazeEnv_base():
 
     def __init__(self):
-        
+
         # set blocks and character = 2, goal = 3
         self.blocks = self.makeMaze()
         self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
         self.blocks[1][1] = 3
-        self.screen = pygame.display.set_mode((self.maze.screen.get_width(), self.maze.screen.get_height()))
+        self.screen = pygame.display.set_mode(
+                (self.maze.screen.get_width(), self.maze.screen.get_height()))
 
-        #=================================================================================
+        # =================================================================================
         # IMG PATH SETTING
-        #=================================================================================
+        # =================================================================================
 
         import os.path as path
         root_dir = path.join(path.dirname(path.abspath(__file__)), 'imgs')
-        
 
         self.ROAD_IMG = path.join(root_dir, "road.jpg")
         self.CHARACTER_IMG = path.join(root_dir, "character.jpg")
@@ -33,25 +33,25 @@ class MazeEnv_v0():
         self.wallName_to_Info = {
             # it was made to pick woods img by index
             # east, west, south, north wall information
-            # 1: no wall linked, 2: wall linked 
-            path.join(root_dir,"wall_01.jpg"): [1, 2, 1, 1], 
-            path.join(root_dir,"wall_02.jpg"): [2, 1, 1, 1],
-            path.join(root_dir,"wall_03.jpg"): [1, 1, 2, 1],
-            path.join(root_dir,"wall_04.jpg"): [1, 1, 1, 2],
-            path.join(root_dir,"wall_05.jpg"): [1, 2, 2, 1],
-            path.join(root_dir,"wall_06.jpg"): [2, 1, 2, 1],
-            path.join(root_dir,"wall_07.jpg"): [1, 2, 1, 2],
-            path.join(root_dir,"wall_08.jpg"): [2, 1, 1, 2],
-            path.join(root_dir,"wall_09.jpg"): [1, 1, 2, 2],
-            path.join(root_dir,"wall_10.jpg"): [2, 2, 1, 2],
-            path.join(root_dir,"wall_11.jpg"): [2, 2, 2, 1],
-            path.join(root_dir,"wall_12.jpg"): [2, 1, 2, 2],
-            path.join(root_dir,"wall_13.jpg"): [1, 2, 2, 2],
-            path.join(root_dir,"wall_14.jpg"): [2, 2, 2, 2],
-            path.join(root_dir,"wall_15.jpg"): [2, 2, 1, 1],
+            # 1: no wall linked, 2: wall linked
+            path.join(root_dir, "wall_01.jpg"): [1, 2, 1, 1],
+            path.join(root_dir, "wall_02.jpg"): [2, 1, 1, 1],
+            path.join(root_dir, "wall_03.jpg"): [1, 1, 2, 1],
+            path.join(root_dir, "wall_04.jpg"): [1, 1, 1, 2],
+            path.join(root_dir, "wall_05.jpg"): [1, 2, 2, 1],
+            path.join(root_dir, "wall_06.jpg"): [2, 1, 2, 1],
+            path.join(root_dir, "wall_07.jpg"): [1, 2, 1, 2],
+            path.join(root_dir, "wall_08.jpg"): [2, 1, 1, 2],
+            path.join(root_dir, "wall_09.jpg"): [1, 1, 2, 2],
+            path.join(root_dir, "wall_10.jpg"): [2, 2, 1, 2],
+            path.join(root_dir, "wall_11.jpg"): [2, 2, 2, 1],
+            path.join(root_dir, "wall_12.jpg"): [2, 1, 2, 2],
+            path.join(root_dir, "wall_13.jpg"): [1, 2, 2, 2],
+            path.join(root_dir, "wall_14.jpg"): [2, 2, 2, 2],
+            path.join(root_dir, "wall_15.jpg"): [2, 2, 1, 1],
         }
 
-        #=================================================================================
+        # =================================================================================
 
         self.loadImages()
         self.imgMat = self.makeCellImgMat()
@@ -61,14 +61,16 @@ class MazeEnv_v0():
 
         # set screen size and initialize it
         disp_size = (500, 500)
-        rect = np.array([0, 0, disp_size[0], disp_size[1]])  # the rect inside which to draw the maze. Top x, top y, width, height.
+        # the rect inside which to draw the maze. Top x, top y, width, height.
+        rect = np.array([0, 0, disp_size[0], disp_size[1]])
         block_size = 20  # block size in pixels
         screen = pygame.Surface(disp_size)
         pygame.display.set_caption('Maze')
 
         # intialize a maze, given size (y, x)
         self.maze = Maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
-        self.maze.screen = screen  # if this is set, the maze generation process will be displayed in a window. otherwise not.
+        # if this is set, the maze generation process will be displayed in a window. otherwise not.
+        self.maze.screen = screen
         screen.fill((0, 0, 0))
         self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
@@ -156,8 +158,25 @@ class MazeEnv_v0():
 
         pygame.display.update()
 
+class MazeEnv_v0(MazeEnv_base):
+
+    def __init__(self):
+        pass
+
+    def reset(self):
+        pass
+    
+    def step(self):
+        pass
+
+    def render(self):
+        pass
+
+    def close(self):
+        pass
+
 if __name__=="__main__":
-    env = MazeEnv_v0()
+    env = MazeEnv_base()
     running = True
     env.draw()
 
