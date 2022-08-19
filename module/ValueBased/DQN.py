@@ -1,27 +1,24 @@
+from typing import Dict, List, Union
 
 import numpy as np
-import random 
-import matplotlib.pyplot as plt
+import random
 from collections import namedtuple, deque
 from abc import abstractmethod
 
 # PyTorch
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-import torch.optim as optim
 from torch.autograd import Variable
 
 from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'done', 'next_state', 'reward'))
+                        ('state', 'action', 'done', 'next_state', 'reward'))
+
 
 class ReplayMemory(object):
 
     def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
+        self.memory = deque([], maxlen=capacity)
 
     def push(self, *args):
         """Save a transition"""
@@ -32,6 +29,7 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
+
 
 class DQN(ValueBased):
 
@@ -53,58 +51,78 @@ class DQN(ValueBased):
         maxMemory: Memory size for Experience Replay
         numBatch: Batch size for mini-batch gradient descent
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
-        gradientStepPer: Update the neural network model every gradientStepPer timesteps
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
+        gradientStepPer:
+            Update the neural network model every gradientStepPer timesteps
         epoch: Epoch size to train from given data(Replay Memory)
-        trainStarts: how many steps of the model to collect transitions for before learning starts
+        trainStarts:
+            how many steps of the model
+            to collect transitions for before learning starts
     '''
 
     def __init__(
         self, 
-        model,
+        model: torch.nn.Module,
         optimizer,
         trainEnv=None,
         testEnv=None,
         env=None,
-        device=torch.device('cpu'),
-        eps={
+        device: torch.device = torch.device('cpu'),
+        eps: Dict[str, Union[int, float] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
         },
-        maxTimesteps=1000,
-        discount_rate=0.99,
-        maxMemory: int=100000,
-        numBatch=64,
-        isRender={
+        maxTimesteps: int = 1000,
+        discount_rate: float = 0.99,
+        maxMemory: int = 100000,
+        numBatch: int = 64,
+        isRender: Dict[str, bool] = {
             'train': False,
             'test': False
         }, 
-        useTensorboard=False,
-        tensorboardParams={
+        useTensorboard: bool = False,
+        tensorboardParams: Dict[str, str] = {
             'logdir': "./runs",
             'tag': "DQN"
         },
-        policy={
+        policy: Dict[str, str] = {
             'train': 'eps-greedy',
             'test': 'greedy'
         },
-        verbose=1,
-        gradientStepPer=4,
-        epoch=1,
-        trainStarts=50000,
+        verbose: int = 1,
+        gradientStepPer: int = 4,
+        epoch: int = 1,
+        trainStarts: int = 50000,
     ):
 
         # init parameters 
@@ -136,7 +154,10 @@ class DQN(ValueBased):
     
     # ADQN has different type of value
     @abstractmethod
-    def value(self, s):
+    def value(
+            self, 
+            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+
         s = torch.Tensor(s).to(self.device)
         return self.model.forward(s)
 
@@ -181,9 +202,9 @@ class DQN(ValueBased):
 
     def train(
         self, 
-        trainTimesteps, # Training Timesteps
-        testPer=1000, # Test per testPer timesteps
-        testSize=10, # The episode size to test
+        trainTimesteps: int, # Training Timesteps
+        testPer: int = 1000, # Test per testPer timesteps
+        testSize: int = 10, # The episode size to test
     ):
 
         try:
@@ -238,9 +259,5 @@ class DQN(ValueBased):
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
-
-            plt.plot(range(len(rewards)), rewards)
-        finally:
-            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()
