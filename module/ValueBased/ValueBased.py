@@ -1,7 +1,6 @@
 from typing import Union
 
 import random
-from abc import abstractmethod
 import numpy as np
 
 # PyTorch
@@ -9,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from module.RL import RL
+from module.utils import overrides
 
 
 class ValueBased(RL):
@@ -100,6 +100,7 @@ class ValueBased(RL):
             env=env,
             model=model,
             optimizer=optimizer,
+            maxTimesteps=maxTimesteps,
             eps=eps,
             policy=policy,
             isRender=isRender,
@@ -108,7 +109,6 @@ class ValueBased(RL):
             verbose=verbose
         )
 
-        self.maxTimesteps = maxTimesteps
         self.maxMemory = maxMemory
         self.discount_rate = discount_rate
         self.numBatch = numBatch
@@ -133,6 +133,12 @@ class ValueBased(RL):
 
         return condition
 
+    # Value function shuld be overrided
+    def value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+        pass
+
     # In Reinforcement learning,
     # pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
@@ -142,8 +148,8 @@ class ValueBased(RL):
             a: Union[torch.Tensor, np.ndarray]):
 
         value = self.value(s)
-        a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
-        actionValue = torch.gather(torch.clone(value), 1, a).squeeze(axis=1)
+        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
+        actionValue = torch.gather(torch.clone(value), 1, a).squeeze(dim=1)
 
         return actionValue
 
@@ -162,7 +168,7 @@ class ValueBased(RL):
         return eps_threshold
 
     # Returns the action from state s by using multinomial distribution
-    @abstractmethod
+    @overrides(RL)
     @torch.no_grad()
     def get_action(
             self,
@@ -189,7 +195,7 @@ class ValueBased(RL):
             a = a.data
             action = a[0]
 
-        return action
+        return action.tolist()
 
     # get max Q-value
     def max_value(

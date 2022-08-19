@@ -1,14 +1,15 @@
 from typing import Dict, Union
 
+
 import numpy as np
 import random
 from collections import namedtuple, deque
-from abc import abstractmethod
 
 # PyTorch
 import torch
 from torch.autograd import Variable
 
+from module.utils import overrides
 from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
@@ -153,7 +154,7 @@ class DQN(ValueBased):
         self.printInit()
 
     # ADQN has different type of value
-    @abstractmethod
+    @overrides(ValueBased)
     def value(
             self,
             s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:

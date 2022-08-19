@@ -1,6 +1,5 @@
 from typing import Union
 
-from abc import abstractmethod
 import random
 import numpy as np
 
@@ -8,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from module.utils import overrides
 from module.RL import RL
 
 
@@ -87,6 +87,7 @@ class PolicyGradient(RL):
             env=env,
             model=model,
             optimizer=optimizer,
+            maxTimesteps=maxTimesteps,
             eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
@@ -95,7 +96,6 @@ class PolicyGradient(RL):
             verbose=verbose,
         )
 
-        self.maxTimesteps = maxTimesteps
         self.discount_rate = discount_rate
         self.steps_done = 0  # for epsilon scheduling
 
@@ -134,7 +134,7 @@ class PolicyGradient(RL):
         return actionValue
 
     # Returns the action from state s by using multinomial distribution
-    @abstractmethod
+    @overrides(RL)
     @torch.no_grad()
     def get_action(
             self,

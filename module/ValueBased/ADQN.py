@@ -4,12 +4,12 @@ import numpy as np
 import random
 from collections import namedtuple, deque
 from copy import deepcopy
-from abc import abstractmethod
 
 # PyTorch
 import torch
 from torch.autograd import Variable
 
+from module.utils import overrides
 from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
@@ -156,12 +156,12 @@ class ADQN(ValueBased):
         self.replayMemory = ReplayMemory(maxMemory)
 
         # save last K previously learned Q-networks
-        self.prevModels = deque([], maxlen=numPrevModels)
+        self.prevModels: deque = deque([], maxlen=numPrevModels)
 
         self.printInit()
 
     # action seleted from previous K models by averaging it
-    @abstractmethod
+    @overrides(ValueBased)
     def value(
             self,
             s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:

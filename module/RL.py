@@ -1,4 +1,8 @@
+from typing import Union
+
 from datetime import datetime, timedelta
+import torch
+import numpy as np
 
 
 class RL():
@@ -56,6 +60,7 @@ class RL():
         env,
         model,
         optimizer,
+        maxTimesteps,
         eps,
         policy,
         device,
@@ -85,6 +90,7 @@ class RL():
         self.device = device
         self.model = model.to(self.device)  # set dtype to match
         self.optimizer = optimizer
+        self.maxTimesteps = maxTimesteps
         self.policy = policy
         self.isRender = isRender
         self.useTensorboard = useTensorboard
@@ -139,13 +145,24 @@ class RL():
         # ==================================================================================
 
     # Draw graph in TensorBoard only when It use TensorBoard
-    def writeTensorboard(self, y: float, x: int):
+    def writeTensorboard(self, y: Union[float, str], x: int):
         if self.useTensorboard:
             self.tensorboardWriter.add_scalar(
                     self.tensorboardParams['tag'], y, x)
 
+    # get_action method to be overrided
+    def get_action(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            useEps: bool,
+            useStochastic: bool) -> torch.Tensor:
+
+        pass
+
     # Test to measure performance
-    def test(self, testSize: int):
+    def test(
+            self,
+            testSize: int) -> Union[float, str]:
 
         rewards = []
 
@@ -175,13 +192,11 @@ class RL():
             rewards.append(cumulativeRewards)
 
         if testSize > 0:
-            averagRewards = sum(rewards) / testSize
+            return sum(rewards) / testSize  # Averaged Rewards
         elif testSize == 0:
-            averagRewards = "no Test"
+            return "no Test"
         else:
             raise ValueError("testSize can't be smaller than 0")
-
-        return averagRewards
 
     # Print all Initialized Properties
     def printInit(self):
@@ -202,7 +217,12 @@ class RL():
             print("\n"+"="*printLength)
 
     # Print all measured performance
-    def printResult(self, episode: int, timesteps: int, averageReward: float):
+    def printResult(
+            self,
+            episode: int,
+            timesteps: int,
+            averageReward: Union[str, float]):
+
         if self.verbose >= 1:  # Print After checking verbosity level
             try:
                 # Not working with nohup command
@@ -213,11 +233,12 @@ class RL():
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
-            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} \
-                    / {str(episode)[0:10]:>10} \
-                    | Averag Reward: {str(averageReward)[0:10]:>10} \
-                    | Time Spent : {str(self.timeSpent):10} \
-                    / {str(datetime.now()-self.timePrevStep):10} | "
+            results = \
+                f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} "\
+                f"/ {str(episode)[0:10]:>10} "\
+                f"| Averag Reward: {str(averageReward)[0:10]:>10} "\
+                f"| Time Spent : {str(self.timeSpent):10} "\
+                f"/ {str(datetime.now()-self.timePrevStep):10} | "
 
             splited = results.split('|')[1:-1]
             frameString = "+"
@@ -239,7 +260,6 @@ class RL():
 
     # save class
     def save(self, saveDir: str = str(datetime)+".obj"):
-        import torch
 
         save_dict = self.__dict__
 
@@ -259,7 +279,6 @@ class RL():
 
     # load class
     def load(self, loadDir: str):
-        import torch
 
         # =============================================================================
         # LOAD TORCH MODEL
