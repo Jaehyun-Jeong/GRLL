@@ -6,4 +6,5 @@
 **/*.out
 **saved_models/
 **/*.sh
+**.mypy_cache/
 .vimspector.json
