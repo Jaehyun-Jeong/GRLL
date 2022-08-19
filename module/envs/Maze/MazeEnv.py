@@ -1,8 +1,11 @@
+from typing import Union
 
 if __name__ == "__main__":
-    from module.envs.Maze.Maze_Generator import Maze
-else:
     from Maze_Generator import Maze
+else:
+    from module.envs.Maze.Maze_Generator import Maze
+
+import torch
 from random import choice
 import numpy as np
 import pygame
@@ -161,13 +164,15 @@ class MazeEnv_base():
 class MazeEnv_v0(MazeEnv_base):
 
     def __init__(self):
-        pass
+        super().__init__()
 
-    def reset(self):
-        pass
-    
-    def step(self):
-        pass
+    def reset(self) -> np.ndarray:
+        return self.blocks.flatten()
+
+    def step(self, action: Union[int, torch.Tensor]):
+        pos = np.where(self.blocks == 2)
+        pos = (pos[0][0], pos[1][0])
+        print(pos)
 
     def render(self):
         pass
@@ -175,10 +180,11 @@ class MazeEnv_v0(MazeEnv_base):
     def close(self):
         pass
 
-if __name__=="__main__":
-    env = MazeEnv_base()
+
+if __name__ == "__main__":
+    env = MazeEnv_v0()
     running = True
-    env.draw()
 
     while running:
+        env.step(1)
         pass
