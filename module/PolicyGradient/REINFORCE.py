@@ -86,7 +86,7 @@ class REINFORCE(PolicyGradient):
     def __init__(
         self,
         model: torch.nn.Module,
-        optimizer: torch.optim,
+        optimizer,
         trainEnv=None,
         testEnv=None,
         env=None,
@@ -144,18 +144,18 @@ class REINFORCE(PolicyGradient):
 
         lenLoss = Transitions.memory.__len__()
 
-        S_t = [transition.state for transition in Transitions.memory]
-        A_t = [transition.action for transition in Transitions.memory]
+        S_t = np.array([transition.state for transition in Transitions.memory])
+        A_t = np.array([transition.action for transition in Transitions.memory])
         R_tt = [transition.reward for transition in Transitions.memory]
 
-        S_t = np.array(S_t)
-        A_t = np.array(A_t)
+        # calculate Qval
+        Qval = torch.Tensor([R_tt[-1]])
 
-        # calculate Q-value
-        Qval = [R_tt[-1]]
         for r_tt in R_tt[:-1]:
-            Qval = [r_tt + self.discount_rate * Qval[0]] + Qval
-        Qval = torch.Tensor(Qval).to(self.device)
+            newQval = torch.Tensor([r_tt + self.discount_rate * Qval[0]])
+            Qval = torch.cat([newQval, Qval])
+
+        Qval = Qval.to(self.device)
 
         # get actor loss
         log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
@@ -208,7 +208,6 @@ class REINFORCE(PolicyGradient):
                         state,
                         useEps=self.useTrainEps,
                         useStochastic=self.useTrainStochastic)
-                    action = action.tolist()
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
                     Transitions.push(state, action, next_state, reward)

@@ -1,6 +1,7 @@
 from typing import Dict, Union
 
 from collections import namedtuple
+import numpy as np
 
 # PyTorch
 import torch
@@ -66,12 +67,12 @@ class onestep_ActorCritic(PolicyGradient):
     def __init__(
         self,
         model: torch.nn.Module,
-        optimizer: torch.optim,
+        optimizer,
         trainEnv=None,
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: dict[str, Union[int, float]] = {
+        eps: Dict[str, Union[int, float]] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
@@ -115,7 +116,10 @@ class onestep_ActorCritic(PolicyGradient):
         self.printInit()
 
     # Overrided method from PolicyGradient for single pi
-    def pi(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
+    def pi(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)
         _, probs = self.model.forward(s)
@@ -123,7 +127,7 @@ class onestep_ActorCritic(PolicyGradient):
         return probs[a]
 
     # Overrided method from PolicyGradient for single state value
-    def value(self, s: torch.Tensor) -> torch.Tensor:
+    def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
         s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = torch.squeeze(value, 0)
@@ -187,7 +191,6 @@ class onestep_ActorCritic(PolicyGradient):
                             state,
                             useEps=self.useTrainEps,
                             useStochastic=self.useTrainStochastic)
-                    action = action.tolist()
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
 

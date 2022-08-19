@@ -1,7 +1,8 @@
-from typing import Dict, List, Union
+from typing import Union
 
 from abc import abstractmethod
 import random
+import numpy as np
 
 # PyTorch
 import torch
@@ -119,7 +120,10 @@ class PolicyGradient(RL):
     # In Reinforcement learning,
     # pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
-    def pi(self, s: torch.Tensor, a: torch.Tensor) -> torch.Tensor:
+    def pi(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)
         a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
@@ -134,7 +138,7 @@ class PolicyGradient(RL):
     @torch.no_grad()
     def get_action(
             self,
-            s: torch.Tensor,
+            s: Union[torch.Tensor, np.ndarray],
             useEps: bool,
             useStochastic: bool) -> torch.Tensor:
 
@@ -158,11 +162,13 @@ class PolicyGradient(RL):
             a = a.data
             action = a[0]
 
-        return action.detach()
+        action = action.detach()
+
+        return action.tolist()
 
     # Returns a value of the state
     # (state value function in Reinforcement learning)
-    def value(self, s: torch.Tensor) -> torch.Tensor:
+    def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
         s = torch.Tensor(s).to(self.device)
         value, _ = self.model.forward(s)
         value = value.squeeze(-1)

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import torch
+
 
 class RL():
 
@@ -17,42 +17,59 @@ class RL():
             'decay': It determines how small epsilon is
         }
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ There are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
     '''
 
     def __init__(
-        self, 
-        trainEnv, 
-        testEnv, 
+        self,
+        trainEnv,
+        testEnv,
         env,
         model,
         optimizer,
         eps,
         policy,
         device,
-        isRender, 
-        useTensorboard, 
+        isRender,
+        useTensorboard,
         tensorboardParams,
         verbose,
     ):
-        
+
         # set Environment
-        if env==None and trainEnv!=None and testEnv!=None:
+        if env is None and trainEnv is not None and testEnv is not None:
             self.trainEnv = trainEnv
             self.testEnv = testEnv
-        elif env!=None and trainEnv==None and testEnv==None:
+        elif env is not None and trainEnv is None and testEnv is None:
             from copy import deepcopy
 
             self.trainEnv = env
@@ -62,18 +79,18 @@ class RL():
                 "No Environment or you just use one of trainEnv, or testEnv,"
                 "or you set the env with trainEnv or testEnv,"
                 "or you set the trainEnv or testEnv with env"
-            )    
+            )
 
         # init parameters
         self.device = device
-        self.model = model.to(self.device) # set dtype to match
+        self.model = model.to(self.device)  # set dtype to match
         self.optimizer = optimizer
         self.policy = policy
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
         self.verbose = verbose
-        
+
         # Init trained Episode
         self.trainedEpisodes = 0
         self.trainedTimesteps = 0
@@ -84,17 +101,29 @@ class RL():
 
         # init Summary Writer
         if self.useTensorboard:
-            from tensorboardX import SummaryWriter 
-            self.tensorboardWriter = SummaryWriter(self.tensorboardParams['logdir'])
+            try:
+                from tensorboardX import SummaryWriter
+                self.tensorboardWriter = \
+                    SummaryWriter(self.tensorboardParams['logdir'])
+            except ImportError:
+                ImportError("tensorboardX does not exist")
 
-        #==================================================================================
+        # ==================================================================================
         # select train, test policy
-        #==================================================================================
+        # ==================================================================================
 
-        policyDict = {'greedy': [False, False], 'stochastic': [False, True], 'eps-greedy': [True, False], 'eps-stochastic': [True, True]} # [ useEpsilon, useStochastic ]
+        policyDict = {
+                # [ useEpsilon, useStochastic ]
+                'greedy': [False, False],
+                'stochastic': [False, True],
+                'eps-greedy': [True, False],
+                'eps-stochastic': [True, True]}
 
-        if ( not self.policy['train'] in policyDict.keys() ) or ( not self.policy['test'] in policyDict.keys() ):
-            raise ValueError("Possible policies are 'greedy', 'eps-greedy', 'stochastic', and 'eps-stochastic'")
+        if not self.policy['train'] in policyDict.keys() or \
+                not self.policy['test'] in policyDict.keys():
+            raise ValueError("Possible policies are \
+                    'greedy', 'eps-greedy', \
+                    'stochastic', and 'eps-stochastic'")
 
         trainPolicyList = policyDict[self.policy['train']]
         testPolicyList = policyDict[self.policy['test']]
@@ -107,19 +136,17 @@ class RL():
         self.useTestEps = testPolicyList[0]
         self.useTestStochastic = testPolicyList[1]
 
-        #==================================================================================
-    
+        # ==================================================================================
+
     # Draw graph in TensorBoard only when It use TensorBoard
-    def writeTensorboard(self, y, x: int):
+    def writeTensorboard(self, y: float, x: int):
         if self.useTensorboard:
-            try:
-                self.tensorboardWriter.add_scalar(self.tensorboardParams['tag'], y, x)
-            except:
-                raise ValueError("Can not use tensorboard!")
+            self.tensorboardWriter.add_scalar(
+                    self.tensorboardParams['tag'], y, x)
 
     # Test to measure performance
-    def test(self, testSize):
-        
+    def test(self, testSize: int):
+
         rewards = []
 
         for _ in range(testSize):
@@ -132,17 +159,21 @@ class RL():
                 if self.isRender['test']:
                     self.testEnv.render()
 
-                action = self.get_action(state, useEps=self.useTestEps, useStochastic=self.useTestStochastic)
-                next_state, reward, done, _ = self.testEnv.step(action.tolist())
+                action = self.get_action(
+                        state,
+                        useEps=self.useTestEps,
+                        useStochastic=self.useTestStochastic)
+
+                next_state, reward, done, _ = self.testEnv.step(action)
 
                 cumulativeRewards += reward
                 state = next_state
 
                 if done or timesteps == self.maxTimesteps-1:
                     break
-            
+
             rewards.append(cumulativeRewards)
-        
+
         if testSize > 0:
             averagRewards = sum(rewards) / testSize
         elif testSize == 0:
@@ -154,14 +185,14 @@ class RL():
 
     # Print all Initialized Properties
     def printInit(self):
-        if self.verbose >= 2: # Print After checking verbosity level
+        if self.verbose >= 2:  # Print After checking verbosity level
             try:
                 # Not working with nohup command
                 import os
                 printLength = os.get_terminal_size().columns
-            except:
+            except OSError:
                 printLength = 30
-            
+
             print("="*printLength+"\n")
             print("Initialized Parameters\n")
 
@@ -171,18 +202,22 @@ class RL():
             print("\n"+"="*printLength)
 
     # Print all measured performance
-    def printResult(self, episode: int, timesteps: int, averageReward):
-        if self.verbose >= 1: # Print After checking verbosity level
+    def printResult(self, episode: int, timesteps: int, averageReward: float):
+        if self.verbose >= 1:  # Print After checking verbosity level
             try:
                 # Not working with nohup command
                 import os
                 printLength = os.get_terminal_size().columns
-            except:
+            except OSError:
                 printLength = 30000
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
-            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10}  | Averag Reward: {str(averageReward)[0:10]:>10} | Time Spent : {str(self.timeSpent):10} / {str(datetime.now()-self.timePrevStep):10} | "
+            results = f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} \
+                    / {str(episode)[0:10]:>10} \
+                    | Averag Reward: {str(averageReward)[0:10]:>10} \
+                    | Time Spent : {str(self.timeSpent):10} \
+                    / {str(datetime.now()-self.timePrevStep):10} | "
 
             splited = results.split('|')[1:-1]
             frameString = "+"
@@ -191,7 +226,7 @@ class RL():
                 frameString += "-"*len(split) + "+"
 
             if len(frameString) > printLength:
-                frameString = frameString[:printLength]    
+                frameString = frameString[:printLength]
             if len(results) > printLength:
                 results = results[:printLength-3]
                 results += "..."
@@ -201,7 +236,7 @@ class RL():
             print(frameString)
 
             self.timePrevStep = datetime.now()
-    
+
     # save class
     def save(self, saveDir: str = str(datetime)+".obj"):
         import torch
@@ -213,7 +248,7 @@ class RL():
         save_dict.pop('trainEnv', None)
         save_dict.pop('testEnv', None)
         save_dict.pop('device', None)
-        
+
         # save model state dict
         save_dict['modelStateDict'] = save_dict['model'].state_dict()
         save_dict.pop('model', None)
@@ -221,28 +256,31 @@ class RL():
         save_dict.pop('optimizer', None)
 
         torch.save(save_dict, saveDir)
-        
+
     # load class
-    def load(self, loadDir):
+    def load(self, loadDir: str):
         import torch
 
-        #=============================================================================
-        # LOAD TORCH MODEL 
-        #=============================================================================
+        # =============================================================================
+        # LOAD TORCH MODEL
+        # =============================================================================
 
         loadedDict = torch.load(loadDir, map_location=self.device)
 
         try:
-            self.model.load_state_dict(loadedDict.pop('modelStateDict'))
-            self.optimizer.load_state_dict(loadedDict.pop('optimizerStateDict'))
-        except:
-            raise ValueError("No matching torch.nn.Module, please use equally shaped torch.nn.Module as you've done!")
+            self.model.load_state_dict(
+                    loadedDict.pop('modelStateDict'))
+            self.optimizer.load_state_dict(
+                    loadedDict.pop('optimizerStateDict'))
+        except ValueError:
+            raise ValueError("No matching torch.nn.Module, \
+                    please use equally shaped torch.nn.Module as you've done!")
 
         self.model.eval()
-        
-        #=============================================================================
+
+        # =============================================================================
 
         for key, value in loadedDict.items():
             self.__dict__[key] = value
 
-        self.timePrevStep = datetime.now() # Recalculating time spent
+        self.timePrevStep = datetime.now()  # Recalculating time spent

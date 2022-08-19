@@ -1,16 +1,15 @@
+from typing import Union
 
-import numpy as np
-import random 
-import matplotlib.pyplot as plt
-from collections import namedtuple, deque
-from copy import deepcopy
+import random
 from abc import abstractmethod
+import numpy as np
 
 # PyTorch
 import torch
 import torch.nn as nn
 
 from module.RL import RL
+
 
 class ValueBased(RL):
 
@@ -32,34 +31,54 @@ class ValueBased(RL):
         maxMemory: Memory size for Experience Replay
         numBatch: Batch size for mini-batch gradient descent
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
-        gradientStepPer: Update the neural network model every gradientStepPer timesteps
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
+        gradientStepPer:
+            Update the neural network model every gradientStepPer timesteps
         epoch: Epoch size to train from given data(Replay Memory)
-        trainStarts: how many steps of the model to collect transitions for before learning starts
+        trainStarts:
+            how many steps of the model
+            to collect transitions for before learning starts
     '''
 
     def __init__(
-        self, 
+        self,
         trainEnv,
         testEnv,
         env,
-        model, 
-        optimizer, 
-        device, 
+        model,
+        optimizer,
+        device,
         maxTimesteps,
-        maxMemory, 
+        maxMemory,
         discount_rate,
         numBatch,
         eps,
@@ -73,7 +92,7 @@ class ValueBased(RL):
         trainStarts,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             device=device,
             trainEnv=trainEnv,
@@ -88,21 +107,22 @@ class ValueBased(RL):
             tensorboardParams=tensorboardParams,
             verbose=verbose
         )
-        
-        self.maxTimesteps = maxTimesteps 
+
+        self.maxTimesteps = maxTimesteps
         self.maxMemory = maxMemory
         self.discount_rate = discount_rate
         self.numBatch = numBatch
         self.gradientStepPer = gradientStepPer
         self.epoch = epoch
         self.trainStarts = trainStarts
-        self.steps_done = 0 # eps scheduling
-        
+        self.steps_done = 0  # eps scheduling
+
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
-        
-        # torch.log makes nan(not a number) error, so we have to add some small number in log function
-        self.ups=1e-7
+
+        # torch.log makes nan(not a number) error,
+        # so we have to add some small number in log function
+        self.ups = 1e-7
 
     def is_trainable(self):
 
@@ -113,15 +133,20 @@ class ValueBased(RL):
 
         return condition
 
-    # In Reinforcement learning, pi means the function from state space to action probability distribution
+    # In Reinforcement learning,
+    # pi means the function from state space to action probability distribution
     # Returns probability of taken action a from state s
-    def pi(self, s, a):
+    def pi(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            a: Union[torch.Tensor, np.ndarray]):
+
         value = self.value(s)
         a = torch.tensor(a).to(self.device).unsqueeze(axis=-1)
         actionValue = torch.gather(torch.clone(value), 1, a).squeeze(axis=1)
 
         return actionValue
-    
+
     # Epsilon scheduling
     def __get_eps(self):
         import math
@@ -130,19 +155,26 @@ class ValueBased(RL):
         eps_end = self.eps['end']
         eps_decay = self.eps['decay']
 
-        eps_threshold = eps_end + (eps_start - eps_end) * math.exp(-1. * self.steps_done / eps_decay)
+        eps_threshold = \
+            eps_end + (eps_start - eps_end) * \
+            math.exp(-1. * self.steps_done / eps_decay)
 
         return eps_threshold
 
     # Returns the action from state s by using multinomial distribution
     @abstractmethod
     @torch.no_grad()
-    def get_action(self, s, useEps, useStochastic):
+    def get_action(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            useEps: bool,
+            useStochastic: bool):
+
         s = torch.Tensor(s).to(self.device).unsqueeze(0)
         probs = self.model.forward(s).squeeze(0)
-        
+
         eps = self.__get_eps() if useEps else 0
-        
+
         if random.random() >= eps:
             if useStochastic:
                 probs = self.softmax(probs)
@@ -160,10 +192,13 @@ class ValueBased(RL):
         return action
 
     # get max Q-value
-    def max_value(self, s):
+    def max_value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]):
+
         value = self.value(s)
 
         with torch.no_grad():
             maxValue = torch.max(torch.clone(value), dim=1).values
-        
+
         return maxValue
