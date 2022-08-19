@@ -1,28 +1,25 @@
+from typing import Dict, Union
 
 import numpy as np
-import random 
-import matplotlib.pyplot as plt
+import random
 from collections import namedtuple, deque
 from copy import deepcopy
 from abc import abstractmethod
 
 # PyTorch
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-import torch.optim as optim
 from torch.autograd import Variable
 
 from module.ValueBased.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
-                       ('state', 'action', 'done', 'next_state', 'reward'))
+                        ('state', 'action', 'done', 'next_state', 'reward'))
+
 
 class ReplayMemory(object):
 
     def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
+        self.memory = deque([], maxlen=capacity)
 
     def push(self, *args):
         """Save a transition"""
@@ -33,6 +30,7 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
+
 
 class ADQN(ValueBased):
 
@@ -54,63 +52,85 @@ class ADQN(ValueBased):
         maxMemory: Memory size for Experience Replay
         numBatch: Batch size for mini-batch gradient descent
         isRender={
-            'train': If it's True, then render environment screen while training, or vice versa
-            'test': If it's True, then render environment screen while testing, or vice versa
+
+            'train':
+            If it's True,
+            then render environment screen while training, or vice versa
+
+            'test':
+            If it's True,
+            then render environment screen while testing, or vice versa
+
         }
         useTensorboard: False means not using TensorBaord
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
         }
-        policy={ there are 4 types of Policy 'stochastic', 'eps-stochastic', 'greedy', 'eps-greedy'
+        policy={
+
+            there are 4 types of Policy
+            'stochastic',
+            'eps-stochastic',
+            'greedy',
+            'eps-greedy'
+
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
-        verbose: The verbosity level: 0 no output, 1 only train info, 2 train info + initialized info
-        gradientStepPer: Update the neural network model every gradientStepPer timesteps
+        verbose: The verbosity level:
+            0 no output,
+            1 only train info,
+            2 train info + initialized info
+        gradientStepPer:
+            Update the neural network model every gradientStepPer timesteps
         epoch: Epoch size to train from given data(Replay Memory)
-        trainStarts: how many steps of the model to collect transitions for before learning starts
-        numPrevModels: ADQN averages last k models, this parameter determines how many models it save
+        trainStarts:
+            how many steps of the model
+            to collect transitions for before learning starts
+        numPrevModels:
+            ADQN averages last k models,
+            this parameter determines how many models it save
     '''
 
     def __init__(
-        self, 
-        model,
+        self,
+        model: torch.nn.Module,
         optimizer,
         trainEnv=None,
         testEnv=None,
         env=None,
-        device=torch.device('cpu'),
-        eps={
+        device: torch.device = torch.device('cpu'),
+        eps: Dict[str, Union[int, float]] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
         },
-        maxTimesteps=1000,
-        discount_rate=0.99,
-        maxMemory:int=100000,
-        numBatch=64,
-        isRender={
+        maxTimesteps: int = 1000,
+        discount_rate: float = 0.99,
+        maxMemory: int = 100000,
+        numBatch: int = 64,
+        isRender: Dict[str, bool] = {
             'train': False,
             'test': False
-        }, 
-        useTensorboard=False,
-        tensorboardParams={
-            'logdir': "./runs",
-            'tag': "DQN",
         },
-        policy={
-            'train': 'stochastic',
+        useTensorboard: bool = False,
+        tensorboardParams: Dict[str, str] = {
+            'logdir': "./runs",
+            'tag': "DQN"
+        },
+        policy: Dict[str, str] = {
+            'train': 'eps-greedy',
             'test': 'greedy'
         },
-        verbose=1,
-        gradientStepPer=4,
-        epoch=1,
-        trainStarts=50000,
-        numPrevModels=10,
+        verbose: int = 1,
+        gradientStepPer: int = 4,
+        epoch: int = 1,
+        trainStarts: int = 50000,
+        numPrevModels: int = 10,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             trainEnv,
             testEnv,
@@ -132,7 +152,7 @@ class ADQN(ValueBased):
             epoch=epoch,
             trainStarts=trainStarts,
         )
-        
+
         self.replayMemory = ReplayMemory(maxMemory)
 
         # save last K previously learned Q-networks
@@ -142,13 +162,17 @@ class ADQN(ValueBased):
 
     # action seleted from previous K models by averaging it
     @abstractmethod
-    def value(self, s):
+    def value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+
         s = torch.Tensor(s).to(self.device)
 
         values = self.model.forward(s)
-        for model in list(self.prevModels)[:-1]: # last model is equal to self.model
+        # last model is equal to self.model
+        for model in list(self.prevModels)[:-1]:
             values += model.forward(s)
-        
+
         values = values / len(self.prevModels)
 
         return values
@@ -161,7 +185,7 @@ class ADQN(ValueBased):
                 # if memory is smaller then numBatch, then just use all data
                 batch_size = self.numBatch \
                     if self.numBatch <= self.replayMemory.memory.__len__() \
-                    else self.replayMemory.__len__() 
+                    else self.replayMemory.__len__()
 
                 batches = self.replayMemory.sample(batch_size)
                 lenLoss = len(batches)
@@ -182,7 +206,8 @@ class ADQN(ValueBased):
                 actionValue = self.pi(S_t, A_t)
                 nextMaxValue = self.max_value(S_tt)
 
-                target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
+                target = R_tt + self.discount_rate * nextMaxValue * notDone
+                target = Variable(target)  # No grad
                 loss = 1/2 * (target - actionValue).pow(2)
                 loss = torch.sum(loss)/lenLoss
 
@@ -193,67 +218,78 @@ class ADQN(ValueBased):
                 self.steps_done += 1
 
     def train(
-        self, 
-        trainTimesteps, # Training Timesteps
-        testPer=1000, # Test per testPer timesteps
-        testSize=10, # The episode size to test
+        self,
+        trainTimesteps: int,  # Training Timesteps
+        testPer: int = 1000,  # Test per testPer timesteps
+        testSize: int = 10,  # The episode size to test
     ):
         try:
             rewards = []
-            self.prevModels.append(deepcopy(self.model)) # save initial model
+            self.prevModels.append(deepcopy(self.model))  # save initial model
 
             while trainTimesteps > self.trainedTimesteps:
 
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
-                
-                #==========================================================================
+
+                # ==========================================================================
                 # MAKE TRAIN DATA
-                #==========================================================================
+                # ==========================================================================
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
-                       self.trainEnv.render()
+                        self.trainEnv.render()
 
-                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
-                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
-                    self.replayMemory.push(state, action, done, next_state, reward)
+                    action = self.get_action(
+                            state,
+                            useEps=self.useTrainEps,
+                            useStochastic=self.useTrainStochastic)
+
+                    next_state, reward, done, _ = self.trainEnv.step(action)
+                    self.replayMemory.push(
+                            state,
+                            action,
+                            done,
+                            next_state,
+                            reward)
+
                     state = next_state
 
                     # train
                     self.update_weight()
-                    self.prevModels.append(deepcopy(self.model)) # save updated model
+                    # save updated model
+                    self.prevModels.append(deepcopy(self.model))
 
-                    #==========================================================================
+                    # ==========================================================================
                     # TEST
-                    #==========================================================================
-                    if self.trainedTimesteps % testPer == 0: 
+                    # ==========================================================================
+                    if self.trainedTimesteps % testPer == 0:
 
                         averageRewards = self.test(testSize=testSize)
                         rewards.append(averageRewards)
 
-                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
 
-                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+                        self.writeTensorboard(
+                                rewards[-1],
+                                self.trainedEpisodes)
 
-                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+                        self.printResult(
+                                self.trainedEpisodes,
+                                self.trainedTimesteps,
+                                rewards[-1])
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
 
-
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
-
-            plt.plot(range(len(rewards)), rewards)
-        finally:
-            plt.plot(range(len(rewards)), rewards)
 
         self.trainEnv.close()

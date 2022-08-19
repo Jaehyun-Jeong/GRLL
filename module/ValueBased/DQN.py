@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 import numpy as np
 import random
@@ -90,14 +90,14 @@ class DQN(ValueBased):
     '''
 
     def __init__(
-        self, 
+        self,
         model: torch.nn.Module,
         optimizer,
         trainEnv=None,
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: Dict[str, Union[int, float] = {
+        eps: Dict[str, Union[int, float]] = {
             'start': 0.99,
             'end': 0.0001,
             'decay': 10000
@@ -109,7 +109,7 @@ class DQN(ValueBased):
         isRender: Dict[str, bool] = {
             'train': False,
             'test': False
-        }, 
+        },
         useTensorboard: bool = False,
         tensorboardParams: Dict[str, str] = {
             'logdir': "./runs",
@@ -125,7 +125,7 @@ class DQN(ValueBased):
         trainStarts: int = 50000,
     ):
 
-        # init parameters 
+        # init parameters
         super().__init__(
             trainEnv,
             testEnv,
@@ -147,15 +147,15 @@ class DQN(ValueBased):
             epoch=epoch,
             trainStarts=trainStarts,
         )
-        
+
         self.replayMemory = ReplayMemory(maxMemory)
-        
+
         self.printInit()
-    
+
     # ADQN has different type of value
     @abstractmethod
     def value(
-            self, 
+            self,
             s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)
@@ -169,7 +169,7 @@ class DQN(ValueBased):
                 # if memory is smaller then numBatch, then just use all data
                 batch_size = self.numBatch \
                     if self.numBatch <= self.replayMemory.memory.__len__() \
-                    else self.replayMemory.__len__() 
+                    else self.replayMemory.__len__()
 
                 batches = self.replayMemory.sample(batch_size)
                 lenLoss = len(batches)
@@ -190,7 +190,8 @@ class DQN(ValueBased):
                 actionValue = self.pi(S_t, A_t)
                 nextMaxValue = self.max_value(S_tt)
 
-                target = Variable(R_tt + self.discount_rate * nextMaxValue * notDone)
+                target = R_tt + self.discount_rate * nextMaxValue * notDone
+                target = Variable(target)  # No grad
                 loss = 1/2 * (target - actionValue).pow(2)
                 loss = torch.sum(loss)/lenLoss
 
@@ -201,10 +202,10 @@ class DQN(ValueBased):
                 self.steps_done += 1
 
     def train(
-        self, 
-        trainTimesteps: int, # Training Timesteps
-        testPer: int = 1000, # Test per testPer timesteps
-        testSize: int = 10, # The episode size to test
+        self,
+        trainTimesteps: int,  # Training Timesteps
+        testPer: int = 1000,  # Test per testPer timesteps
+        testSize: int = 10,  # The episode size to test
     ):
 
         try:
@@ -215,10 +216,10 @@ class DQN(ValueBased):
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
-                
-                #==========================================================================
+
+                # ==========================================================================
                 # MAKE TRAIN DATA
-                #==========================================================================
+                # ==========================================================================
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
@@ -226,33 +227,47 @@ class DQN(ValueBased):
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
-                       self.trainEnv.render()
+                        self.trainEnv.render()
 
-                    action = self.get_action(state, useEps=self.useTrainEps, useStochastic=self.useTrainStochastic)
+                    action = self.get_action(
+                            state,
+                            useEps=self.useTrainEps,
+                            useStochastic=self.useTrainStochastic)
 
-                    next_state, reward, done, _ = self.trainEnv.step(action.tolist())
-                    self.replayMemory.push(state, action, done, next_state, reward)
+                    next_state, reward, done, _ = self.trainEnv.step(action)
+                    self.replayMemory.push(
+                            state,
+                            action,
+                            done,
+                            next_state,
+                            reward)
+
                     state = next_state
 
                     # train
                     self.update_weight()
 
-                    #==========================================================================
+                    # ==========================================================================
                     # TEST
-                    #==========================================================================
-                    if (self.trainedTimesteps) % testPer == 0: 
+                    # ==========================================================================
+                    if (self.trainedTimesteps) % testPer == 0:
 
                         averageRewards = self.test(testSize=testSize)
                         rewards.append(averageRewards)
 
-                        #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
 
-                        self.writeTensorboard(rewards[-1], self.trainedEpisodes)
+                        self.writeTensorboard(
+                                rewards[-1],
+                                self.trainedEpisodes)
 
-                        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-                        self.printResult(self.trainedEpisodes, self.trainedTimesteps, rewards[-1])
+                        self.printResult(
+                                self.trainedEpisodes,
+                                self.trainedTimesteps,
+                                rewards[-1])
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
