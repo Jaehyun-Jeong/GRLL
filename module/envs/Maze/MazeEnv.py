@@ -283,11 +283,5 @@ if __name__ == "__main__":
     running = True
 
     for _ in range(1000):
-        env.render()
-        action = choice([0, 1, 2, 3])
-        results = env.step(action)
-
-    env.reset()
-    for _ in range(1000):
         action = choice([0, 1, 2, 3])
         results = env.step(action)
