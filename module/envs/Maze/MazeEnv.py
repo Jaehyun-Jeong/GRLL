@@ -278,11 +278,13 @@ class MazeEnv_v0(MazeEnv_base):
 
 
 if __name__ == "__main__":
+
     from random import choice 
+
     env = MazeEnv_v0()
     running = True
 
-    for _ in range(1000):
+    while True:
         env.render()
         action = choice([0, 1, 2, 3])
         results = env.step(action)
