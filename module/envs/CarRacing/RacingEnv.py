@@ -121,7 +121,7 @@ class RacingEnv_v0():
 
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
-        return next_state, reward, done, action 
+        return next_state, reward, done, action
 
     def render(self):
         try:
@@ -149,7 +149,7 @@ class RacingEnv_v0():
         draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
 
         initial_state = self.get_state()
-        
+    
         return initial_state
 
     def close(self):
@@ -443,7 +443,7 @@ class RacingEnv_v4(RacingEnv_v3):
         if check_actionList(action):
 
             if action[0] == 0: # no accel
-                pass
+                self.player_car.reduce_speed()
             elif action[0] == 1: # accel
                 self.player_car.move_forward()
             else:
@@ -459,7 +459,7 @@ class RacingEnv_v4(RacingEnv_v3):
                 raise ValueError("Action is out of bound!")
 
 if __name__=="__main__":
-    import matplotlib.pyplot as plt
+    from random import choice
 
     RacingEnv = RacingEnv_v4(ExploringStarts = True)
 
@@ -469,26 +469,13 @@ if __name__=="__main__":
         RacingEnv.render()
 
         for i in range(1000):
-            fig = plt.figure()
-            ax1 = fig.add_subplot(1, 4, 1)
-            ax1.imshow(state[0], cmap="gray")
-            ax2 = fig.add_subplot(1, 4, 2)
-            ax2.imshow(state[1], cmap="gray")
-            ax3 = fig.add_subplot(1, 4, 3)
-            ax3.imshow(state[2], cmap="gray")
-            ax4 = fig.add_subplot(1, 4, 4)
-            ax4.imshow(state[3], cmap="gray")
-            plt.show()
 
-            action = torch.Tensor([1, 1])
+            Accel = choice([0, 1])
+            Direction = choice([0, 1, 2])
+
+            action = torch.Tensor([Accel, Direction])
             state, reward, done, _ = RacingEnv.step(action)
             if done:
                 break
 
     RacingEnv.close()
-    '''
-    for i in range(1000):
-        print(RacingEnv.step(1))
-
-    RacingEnv.close()
-    '''
