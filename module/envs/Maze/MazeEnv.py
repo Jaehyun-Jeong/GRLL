@@ -24,9 +24,11 @@ class MazeEnv_base():
         self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
         self.blocks[1][1] = 3
 
-        self.screen = pygame.display.set_mode(
-                self.displaySize, flags=pygame.HIDDEN)
-        self.screen = pygame.Surface(self.displaySize)
+        try:
+            self.screen = pygame.display.set_mode(
+                    self.displaySize, flags=pygame.HIDDEN)
+        except pygame.error:
+            self.screen = pygame.Surface(self.displaySize)
 
         # =================================================================================
         # IMG PATH SETTING
@@ -211,6 +213,15 @@ class MazeEnv_v0(MazeEnv_base):
         super().__init__()
 
     def reset(self) -> np.ndarray:
+
+        charPos = self.get_char_pos()
+        self.blocks[charPos[0]][charPos[1]] = 0
+        self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
+        self.blocks[1][1] = 3
+
+        if pygame.display.get_active():
+            pygame.display.set_mode(self.displaySize, flags=pygame.HIDDEN)
+
         return self.blocks.flatten()
 
     def step(self, action: Union[int, torch.Tensor]) \
@@ -267,12 +278,16 @@ class MazeEnv_v0(MazeEnv_base):
 
 
 if __name__ == "__main__":
-    from random import choice
-
+    from random import choice 
     env = MazeEnv_v0()
     running = True
 
     for _ in range(1000):
+        env.render()
         action = choice([0, 1, 2, 3])
         results = env.step(action)
-        env.render()
+
+    env.reset()
+    for _ in range(1000):
+        action = choice([0, 1, 2, 3])
+        results = env.step(action)
