@@ -40,6 +40,6 @@ DeepQN = DQN(**params_dict)
 DeepQN.load("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
 
 # TRAIN Agent
-DeepQN.train(int(1e7))
+DeepQN.train(int(1e7), testPer=10000)
 
 DeepQN.save("../../saved_models/CarRacing_v3/DQN_lr1e-3.obj")
