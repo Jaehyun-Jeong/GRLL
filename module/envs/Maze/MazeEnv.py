@@ -1,10 +1,11 @@
-from typing import Union
+from typing import Union, Tuple
 
 if __name__ == "__main__":
     from Maze_Generator import Maze
 else:
     from module.envs.Maze.Maze_Generator import Maze
 
+from copy import deepcopy
 import torch
 from random import choice
 import numpy as np
@@ -57,8 +58,8 @@ class MazeEnv_base():
         # =================================================================================
 
         self.loadImages()
-        self.imgMat = self.makeCellImgMat()
-        self.draw()
+        self.imgMat = self.__init_ImgMat()
+        self.__init_draw()
 
     def makeMaze(self):
 
@@ -93,11 +94,11 @@ class MazeEnv_base():
             img = pygame.transform.scale(img, size=((self.maze.screen_block_size,)*2))
             self.imgs[imgFileName] = img
 
-    def makeCellImgMat(self):
+    def __init_ImgMat(self):
 
         imgInfoMat = np.zeros(self.maze.blocks.shape+(4,))
         imgMat = np.zeros(self.maze.blocks.shape, dtype=object)
-        notWallIdx = [0, 2, 3] # in self.blocks 0 is road 2 is character, and 3 is goal
+        notWallIdx = [0, 2, 3]  # in self.blocks 0 is road 2 is character, and 3 is goal
         
         for row in range(imgInfoMat.shape[0]):
             for col in range(imgInfoMat.shape[1]):
@@ -152,7 +153,7 @@ class MazeEnv_base():
             
         return choice(list(possibleWalls.keys()))
 
-    def draw(self):
+    def __init_draw(self):
         for row in range(self.imgMat.shape[0]):
             for col in range(self.imgMat.shape[1]):
                 img = self.imgs[self.imgMat[row][col]]
@@ -160,6 +161,37 @@ class MazeEnv_base():
                 self.screen.blit(img, imgPos)
 
         pygame.display.update()
+
+    def draw(self):
+
+        # get Road image and position
+        roadImg = self.imgs[self.ROAD_IMG]
+        prevCharPos = np.where(self.imgMat == self.CHARACTER_IMG)
+        prevCharPos = (prevCharPos[0][0], prevCharPos[1][0])
+        self.imgMat[prevCharPos[0], prevCharPos[1]] = self.ROAD_IMG
+        prevImgPos = (
+                prevCharPos[1] * roadImg.get_width(),
+                prevCharPos[0] * roadImg.get_height())
+
+        # get Character image and position
+        charImg = self.imgs[self.CHARACTER_IMG]
+        charPos = self.get_char_pos()
+        self.imgMat[charPos[0], charPos[1]] = self.CHARACTER_IMG
+        imgPos = (
+                charPos[1] * charImg.get_width(),
+                charPos[0] * charImg.get_height())
+
+        # show images in screen
+        self.screen.blit(roadImg, prevImgPos)
+        self.screen.blit(charImg, imgPos)
+        pygame.display.update()
+
+    def get_char_pos(self) -> tuple:
+        pos = np.where(self.blocks == 2)
+        pos = (pos[0][0], pos[1][0])
+
+        return pos
+
 
 class MazeEnv_v0(MazeEnv_base):
 
@@ -169,22 +201,77 @@ class MazeEnv_v0(MazeEnv_base):
     def reset(self) -> np.ndarray:
         return self.blocks.flatten()
 
-    def step(self, action: Union[int, torch.Tensor]):
-        pos = np.where(self.blocks == 2)
-        pos = (pos[0][0], pos[1][0])
-        print(pos)
+    def step(self, action: Union[int, torch.Tensor]) \
+            -> Tuple[np.ndarray, float, bool, torch.Tensor]:
+
+        # Get reward
+        moved, done = self.move(action)
+        hitWall = not moved
+        if done:
+            reward = 1
+        else:
+            reward = -0.75 if hitWall else -0.04
+
+        next_state = self.blocks.flatten()
+
+        return next_state, reward, done, action
+
+    def move(self, action: Union[int, torch.Tensor]) -> bool:
+
+        if action not in [0, 1, 2, 3]:
+            raise ValueError("Action is out of bound")
+
+        # get Position to move
+        charPos = self.get_char_pos()
+        movePos = list(deepcopy(charPos))
+        if action == 0:  # east
+            movePos[1] += 1
+        if action == 1:  # west
+            movePos[1] -= 1
+        if action == 2:  # south
+            movePos[0] += 1
+        if action == 3:  # north
+            movePos[0] -= 1
+        movePos = tuple(movePos)
+
+        if self.blocks[movePos[0]][movePos[1]] == 0:
+            self.blocks[movePos[0]][movePos[1]] = 2  # Road Pos to Char
+            self.blocks[charPos[0]][charPos[1]] = 0  # Char Pos to Raod
+            moved = True
+            done = False
+        elif self.blocks[movePos[0]][movePos[1]] == 3:  # Value 3 means goal
+            self.blocks[movePos[0]][movePos[1]] = 2  # Road Pos to Char
+            self.blocks[charPos[0]][charPos[1]] = 0  # Char Pos to Raod
+            moved = True
+            done = True
+        else:  # not movable
+            moved = False
+            done = False
+
+        return moved, done
 
     def render(self):
-        pass
+        '''
+        try:
+            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
+            if not self.isRender:
+                self.isRender = True
+                draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        except:
+            raise RuntimeError("No available display to render")
+        '''
 
     def close(self):
-        pass
+        pygame.quit()
 
 
 if __name__ == "__main__":
+    from random import choice
+
     env = MazeEnv_v0()
     running = True
 
     while running:
-        env.step(1)
-        pass
+        action = choice([0, 1, 2, 3])
+        results = env.step(action)
+        env.draw()
