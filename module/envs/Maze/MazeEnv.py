@@ -14,14 +14,19 @@ import pygame
 
 class MazeEnv_base():
 
-    def __init__(self):
+    def __init__(self, displaySize: Tuple[int, int] = (500, 500)):
+
+        # set display size
+        self.displaySize = displaySize
 
         # set blocks and character = 2, goal = 3
         self.blocks = self.makeMaze()
         self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
         self.blocks[1][1] = 3
+
         self.screen = pygame.display.set_mode(
-                (self.maze.screen.get_width(), self.maze.screen.get_height()))
+                self.displaySize, flags=pygame.HIDDEN)
+        self.screen = pygame.Surface(self.displaySize)
 
         # =================================================================================
         # IMG PATH SETTING
@@ -59,12 +64,12 @@ class MazeEnv_base():
 
         self.loadImages()
         self.imgMat = self.__init_ImgMat()
-        self.__init_draw()
+        self.isRender = False
 
     def makeMaze(self):
 
         # set screen size and initialize it
-        disp_size = (500, 500)
+        disp_size = self.displaySize
         # the rect inside which to draw the maze. Top x, top y, width, height.
         rect = np.array([0, 0, disp_size[0], disp_size[1]])
         block_size = 20  # block size in pixels
@@ -153,17 +158,14 @@ class MazeEnv_base():
             
         return choice(list(possibleWalls.keys()))
 
-    def __init_draw(self):
+    def init_draw(self):
         for row in range(self.imgMat.shape[0]):
             for col in range(self.imgMat.shape[1]):
                 img = self.imgs[self.imgMat[row][col]]
                 imgPos = (col * img.get_width(), row * img.get_height())
                 self.screen.blit(img, imgPos)
 
-        pygame.display.update()
-
     def draw(self):
-
         # get Road image and position
         roadImg = self.imgs[self.ROAD_IMG]
         prevCharPos = np.where(self.imgMat == self.CHARACTER_IMG)
@@ -184,7 +186,17 @@ class MazeEnv_base():
         # show images in screen
         self.screen.blit(roadImg, prevImgPos)
         self.screen.blit(charImg, imgPos)
-        pygame.display.update()
+
+    def render(self):
+        try:
+            if not self.isRender:
+                pygame.display.set_mode(self.displaySize, flags=pygame.SHOWN)
+                self.isRender = True
+                self.init_draw()
+            self.draw()
+            pygame.display.update()
+        except:
+            raise RuntimeError("No available display to render")
 
     def get_char_pos(self) -> tuple:
         pos = np.where(self.blocks == 2)
@@ -250,17 +262,6 @@ class MazeEnv_v0(MazeEnv_base):
 
         return moved, done
 
-    def render(self):
-        '''
-        try:
-            pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SHOWN)
-            if not self.isRender:
-                self.isRender = True
-                draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
-        except:
-            raise RuntimeError("No available display to render")
-        '''
-
     def close(self):
         pygame.quit()
 
@@ -271,7 +272,7 @@ if __name__ == "__main__":
     env = MazeEnv_v0()
     running = True
 
-    while running:
+    for _ in range(1000):
         action = choice([0, 1, 2, 3])
         results = env.step(action)
-        env.draw()
+        env.render()
