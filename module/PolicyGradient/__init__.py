@@ -1,4 +1,4 @@
 from module.PolicyGradient.REINFORCE import REINFORCE
-from module.PolicyGradient.onestep_ActorCritic import onestep_ActorCritic
+from module.PolicyGradient.A2C import A2C
 
-__all__ = ['REINFORCE', 'onestep_ActorCritic']
+__all__ = ['REINFORCE', 'A2C']

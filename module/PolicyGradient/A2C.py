@@ -14,7 +14,7 @@ Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))
 
 
-class onestep_ActorCritic(PolicyGradient):
+class A2C(PolicyGradient):
 
     '''
     parameters
