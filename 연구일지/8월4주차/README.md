@@ -13,7 +13,7 @@
 **다음은 사용 예시 코드이다.**
 
 ```python
-from module.envs.MazeEnv_v0
+from module.envs.Maze import MazeEnv_v0
 from random import choice 
 
 env = MazeEnv_v0()
