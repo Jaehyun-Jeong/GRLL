@@ -117,22 +117,6 @@ class PolicyGradient(RL):
         return eps_end + \
             (eps_start + eps_end) * math.exp(-1. * self.steps_done / eps_decay)
 
-    # In Reinforcement learning,
-    # pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(
-            self,
-            s: Union[torch.Tensor, np.ndarray],
-            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-
-        s = torch.Tensor(s).to(self.device)
-        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
-
-        _, probs = self.model.forward(s)
-        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
-
-        return actionValue
-
     # Returns the action from state s by using multinomial distribution
     @overrides(RL)
     @torch.no_grad()
@@ -174,3 +158,19 @@ class PolicyGradient(RL):
         value = value.squeeze(-1)
 
         return value
+
+    # In Reinforcement learning,
+    # pi means the function from state space to action probability distribution
+    # Returns probability of taken action a from state s
+    def pi(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+
+        s = torch.Tensor(s).to(self.device)
+        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
+
+        _, probs = self.model.forward(s)
+        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
+
+        return actionValue

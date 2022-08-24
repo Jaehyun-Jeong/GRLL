@@ -1,6 +1,6 @@
 from typing import Dict, Union
 
-from collections import namedtuple
+from collections import namedtuple, deque
 import numpy as np
 
 # PyTorch
@@ -62,6 +62,7 @@ class A2C(PolicyGradient):
             0 no output,
             1 only train info,
             2 train info + initialized info
+        nSteps: Number of Steps for bootstrapping
     '''
 
     def __init__(
@@ -93,6 +94,7 @@ class A2C(PolicyGradient):
             'test': 'stochastic'
         },
         verbose: int = 1,
+        nSteps: int = 10,
     ):
 
         # init parameters
@@ -113,29 +115,76 @@ class A2C(PolicyGradient):
             verbose=verbose,
         )
 
+        # init paramters
+        self.nSteps = nSteps
+        self.transitions = deque([], maxlen=self.nSteps)
+
         self.printInit()
 
-    # Overrided method from PolicyGradient for single pi
-    def pi(
-            self,
-            s: Union[torch.Tensor, np.ndarray],
-            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+    '''
+        # Overrided method from PolicyGradient for single pi
+        def pi(
+                self,
+                s: Union[torch.Tensor, np.ndarray],
+                a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
 
-        s = torch.Tensor(s).to(self.device)
-        _, probs = self.model.forward(s)
+            s = torch.Tensor(s).to(self.device)
+            _, probs = self.model.forward(s)
 
-        return probs[a]
+            return probs[a]
 
-    # Overrided method from PolicyGradient for single state value
-    def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-        s = torch.Tensor(s).to(self.device)
-        value, _ = self.model.forward(s)
-        value = torch.squeeze(value, 0)
+        # Overrided method from PolicyGradient for single state value
+        def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+            s = torch.Tensor(s).to(self.device)
+            value, _ = self.model.forward(s)
+            value = torch.squeeze(value, 0)
 
-        return value
+            return value
+    '''
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, Transition: Transition, entropy_term: float = 0):
+    def update_weight(self, entropy_term: float = 0):
+
+        S_t = [trans.state for trans in self.transitions]
+        A_t = [trans.action for trans in self.transitions]
+        done = [trans.done for trans in self.transitions]
+        S_tt = [trans.next_state for trans in self.transitions]
+        R_tt = [trans.reward for trans in self.transitions]
+
+        S_t = np.array(S_t)
+        A_t = np.array(A_t)
+        done = np.array(done)
+        notDone = torch.Tensor(~done).to(self.device)
+        S_tt = np.array(S_tt)
+        R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
+
+        values = [self.value(S_tt[-1]) * notDone[-1]]
+        for r_tt in reversed(R_tt[:-1]):
+            values.append(r_tt + self.discount_rate * values[-1])
+        values.reverse()
+        values = torch.Tensor(values).to(self.device)
+
+        # get actor loss
+        log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
+        advantage = values - self.value(S_t)
+        advantage = Variable(advantage)  # no grad
+        actor_loss = -(advantage * log_prob)
+
+        # get critic loss
+        critic_loss = Variable(values) - self.value(S_t)
+        critic_loss = 1/2 * (critic_loss).pow(2)
+
+        loss = actor_loss + critic_loss + 0.001 * entropy_term
+        loss = torch.sum(loss)
+        
+        loss.backward()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        self.steps_done += 1
+
+        '''
+            
         s_t = Transition.state
         a_t = Transition.action
         s_tt = Transition.next_state
@@ -159,6 +208,7 @@ class A2C(PolicyGradient):
         self.optimizer.step()
 
         self.steps_done += 1
+        '''
 
     def train(
         self,
@@ -196,11 +246,13 @@ class A2C(PolicyGradient):
 
                     # trans means transition
                     trans = Transition(state, action, done, next_state, reward)
+                    self.transitions.append(trans)
 
                     state = next_state
 
                     # Train
-                    self.update_weight(trans)
+                    if len(self.transitions) == self.nSteps:
+                        self.update_weight()
 
                     # ==========================================================================
                     # TEST

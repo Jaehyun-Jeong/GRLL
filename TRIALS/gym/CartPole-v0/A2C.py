@@ -7,9 +7,9 @@ import torch.optim as optim
 
 # import model
 from module.PolicyGradient.models import ANN_V2
-from module.PolicyGradient import onestep_ActorCritic
+from module.PolicyGradient import A2C
 
-# Environment 
+# Environment
 import gym
 
 # device to use
@@ -27,7 +27,7 @@ ActorCritic_model = ANN_V2(num_states, num_actions)
 optimizer = optim.Adam(ActorCritic_model.parameters(), lr=1e-4)
 
 # Initialize Actor-Critic Mehtod
-onestep_AC = onestep_ActorCritic(
+onestep_AC = A2C(
     device=device,
     env=env,
     model=ActorCritic_model,
@@ -39,11 +39,8 @@ onestep_AC = onestep_ActorCritic(
     },
 )
 
-# load model
-onestep_AC.load("../../saved_models/CartPole-v0/onestep_AC.obj")
-
 # TRAIN Agent
-onestep_AC.train(1000000)
+onestep_AC.train(trainTimesteps=int(1e7))
 
 # save model
 onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")
