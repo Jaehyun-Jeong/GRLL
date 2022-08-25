@@ -121,27 +121,6 @@ class A2C(PolicyGradient):
 
         self.printInit()
 
-    '''
-        # Overrided method from PolicyGradient for single pi
-        def pi(
-                self,
-                s: Union[torch.Tensor, np.ndarray],
-                a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-
-            s = torch.Tensor(s).to(self.device)
-            _, probs = self.model.forward(s)
-
-            return probs[a]
-
-        # Overrided method from PolicyGradient for single state value
-        def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-            s = torch.Tensor(s).to(self.device)
-            value, _ = self.model.forward(s)
-            value = torch.squeeze(value, 0)
-
-            return value
-    '''
-
     # Update weights by using Actor Critic Method
     def update_weight(self, entropy_term: float = 0):
 
@@ -176,39 +155,12 @@ class A2C(PolicyGradient):
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term
         loss = torch.sum(loss)
-        
-        loss.backward()
-        self.optimizer.step()
-        self.optimizer.zero_grad()
-
-        self.steps_done += 1
-
-        '''
-            
-        s_t = Transition.state
-        a_t = Transition.action
-        s_tt = Transition.next_state
-        r_tt = Transition.reward
-        done = Transition.done
-
-        # get actor loss
-        log_prob = torch.log(self.pi(s_t, a_t) + self.ups)
-        advantage = r_tt + self.value(s_tt)*(not done) - self.value(s_t)
-        advantage = Variable(advantage)  # no grad
-        actor_loss = -(advantage * log_prob)
-
-        # get critic loss
-        critic_loss = r_tt + self.value(s_tt)*(not done) - self.value(s_t)
-        critic_loss = 1/2 * (critic_loss).pow(2)
-
-        loss = actor_loss + critic_loss + 0.001 * entropy_term
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
         self.steps_done += 1
-        '''
 
     def train(
         self,
@@ -278,6 +230,7 @@ class A2C(PolicyGradient):
                                 rewards[-1])
 
                     if done or timesteps == self.maxTimesteps-1:
+                        self.transitions.clear()
                         break
 
         except KeyboardInterrupt:
