@@ -1,7 +1,7 @@
 # PyTorch
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class ANN_V1(nn.Module):
     def __init__(self, inputs, outputs):
@@ -16,8 +16,9 @@ class ANN_V1(nn.Module):
 
         value = F.relu(self.fc1(state))
         value = self.fc2(value)
-        
+
         return value
+
 
 class ANN_V2(nn.Module):
     def __init__(self, inputs, outputs):
@@ -34,8 +35,9 @@ class ANN_V2(nn.Module):
         value = F.relu(self.fc1(state))
         value = F.relu(self.fc2(value))
         value = self.fc3(value)
-        
+
         return value
+
 
 class ANN_V3(nn.Module):
     def __init__(self, inputs, outputs):

@@ -1,3 +1,5 @@
+from typing import Union
+
 # PyTorch
 import torch
 import torch.nn as nn
@@ -57,6 +59,39 @@ class ANN_V2(nn.Module):
 
         value = F.relu(self.critic_fc1(state))
         value = F.relu(self.critic_fc2(value))
+        value = self.critic_fc3(value)
+
+        return value, probs
+
+
+class ANN_V3(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_V3, self).__init__()
+
+        # Actor
+        self.actor_fc1 = nn.Linear(inputs, 64)
+        self.actor_fc2 = nn.Linear(64, 64)
+        self.actor_fc3 = nn.Linear(64, outputs)
+        self.head = nn.Softmax(dim=0)
+
+        # Critic
+        self.critic_fc1 = nn.Linear(inputs, 64)
+        self.critic_fc2 = nn.Linear(64, 64)
+        self.critic_fc3 = nn.Linear(64, outputs)
+
+    def forward(self, x):
+        state = x
+
+        probs = F.tanh(self.actor_fc1(state))
+        probs = F.tanh(self.actor_fc2(probs))
+        probs = self.head(self.actor_fc3(probs))
+
+        value = F.tanh(self.critic_fc1(state))
+        value = F.tanh(self.critic_fc2(value))
         value = self.critic_fc3(value)
 
         return value, probs
