@@ -154,9 +154,8 @@ class A2C(PolicyGradient):
         critic_loss = 1/2 * (critic_loss).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term
-        loss = torch.sum(loss)
+        loss = torch.sum(loss)/loss.size(dim=0)
 
-        self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
@@ -202,8 +201,6 @@ class A2C(PolicyGradient):
 
                     state = next_state
 
-                    episodeDone = done or timesteps == self.maxTimesteps-1
-
                     # Train
                     if len(self.transitions) == self.nSteps or done:
                         self.update_weight()
@@ -232,7 +229,8 @@ class A2C(PolicyGradient):
                                 self.trainedTimesteps,
                                 rewards[-1])
 
-                    if episodeDone:
+                    if done or timesteps == self.maxTimesteps-1:
+                        self.transitions.clear()
                         break
 
         except KeyboardInterrupt:
