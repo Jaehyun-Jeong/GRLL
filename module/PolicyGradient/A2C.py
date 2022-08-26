@@ -205,7 +205,7 @@ class A2C(PolicyGradient):
                     episodeDone = done or timesteps == self.maxTimesteps-1
 
                     # Train
-                    if len(self.transitions) == self.nSteps or episodeDone:
+                    if len(self.transitions) == self.nSteps or done:
                         self.update_weight()
                         self.transitions.clear()
 
