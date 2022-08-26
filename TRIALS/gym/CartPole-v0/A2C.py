@@ -1,34 +1,52 @@
 import sys
 sys.path.append("../../../") # to import module
 
-# PyTorch
-import torch
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
+# 파이토치
 import torch.optim as optim
 
-# import model
+# 작성자의 모듈
 from module.PolicyGradient.models import ANN_V3
 from module.PolicyGradient import A2C
 
-# Environment
+# 환경
 import gym
 env = gym.make('CartPole-v0')
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
 A2C_model = ANN_V3(num_states, num_actions)
-optimizer = optim.Adam(ActorCritic_model.parameters(), lr=1e-4)
+optimizer = optim.Adam(A2C_model.parameters(), lr=1e-4)
 
-# Initialize Actor-Critic Mehtod
-onestep_AC = A2C(
+# 작성자의 모듈 초기화
+advantage_AC = A2C(
     env=env,
     model=A2C_model,
     optimizer=optimizer,
+    verbose=0,
+    policy={
+        'train': 'stochastic',
+        'test': 'greedy',
+    },
 )
 
-# TRAIN Agent
-onestep_AC.train(
+# 모듈 초기화에 걸린 시간
+print(f"Init Time: {datetime.now() - startTime}")
+
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
+
+advantage_AC.train(
         trainTimesteps=1000000,
         testSize=0)
 
-# save model
-onestep_AC.save("../../saved_models/CartPole-v0/onestep_AC.obj")
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 성능 측정을 위한 테스트
+print(advantage_AC.test(testSize=10))
+print("=================================================")

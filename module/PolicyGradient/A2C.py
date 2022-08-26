@@ -202,9 +202,12 @@ class A2C(PolicyGradient):
 
                     state = next_state
 
+                    episodeDone = done or timesteps == self.maxTimesteps-1
+
                     # Train
-                    if len(self.transitions) == self.nSteps:
+                    if len(self.transitions) == self.nSteps or episodeDone:
                         self.update_weight()
+                        self.transitions.clear()
 
                     # ==========================================================================
                     # TEST
@@ -229,8 +232,7 @@ class A2C(PolicyGradient):
                                 self.trainedTimesteps,
                                 rewards[-1])
 
-                    if done or timesteps == self.maxTimesteps-1:
-                        self.transitions.clear()
+                    if episodeDone:
                         break
 
         except KeyboardInterrupt:
