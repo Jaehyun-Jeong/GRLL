@@ -41,7 +41,7 @@ stable-baselines3에서는 상수 값을 사용하는 Gradient Clippint, 그리�
 
 **작성자의 모듈도 사용할 수 있도록 코드 수정을 고려하고 있다.**
 
-# 2. 복수의 행동을 위한 힌트 발견
+# 2. 복수개 행동을 위한 힌트 발견
 
 ![](continuous_control.png)<br/>
 *Volodymyr Mnih, Adria Puigdomenech Badia, Mehdi Mirza, Alex Graves, Timothy Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu. Asynchronous methods for deep reinforcement learning. In International Conference on Machine Learning, pages 1928–1937, 2016.*
