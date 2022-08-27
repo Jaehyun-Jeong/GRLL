@@ -7,11 +7,148 @@
 
 # 1. stable-baselines3와 작성자 모듈의 A2C 알고리즘 속도비교
 
-## 1.1. 비교환경
+## 1.1. 비교 환경과 코드
+
+- 서버 cpu를 사용한다. (gpu 비교도 고려했으나 서버에서 허용이 안됨)
+- 100만 번의 스텝을 학습한다. (저번과 같은 10번으로는 부족하다고 판단)
+- 하이퍼 파라미터를 동일하게 설정
+- 뉴럴넷의 모양을 동일하게 설정
+- Adam Optimizer를 사용
+
+### 1.1.1. stable-baselines3
+
+```python
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
+import gym
+from stable_baselines3 import A2C
+
+env = gym.make("CartPole-v0")
+
+# 작성자의 모듈과 동일하게 파라미터 설정
+model = A2C(
+        "MlpPolicy",
+        env,
+        gae_lambda=1,
+        use_rms_prop=False,  # RMSProp 옵티마이저 대신에 Adam을 사용
+        learning_rate=1e-4,
+        n_steps=10,
+        vf_coef=1,
+        verbose=0)
+
+# 모듈 초기화에 걸린 시간
+print(f"Init Time: {datetime.now() - startTime}")
+
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
+
+model.learn(
+        total_timesteps=1000000,  # 백만번의 학습을 시행
+        n_eval_episodes=0)
+
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 성능 측정을 위한 테스트 코드
+returns = [0]*10
+for episode in range(10):
+    obs = env.reset()
+    while True:
+        action, state = model.predict(obs)
+        obs, reward, done, info = env.step(action)
+        returns[episode] += reward
+        if done:
+            break
+
+print(sum(returns) / 10)
+print("=================================================")
+```
+
+### 1.1.2. 작성자의 모듈
+
+```python
+from datetime import datetime
+
+# 시작 시간
+startTime = datetime.now()
+
+# 파이토치
+import torch.optim as optim
+
+# 작성자의 모듈
+from module.PolicyGradient.models import ANN_V3
+from module.PolicyGradient import A2C
+
+# 환경
+import gym
+env = gym.make('CartPole-v0')
+num_actions = env.action_space.n
+num_states = env.observation_space.shape[0]
+
+A2C_model = ANN_V3(num_states, num_actions)
+optimizer = optim.Adam(A2C_model.parameters(), lr=1e-4)
+
+# 작성자의 모듈 초기화
+advantage_AC = A2C(
+    env=env,
+    model=A2C_model,
+    optimizer=optimizer,
+    verbose=0,
+    policy={
+        'train': 'stochastic',
+        'test': 'greedy',
+    },
+)
+
+# 모듈 초기화에 걸린 시간
+print(f"Init Time: {datetime.now() - startTime}")
+
+# 학습이 시작되는 시간
+startTrainTime = datetime.now()
+
+advantage_AC.train(
+        trainTimesteps=1000000,
+        testSize=0)
+
+# 학습이 끝나는 시간
+print(f"Train Time: {datetime.now() - startTrainTime}")
+
+# 성능 측정을 위한 테스트
+print(advantage_AC.test(testSize=10))
+print("=================================================")
+```
 
 ## 1.2. CartPole-v0 환경에서의 비교
 
+아래와 같은 순서대로 출력된다.
+- Init Time: 모듈 초기화에 걸린 시간
+- Train Time: 학습에 걸린 시간
+- Reward: 보상합 (200이 최대)
+
+### 1.2.1. stable-baselines3
+
+![](stable-baselines3_results.png)<br/>
+
+**모듈 초기화에 걸린 시간의 평균: 1.54초**
+**학습에 걸린 시간의 평균: 15분 39.55초**
+
+### 1.2.2. 작성자의 모듈
+
+![](module_results.png)<br/>
+
+**모듈 초기화에 걸린 시간의 평균: 0.61초**
+**학습에 걸린 시간의 평균: 10분 30.52초**
+
 ## 1.3. 결론
+
+100만번의 timestep을 진행했을 때, 모듈 초기화는 대략 0.93초, 학습은 3분 50.97초 정도 빨랐다.
+
+**즉, 작성자의 모듈이 3분 51.90초 정도 빨랐다.**
+
+하지만, stable-baselines3가 지원하는 기능 중에, 작성자의 모듈이 지원하지 않는 기능이 많다. 따라서 이는 완벽한 비교라고 할 수는 없을것이다.
 
 ## 1.4. 작성자 모듈의 개선점
 
