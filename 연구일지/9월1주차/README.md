@@ -164,7 +164,7 @@ print("=================================================")
 
 ### 1.4.2. Entropy Loss Term
 
-**학습 안정화를 위한 Entropy Loss를 사용한다.**
+**학습 안정화를 위한 Entropy Loss를 사용한다.**<br/>
 ![](entropy_loss.PNG)<br/>
 <https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/a2c/a2c.py>
 
