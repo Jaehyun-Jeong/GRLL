@@ -130,14 +130,14 @@ print("=================================================")
 
 ### 1.2.1. stable-baselines3
 
-![](stable-baselines3_results.png)<br/>
+![](stable-baselines3_results.PNG)<br/>
 
 **모듈 초기화에 걸린 시간의 평균: 1.54초**
 **학습에 걸린 시간의 평균: 15분 39.55초**
 
 ### 1.2.2. 작성자의 모듈
 
-![](module_results.png)<br/>
+![](module_results.PNG)<br/>
 
 **모듈 초기화에 걸린 시간의 평균: 0.61초**
 **학습에 걸린 시간의 평균: 10분 30.52초**
@@ -157,7 +157,7 @@ print("=================================================")
 ### 1.4.1. Advantage Normalization
 
 **Advantage Normalization을 사용할 수 있는 코드가 존재했다.**<br/>
-![](normalize_advantage.png)<br/>
+![](normalize_advantage.PNG)<br/>
 <https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/a2c/a2c.py>
 
 간단한 계산이기 때문에 바로 구현 가능한다.
@@ -165,7 +165,7 @@ print("=================================================")
 ### 1.4.2. Entropy Loss Term
 
 **학습 안정화를 위한 Entropy Loss를 사용한다.**
-![](entropy_loss.png)<br/>
+![](entropy_loss.PNG)<br/>
 <https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/a2c/a2c.py>
 
 Entropy Loss Term을 사용하는 방법은 여러가지 있다. 작성자의 지식 부족으로 아직 구현할 수 없다.
@@ -180,7 +180,7 @@ stable-baselines3에서는 상수 값을 사용하는 Gradient Clippint, 그리�
 
 # 2. 복수개 행동을 위한 힌트 발견
 
-![](continuous_control.png)<br/>
+![](continuous_control.PNG)<br/>
 *Volodymyr Mnih, Adria Puigdomenech Badia, Mehdi Mirza, Alex Graves, Timothy Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu. Asynchronous methods for deep reinforcement learning. In International Conference on Machine Learning, pages 1928–1937, 2016.*
 
 A3C 논문에서는 MuJoCo Physics Simulator문제를 위와 같은 방법으로 해결했다.<br/>
