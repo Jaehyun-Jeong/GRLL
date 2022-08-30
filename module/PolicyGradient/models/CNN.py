@@ -25,8 +25,6 @@ class CNN_V1(nn.Module):
         linear_input_size = convw * convh * 32
         
         self.actor_fc1 = nn.Linear(linear_input_size, outputs)
-        self.head = nn.Softmax(dim=1)
-        
         self.critic_fc1 = nn.Linear(linear_input_size, 1)
 
     # Called with either one element to determine next action, or a batch
@@ -41,7 +39,7 @@ class CNN_V1(nn.Module):
         probs = F.relu(self.actor_conv2(probs))
         probs = F.relu(self.actor_conv3(probs))
         probs = torch.flatten(probs, 1)
-        probs = self.head(self.actor_fc1(probs))
+        probs = self.actor_fc1(probs)
         
         value = F.relu(self.critic_conv1(state))
         value = F.relu(self.critic_conv2(value))
@@ -61,8 +59,6 @@ class CNN_V2(nn.Module):
             raise ValueError(f"Expecting input height: 84, got: {h}")
         if w != 84:
             raise ValueError(f"Expecting input width: 84, got: {w}")
-
-        self.head = nn.Softmax(dim=1)
 
         # This parts are shared
         self.actor_conv1 = nn.Conv2d(in_channels=c, out_channels=32, kernel_size=8, stride=4)
@@ -88,7 +84,7 @@ class CNN_V2(nn.Module):
         probs = F.relu(self.actor_conv3(probs))
         probs = torch.flatten(probs, 1)
         probs = F.relu(self.actor_linear1(probs))
-        probs = self.head(self.actor_linear2(probs))
+        probs = self.actor_linear2(probs)
 
         value = F.relu(self.critic_conv1(state))
         value = F.relu(self.critic_conv2(probs))
@@ -110,8 +106,6 @@ class CNN_V2_shared(nn.Module):
         if w != 84:
             raise ValueError(f"Expecting input width: 84, got: {w}")
 
-        self.head = nn.Softmax(dim=1)
-
         # This parts are shared
         self.conv1 = nn.Conv2d(in_channels=c, out_channels=32, kernel_size=8, stride=4)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2)
@@ -127,13 +121,13 @@ class CNN_V2_shared(nn.Module):
             -> tuple[torch.Tensor, torch.Tensor]:
         state = x
 
-        state = F.relu(self.actor_conv1(state))
-        state = F.relu(self.actor_conv2(state))
-        state = F.relu(self.actor_conv3(state))
+        state = F.relu(self.conv1(state))
+        state = F.relu(self.conv2(state))
+        state = F.relu(self.conv3(state))
         state = torch.flatten(state, 1)
-        state = F.relu(self.actor_linear1(state))
+        state = F.relu(self.linear1(state))
 
-        probs = self.head(self.actor_linear2(state))
+        probs = self.actor_linear2(state)
         value = self.critic_linear2(state)
 
         return value, probs

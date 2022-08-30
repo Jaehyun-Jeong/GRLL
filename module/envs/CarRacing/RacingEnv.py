@@ -310,7 +310,11 @@ class RacingEnv_v2(RacingEnv_v0):
 
 class RacingEnv_v3(RacingEnv_v0):
 
-    def __init__(self, stackSize: int=4, ExploringStarts: bool=False):
+    def __init__(
+            self,
+            stackSize: int=4,
+            ExploringStarts: bool=False,
+            skipFrame: int=2):
 
         super().__init__(
             ExploringStarts=ExploringStarts
@@ -318,6 +322,7 @@ class RacingEnv_v3(RacingEnv_v0):
 
         self.lines = None # delete the line
         self.stackSize = stackSize
+        self.skipFrame = skipFrame
 
         #=========================================================
         # STACKED GRAYSCALE IMG DATA
@@ -346,12 +351,12 @@ class RacingEnv_v3(RacingEnv_v0):
     def step(self, action: torch.Tensor) \
             -> tuple[np.ndarray, float, bool, torch.Tensor]:
 
-        # 3 frames per move
+        # self.skipFrame per move
         action = action_to_int(action)
-        self.move(action)
-        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
-        self.move(action)
-        draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+        for _ in range(self.skipFrame - 1):  # -1 for last step
+            self.move(action)
+            draw_env(WIN, self.images, self.player_car, self.game_info, lines=self.lines)
+
         return super().step(action)
 
     def reset(self) -> np.ndarray:

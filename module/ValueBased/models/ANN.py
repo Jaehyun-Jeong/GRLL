@@ -9,7 +9,6 @@ class ANN_V1(nn.Module):
 
         self.fc1 = nn.Linear(inputs, 256)
         self.fc2 = nn.Linear(256, outputs)
-        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         state = x
@@ -27,7 +26,6 @@ class ANN_V2(nn.Module):
         self.fc1 = nn.Linear(inputs, 256)
         self.fc2 = nn.Linear(256, 256)
         self.fc3 = nn.Linear(256, outputs)
-        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x):
         state = x

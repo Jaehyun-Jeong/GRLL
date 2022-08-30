@@ -31,7 +31,7 @@ DeepQN = DQN(
     optimizer=optimizer, # torch optimizer
     maxMemory=100000,
     numBatch=32,
-    verbose=0,
+    verbose=1,
 )
 
 print(f"Init Time: {datetime.now() - startTime}")
@@ -39,7 +39,4 @@ print(f"Init Time: {datetime.now() - startTime}")
 startTrainTime = datetime.now()
 
 # TRAIN Agent
-DeepQN.train(trainTimesteps=100000, testSize=0)
-
-print(f"Train Time: {datetime.now() - startTrainTime}")
-print(DeepQN.test(testSize=10))
+DeepQN.train(trainTimesteps=100000, testPer=10000)

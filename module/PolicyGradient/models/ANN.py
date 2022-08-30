@@ -13,7 +13,6 @@ class ANN_V1(nn.Module):
         # for Actor
         self.actor_fc1 = nn.Linear(inputs, 256)
         self.actor_fc2 = nn.Linear(256, outputs)
-        self.head = nn.Softmax(dim=0)
 
         # for Critic
         self.critic_fc1 = nn.Linear(inputs, 256)
@@ -25,7 +24,7 @@ class ANN_V1(nn.Module):
         state = x
 
         probs = F.relu(self.actor_fc1(state))
-        probs = self.head(self.actor_fc2(probs))
+        probs = self.actor_fc2(probs)
 
         value = F.relu(self.critic_fc1(state))
         value = self.critic_fc2(value)
@@ -41,7 +40,6 @@ class ANN_V2(nn.Module):
         self.actor_fc1 = nn.Linear(inputs, 256)
         self.actor_fc2 = nn.Linear(256, 256)
         self.actor_fc3 = nn.Linear(256, outputs)
-        self.head = nn.Softmax(dim=0)
 
         # for Critic
         self.critic_fc1 = nn.Linear(inputs, 256)
@@ -55,7 +53,7 @@ class ANN_V2(nn.Module):
 
         probs = F.relu(self.actor_fc1(state))
         probs = F.relu(self.actor_fc2(probs))
-        probs = self.head(self.actor_fc3(probs))
+        probs = self.actor_fc3(probs)
 
         value = F.relu(self.critic_fc1(state))
         value = F.relu(self.critic_fc2(value))
@@ -76,7 +74,6 @@ class ANN_V3(nn.Module):
         self.actor_fc1 = nn.Linear(inputs, 64)
         self.actor_fc2 = nn.Linear(64, 64)
         self.actor_fc3 = nn.Linear(64, outputs)
-        self.head = nn.Softmax(dim=0)
 
         # Critic
         self.critic_fc1 = nn.Linear(inputs, 64)
@@ -88,7 +85,7 @@ class ANN_V3(nn.Module):
 
         probs = torch.tanh(self.actor_fc1(state))
         probs = torch.tanh(self.actor_fc2(probs))
-        probs = self.head(self.actor_fc3(probs))
+        probs = self.actor_fc3(probs)
 
         value = torch.tanh(self.critic_fc1(state))
         value = torch.tanh(self.critic_fc2(value))

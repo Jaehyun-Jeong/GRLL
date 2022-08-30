@@ -126,9 +126,10 @@ class PolicyGradient(RL):
             useEps: bool,
             useStochastic: bool) -> torch.Tensor:
 
-        s = torch.Tensor(s).to(self.device)
+        s = torch.Tensor(s).to(self.device).unsqueeze(0)
         _, probs = self.model.forward(s)
-        probs = torch.squeeze(probs, 0)
+        probs = probs.squeeze(0)
+        # probs = torch.squeeze(probs, 0)
 
         eps = self.__get_eps() if useEps else 0
 
