@@ -168,7 +168,6 @@ class PolicyGradient(RL):
         a = a.unsqueeze(dim=-1)
 
         _, probs = self.model.forward(s)
-        probs = self.softmax(probs)
         actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
 
         return actionValue
