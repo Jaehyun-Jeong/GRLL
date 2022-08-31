@@ -129,7 +129,6 @@ class PolicyGradient(RL):
         s = torch.Tensor(s).to(self.device).unsqueeze(0)
         _, probs = self.model.forward(s)
         probs = probs.squeeze(0)
-        # probs = torch.squeeze(probs, 0)
 
         eps = self.__get_eps() if useEps else 0
 
@@ -153,10 +152,8 @@ class PolicyGradient(RL):
 
     # Returns a value of the state
     # (state value function in Reinforcement learning)
-    def value(self, s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-        s = torch.Tensor(s).to(self.device)
+    def value(self, s: torch.Tensor) -> torch.Tensor:
         value, _ = self.model.forward(s)
-        value = value.squeeze(-1)
 
         return value
 
@@ -165,13 +162,13 @@ class PolicyGradient(RL):
     # Returns probability of taken action a from state s
     def pi(
             self,
-            s: Union[torch.Tensor, np.ndarray],
-            a: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
 
-        s = torch.Tensor(s).to(self.device)
-        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
+        a = a.unsqueeze(dim=-1)
 
         _, probs = self.model.forward(s)
+        probs = self.softmax(probs)
         actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
 
         return actionValue

@@ -51,6 +51,7 @@ params_dict = {
         'end': 0.00001,
         'decay': 300000
     },
+    'trainStarts': 10
 }
 
 # Initialize Actor-Critic Mehtod

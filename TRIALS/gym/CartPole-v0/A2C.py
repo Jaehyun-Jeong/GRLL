@@ -29,4 +29,4 @@ advantage_AC = A2C(
     },
 )
 
-advantage_AC.train(trainTimesteps=1000000)
+advantage_AC.train(trainTimesteps=1000000, testPer=10000)

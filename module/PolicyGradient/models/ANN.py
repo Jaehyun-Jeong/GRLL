@@ -83,12 +83,12 @@ class ANN_V3(nn.Module):
     def forward(self, x):
         state = x
 
-        probs = torch.tanh(self.actor_fc1(state))
-        probs = torch.tanh(self.actor_fc2(probs))
+        probs = F.relu(self.actor_fc1(state))
+        probs = F.relu(self.actor_fc2(probs))
         probs = self.actor_fc3(probs)
 
-        value = torch.tanh(self.critic_fc1(state))
-        value = torch.tanh(self.critic_fc2(value))
+        value = F.relu(self.critic_fc1(state))
+        value = F.relu(self.critic_fc2(value))
         value = self.critic_fc3(value)
 
         return value, probs

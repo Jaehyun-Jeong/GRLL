@@ -131,14 +131,18 @@ class A2C(PolicyGradient):
         S_tt = [trans.next_state for trans in self.transitions]
         R_tt = [trans.reward for trans in self.transitions]
 
+        # Because change list of np.ndarray to tensor is extremly slow
         S_t = np.array(S_t)
-        A_t = np.array(A_t)
+        S_t = torch.Tensor(S_t).to(self.device)
+        S_tt = np.array(S_tt)
+        S_tt = torch.Tensor(S_tt).to(self.device)
+
+        A_t = torch.tensor(A_t).to(self.device)
         done = np.array(done)
         notDone = torch.Tensor(~done).to(self.device)
-        S_tt = np.array(S_tt)
         R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-        values = [self.value(S_tt[-1]) * notDone[-1]]
+        values = [self.value(S_tt[-1].unsqueeze(0)) * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount_rate * values[-1])
         values.reverse()
