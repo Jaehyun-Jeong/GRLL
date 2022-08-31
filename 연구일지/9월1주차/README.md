@@ -178,7 +178,9 @@ stable-baselines3에서는 상수 값을 사용하는 Gradient Clippint, 그리�
 
 **작성자의 모듈도 사용할 수 있도록 코드 수정을 고려하고 있다.**
 
-# 2. 복수개 행동을 위한 힌트 발견
+# 2. 복수 행동 테스트가 가능한 환경 찾기
+
+## 2.1. 복수개 행동을 위한 힌트 발견
 
 ![](continuous_control.PNG)<br/>
 *Volodymyr Mnih, Adria Puigdomenech Badia, Mehdi Mirza, Alex Graves, Timothy Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu. Asynchronous methods for deep reinforcement learning. In International Conference on Machine Learning, pages 1928–1937, 2016.*
@@ -188,3 +190,12 @@ A3C 논문에서는 MuJoCo Physics Simulator문제를 위와 같은 방법으로
 
 > 예를 들어, 거미를 앞으로 나아가게 하는 목표를 가지고 있고, 움직일 수 있는 관절의 수를 8개라고 가정하자.<br/>
 > 그러면, A3C(A2C도 동일) 뉴럴넷은 16개의 출력값을 가진다. (평균 8개, 표준편차 8개) 
+
+## 2.2. MuJoCo 환경을 사용하기로 결정
+
+**많은 연구에서 사용하고 있는 MuJoCo를 테스트 하기로 결정했다.**<br/>
+![](mujoco.PNG)<br/>
+<https://mujoco.org/>
+
+**MuJoCo는 다음 사진과 같은 여러 환경을 제공한다.**<br/>
+**그리고 각 관절 또는 모터에 실수 값을 받게 되면 각 로봇을 움직일 수 있도록 환경이 만들어져 있다.**<br/>
