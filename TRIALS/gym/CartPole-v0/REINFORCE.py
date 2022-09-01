@@ -43,5 +43,5 @@ REINFORCE_parameters= {
 RF = REINFORCE(**REINFORCE_parameters)
 
 # TRAIN Agent
-RF.train(TRAIN_TIMESTEPS)
+RF.train(TRAIN_TIMESTEPS, testPer=1000)
 

@@ -140,22 +140,35 @@ class A2C(PolicyGradient):
         A_t = torch.tensor(A_t).to(self.device)
         done = np.array(done)
         notDone = torch.Tensor(~done).to(self.device)
-        R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
+        R_tt = np.array(R_tt)
 
+        '''
+        # Compute n-step return
+        values = [self.value(S_tt[-1].unsqueeze(0)).squeeze(0) * notDone[-1]]
+        for r_tt in reversed(R_tt[:-1]):
+            values.append(r_tt + self.discount_rate * values[-1])
+        values.reverse()
+
+        values = torch.cat(values, 0)
+        '''
+        
+        # Compute n-step return
         values = [self.value(S_tt[-1].unsqueeze(0)) * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount_rate * values[-1])
         values.reverse()
-        values = torch.Tensor(values).to(self.device)
+
+        values = torch.Tensor(values)
 
         # get actor loss
-        log_prob = torch.log(self.softmax(self.pi(S_t, A_t)) + self.ups)
+        # log_prob = torch.log(self.softmax(self.pi(S_t, A_t)) + self.ups)
+        log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
         advantage = values - self.value(S_t)
         advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        critic_loss = Variable(values) - self.value(S_t)
+        critic_loss = values - self.value(S_t)
         critic_loss = 1/2 * (critic_loss).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term

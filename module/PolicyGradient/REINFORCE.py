@@ -148,6 +148,12 @@ class REINFORCE(PolicyGradient):
         A_t = np.array([transition.action for transition in Transitions.memory])
         R_tt = [transition.reward for transition in Transitions.memory]
 
+        # Because change list of np.ndarray to tensor is extremly slow
+        S_t = np.array(S_t)
+        S_t = torch.Tensor(S_t).to(self.device)
+        
+        A_t = torch.tensor(A_t).to(self.device)
+
         # calculate Qval
         Qval = torch.Tensor([R_tt[-1]])
 
