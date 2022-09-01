@@ -172,7 +172,7 @@ Entropy Loss Term을 사용하는 방법은 여러가지 있다. 작성자의 �
 
 ### 1.4.3. Gradient Clipping
 
-**stable-baselines3는 Gradient Exploding 문제를 해결하기 위한 Gradient Clipping을 지원한다.**
+**stable-baselines3는 Gradient Explosion 문제를 해결하기 위한 Gradient Clipping을 지원한다.**
 
 stable-baselines3에서는 상수 값을 사용하는 Gradient Clippint, 그리고 Value Clipping, Norm Clipping을 지원한다.
 
@@ -205,7 +205,7 @@ A3C 논문에서는 MuJoCo Physics Simulator문제를 위와 같은 방법으로
 # 3. Policy Gradient 방법론의 문제점 발견
 
 **Policy Gradient는 로그 함수는 음수를 처리하지 못한다!**<br/>
-기본적인 Policy Gradient의 loss 함수는 다음과 같다.<br/>
+기본적인 Policy Gradient의 업데이트 방법는 다음과 같다.<br/>
 ![](PG_update.PNG)<br/>
 *Richard Sutton and Andrew Barto. Reinforcement Learning: An Introduction. MIT Press, 2018. page 350*
 
