@@ -3,8 +3,8 @@ sys.path.append("../../../")  # to import module
 
 import torch
 import torch.optim as optim
-from module.PolicyGradient.models import CNN_V2_shared
-from module.PolicyGradient import A2C
+from module.PG.models import CNN_V2_shared
+from module.PG import A2C
 from module.envs.CarRacing import RacingEnv_v3
 
 TRAIN_TIMESTEPS = 100000
@@ -45,6 +45,10 @@ params_dict = {
         'start': 0.99,
         'end': 0.00001,
         'decay': 300000
+    },
+    'policy': {
+        'train': 'stochastic',
+        'test': 'greedy',
     },
 }
 

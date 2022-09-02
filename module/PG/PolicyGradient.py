@@ -27,7 +27,7 @@ class PolicyGradient(RL):
             'decay': It determines how small epsilon is
         }
         maxTimesteps: Permitted timesteps in the environment
-        discount_rate: Discount rate for calculating return(accumulated reward)
+        discount: Discount rate for calculating return(accumulated reward)
         isRender={
 
             'train':
@@ -70,12 +70,13 @@ class PolicyGradient(RL):
         optimizer,
         device,
         maxTimesteps,
-        discount_rate,
+        discount,
         eps,
         isRender,
         useTensorboard,
         tensorboardParams,
         policy,
+        clippingParams,
         verbose,
     ):
 
@@ -93,10 +94,11 @@ class PolicyGradient(RL):
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
             policy=policy,
+            clippingParams=clippingParams,
             verbose=verbose,
         )
 
-        self.discount_rate = discount_rate
+        self.discount = discount
         self.steps_done = 0  # for epsilon scheduling
 
         # Stochastic action selection

@@ -27,7 +27,7 @@ class ValueBased(RL):
             'decay': It determines how small epsilon is
         }
         maxTimesteps: Permitted timesteps in the environment
-        discount_rate: Discount rate for calculating return(accumulated reward)
+        discount: Discount rate for calculating return(accumulated reward)
         maxMemory: Memory size for Experience Replay
         numBatch: Batch size for mini-batch gradient descent
         isRender={
@@ -79,13 +79,14 @@ class ValueBased(RL):
         device,
         maxTimesteps,
         maxMemory,
-        discount_rate,
+        discount,
         numBatch,
         eps,
         isRender,
         useTensorboard,
         tensorboardParams,
         policy,
+        clippingParams,
         verbose,
         gradientStepPer,
         epoch,
@@ -103,6 +104,7 @@ class ValueBased(RL):
             maxTimesteps=maxTimesteps,
             eps=eps,
             policy=policy,
+            clippingParams=clippingParams,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
@@ -110,7 +112,7 @@ class ValueBased(RL):
         )
 
         self.maxMemory = maxMemory
-        self.discount_rate = discount_rate
+        self.discount = discount
         self.numBatch = numBatch
         self.gradientStepPer = gradientStepPer
         self.epoch = epoch

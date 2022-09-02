@@ -6,8 +6,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
-from module.ValueBased import ADQN
+from module.VB.models import ANN_V2
+from module.VB import ADQN
 
 # Environment 
 import gym
@@ -39,7 +39,7 @@ params_dict = {
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
+    'discount': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
     'verbose': 2,
 }

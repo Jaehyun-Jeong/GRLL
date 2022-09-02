@@ -63,6 +63,7 @@ class RL():
         maxTimesteps,
         eps,
         policy,
+        clippingParams,
         device,
         isRender,
         useTensorboard,
@@ -92,6 +93,7 @@ class RL():
         self.optimizer = optimizer
         self.maxTimesteps = maxTimesteps
         self.policy = policy
+        self.clippingParams = clippingParams
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
@@ -143,6 +145,24 @@ class RL():
         self.useTestStochastic = testPolicyList[1]
 
         # ==================================================================================
+
+    # Update Gradient
+    def step(self, loss):
+
+        # Calculate Gradient
+        self.optimizer.zero_grad()
+        loss.backward()
+
+        # Gradient Clipping
+        torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                max_norm=self.clippingParams['maxNorm'],
+                norm_type=self.clippingParams['pNormValue'],
+                )
+
+        # Backpropagation and count steps
+        self.optimizer.step()
+        self.steps_done += 1
 
     # Draw graph in TensorBoard only when It use TensorBoard
     def writeTensorboard(self, y: Union[float, str], x: int):

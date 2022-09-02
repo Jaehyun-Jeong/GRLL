@@ -47,7 +47,7 @@ class REINFORCE(PolicyGradient):
             'decay': It determines how small epsilon is
         }
         maxTimesteps: Permitted timesteps in the environment
-        discount_rate: Discount rate for calculating return(accumulated reward)
+        discount: Discount rate for calculating return(accumulated reward)
         isRender={
 
             'train':
@@ -97,7 +97,7 @@ class REINFORCE(PolicyGradient):
             'decay': 10000
         },
         maxTimesteps: int = 1000,
-        discount_rate: float = 0.99,
+        discount: float = 0.99,
         isRender: Dict[str, bool] = {
             'train': False,
             'test': False,
@@ -110,6 +110,10 @@ class REINFORCE(PolicyGradient):
         policy: Dict[str, str] = {
             'train': 'eps-stochastic',
             'test': 'stochastic'
+        },
+        clippingParams: Dict[str, Union[int, float]] = {
+            'pNormValue': 2,
+            'maxNorm': 1,
         },
         verbose: int = 1,
         useBaseline: bool = True,
@@ -124,12 +128,13 @@ class REINFORCE(PolicyGradient):
             optimizer=optimizer,
             device=device,
             maxTimesteps=maxTimesteps,
-            discount_rate=discount_rate,
+            discount=discount,
             eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
             policy=policy,
+            clippingParams=clippingParams,
             verbose=verbose,
         )
 
@@ -157,7 +162,7 @@ class REINFORCE(PolicyGradient):
         Qval = torch.Tensor([R_tt[-1]])
 
         for r_tt in R_tt[:-1]:
-            newQval = torch.Tensor([r_tt + self.discount_rate * Qval[0]])
+            newQval = torch.Tensor([r_tt + self.discount * Qval[0]])
             Qval = torch.cat([newQval, Qval])
 
         Qval = Qval.to(self.device)
@@ -175,11 +180,7 @@ class REINFORCE(PolicyGradient):
         loss = actor_loss + critic_loss + 0.001 * entropy_term
         loss = torch.sum(loss)/lenLoss
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-        self.steps_done += 1
+        self.step(loss)
 
     def train(
         self,

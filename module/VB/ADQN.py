@@ -10,7 +10,7 @@ import torch
 from torch.autograd import Variable
 
 from module.utils import overrides
-from module.ValueBased.ValueBased import ValueBased
+from module.VB.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))
@@ -48,7 +48,7 @@ class ADQN(ValueBased):
             'decay': It determines how small epsilon is
         }
         maxTimesteps: Permitted timesteps in the environment
-        discount_rate: Discount rate for calculating return(accumulated reward)
+        discount: Discount rate for calculating return(accumulated reward)
         maxMemory: Memory size for Experience Replay
         numBatch: Batch size for mini-batch gradient descent
         isRender={
@@ -107,7 +107,7 @@ class ADQN(ValueBased):
             'decay': 10000
         },
         maxTimesteps: int = 1000,
-        discount_rate: float = 0.99,
+        discount: float = 0.99,
         maxMemory: int = 100000,
         numBatch: int = 64,
         isRender: Dict[str, bool] = {
@@ -122,6 +122,10 @@ class ADQN(ValueBased):
         policy: Dict[str, str] = {
             'train': 'eps-greedy',
             'test': 'greedy'
+        },
+        clippingParams: Dict[str, Union[int, float]] = {
+            'pNormValue': 2,
+            'maxNorm': 1,
         },
         verbose: int = 1,
         gradientStepPer: int = 4,
@@ -140,13 +144,14 @@ class ADQN(ValueBased):
             device=device,
             maxTimesteps=maxTimesteps,
             maxMemory=maxMemory,
-            discount_rate=discount_rate,
+            discount=discount,
             numBatch=numBatch,
             eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
             policy=policy,
+            clippingParams=clippingParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,
             epoch=epoch,
@@ -206,16 +211,12 @@ class ADQN(ValueBased):
                 actionValue = self.pi(S_t, A_t)
                 nextMaxValue = self.max_value(S_tt)
 
-                target = R_tt + self.discount_rate * nextMaxValue * notDone
+                target = R_tt + self.discount * nextMaxValue * notDone
                 target = Variable(target)  # No grad
                 loss = 1/2 * (target - actionValue).pow(2)
                 loss = torch.sum(loss)/lenLoss
 
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-
-                self.steps_done += 1
+                self.step(loss)
 
     def train(
         self,
