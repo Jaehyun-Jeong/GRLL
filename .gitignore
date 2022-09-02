@@ -2,7 +2,6 @@
 
 **.ipynb_checkpoints/
 **__pycache__/
-**runs/
 **/*.out
 **saved_models/
 **/*.sh
