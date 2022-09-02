@@ -8,7 +8,7 @@ import torch
 from torch.autograd import Variable
 
 # Parent Class
-from module.PolicyGradient.PolicyGradient import PolicyGradient
+from module.PG.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))

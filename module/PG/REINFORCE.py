@@ -9,7 +9,7 @@ import torch
 from torch.autograd import Variable
 
 # Parent Class
-from module.PolicyGradient.PolicyGradient import PolicyGradient
+from module.PG.PolicyGradient import PolicyGradient
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
@@ -144,14 +144,13 @@ class REINFORCE(PolicyGradient):
 
         lenLoss = Transitions.memory.__len__()
 
-        S_t = np.array([transition.state for transition in Transitions.memory])
-        A_t = np.array([transition.action for transition in Transitions.memory])
+        S_t = [transition.state for transition in Transitions.memory]
+        A_t = [transition.action for transition in Transitions.memory]
         R_tt = [transition.reward for transition in Transitions.memory]
 
-        # Because change list of np.ndarray to tensor is extremly slow
         S_t = np.array(S_t)
         S_t = torch.Tensor(S_t).to(self.device)
-        
+        A_t = np.array(A_t)
         A_t = torch.tensor(A_t).to(self.device)
 
         # calculate Qval
@@ -164,7 +163,7 @@ class REINFORCE(PolicyGradient):
         Qval = Qval.to(self.device)
 
         # get actor loss
-        log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
+        log_prob = torch.log(self.softmax(self.pi(S_t, A_t)) + self.ups)
         advantage = Variable(Qval - self.value(S_t) * self.useBaseline)
         actor_loss = -(advantage * log_prob)
 

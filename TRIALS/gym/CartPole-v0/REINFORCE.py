@@ -6,13 +6,13 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.PolicyGradient.models import ANN_V2
-from module.PolicyGradient import REINFORCE
+from module.PG.models import ANN_V2
+from module.PG import REINFORCE
 
 # Environment 
 import gym
 
-TRAIN_TIMESTEPS = 100000
+TRAIN_TIMESTEPS = 1000000
 MAX_TIMESTEPS = 1000
 
 ALPHA = 3e-4 # learning rate
@@ -37,11 +37,15 @@ REINFORCE_parameters= {
     'env': env, # environment like gym
     'model': REINFORCE_model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
+    'policy': {
+        'train': 'stochastic',
+        'test': 'greedy',
+    },
 }
 
 # Initialize Actor-Critic Mehtod
 RF = REINFORCE(**REINFORCE_parameters)
 
 # TRAIN Agent
-RF.train(TRAIN_TIMESTEPS, testPer=1000)
+RF.train(TRAIN_TIMESTEPS, testPer=10000)
 
