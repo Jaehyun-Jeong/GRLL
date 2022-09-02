@@ -57,6 +57,10 @@ class ValueBased(RL):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        clippingParams={
+            'maxNorm': max value of gradients
+            'pNormValue': p value for p-norm
+        }
         verbose: The verbosity level:
             0 no output,
             1 only train info,

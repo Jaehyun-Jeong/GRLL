@@ -75,6 +75,10 @@ class REINFORCE(PolicyGradient):
             'train': e.g. 'eps-stochastic'
             'test': e.g. 'stochastic'
         }
+        clippingParams={
+            'maxNorm': max value of gradients
+            'pNormValue': p value for p-norm
+        }
         useBaseline: True means use baseline term for REINFORCE algorithm
 
         verbose: The verbosity level:
