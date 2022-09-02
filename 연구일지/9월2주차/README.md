@@ -16,3 +16,13 @@ relu는 0 이상의 실수를 출력하는 활성함수이다. 따라서 로그 
 **softmax 함수를 사용하여 출력하기로 결정하고 하이퍼 파라미터만 잘 맞춘다면 문제없이 작동함을 확인했다.**<br/>
 ![](A2C_results.svg)<br/>
 *CartPole-v0에서 테스트*
+
+# 2. Gradient Clipping을 적용
+
+## 2.1. Value Clipping
+
+![](ValueClipping.png)<br/>
+
+## 2.2. Norm Clipping
+
+![](NormClipping.png)<br/>
