@@ -26,3 +26,27 @@ relu는 0 이상의 실수를 출력하는 활성함수이다. 따라서 로그 
 ## 2.2. Norm Clipping
 
 ![](NormClipping.png)<br/>
+
+## 2.3. 작성한 코드
+
+**Backpropagation 과정을 위한 메소드를 만들고 Gradient Clipping 요소를 추가했다.**<br/>
+**다음은 RL.py에 있는 step 메소드이다.**<br/>
+```python
+    # Update Gradient
+    def step(self, loss):
+
+        # Calculate Gradient
+        self.optimizer.zero_grad()
+        loss.backward()
+
+        # Gradient Clipping
+        torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                max_norm=self.clippingParams['maxNorm'],
+                norm_type=self.clippingParams['pNormValue'],
+                )
+
+        # Backpropagation and count steps
+        self.optimizer.step()
+        self.steps_done += 1
+```
