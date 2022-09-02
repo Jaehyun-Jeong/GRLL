@@ -27,6 +27,11 @@ advantage_AC = A2C(
         'train': 'stochastic',
         'test': 'greedy',
     },
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "../../runs/A2C_CartPole_v0",
+        'tag': "Averaged Returns/ANN_V3_lr=1e-4"
+    },
 )
 
 advantage_AC.train(trainTimesteps=1000000)
