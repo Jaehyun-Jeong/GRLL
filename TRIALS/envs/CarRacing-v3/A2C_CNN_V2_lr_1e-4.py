@@ -7,7 +7,7 @@ from module.PG.models import CNN_V2_shared
 from module.PG import A2C
 from module.envs.CarRacing import RacingEnv_v3
 
-TRAIN_TIMESTEPS = 100000
+TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 100000
 
 ALPHA = 1e-4  # learning rate
@@ -35,7 +35,7 @@ params_dict = {
     'model': model,  # torch models for policy and value funciton
     'optimizer': optimizer,  # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS,  # maximum timesteps agent take
-    'discount_rate': GAMMA,  # step-size for updating Q value
+    'discount': GAMMA,  # step-size for updating Q value
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/A2C_CarRacing_v3",
