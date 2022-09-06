@@ -290,7 +290,7 @@ class RacingEnv_v2(RacingEnv_v0):
         screen = pygame.surfarray.pixels3d(WIN) # game screen img to numpy ndarray(RGB)
         screen = self.grayscale(screen)
         self.stackedStates.append(screen) # from RGB to grayscale img
-        
+
         state = torch.from_numpy(np.array(self.stackedStates))
         state = self._transforms(state)
 
@@ -315,6 +315,7 @@ class RacingEnv_v3(RacingEnv_v0):
             stackSize: int=4,
             ExploringStarts: bool=False,
             skipFrame: int=2,
+            imgSize: tuple=(86, 86), 
             isFlatten: bool=False):
 
         super().__init__(
@@ -334,7 +335,7 @@ class RacingEnv_v3(RacingEnv_v0):
         from torchvision import transforms as T
 
         self._sliceImgSize = (150, 150)
-        self._stateImgSize = (84, 84)
+        self._stateImgSize = imgSize
 
         self._transforms = T.Compose(
             [T.Resize(self._stateImgSize), T.Normalize(0, 255)]
