@@ -315,7 +315,7 @@ class RacingEnv_v3(RacingEnv_v0):
             stackSize: int=4,
             ExploringStarts: bool=False,
             skipFrame: int=2,
-            imgSize: tuple=(86, 86), 
+            imgSize: tuple=(84, 84), 
             isFlatten: bool=False):
 
         super().__init__(

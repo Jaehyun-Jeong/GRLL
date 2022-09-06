@@ -6,7 +6,7 @@ startTime = datetime.now()
 import gym
 from stable_baselines3 import A2C
 
-env = gym.make("Ant-v0")
+env = gym.make("Ant-v2")
 
 # 작성자의 모듈과 동일하게 파라미터 설정
 model = A2C(
@@ -16,21 +16,10 @@ model = A2C(
         use_rms_prop=False,  # RMSProp 옵티마이저 대신에 Adam을 사용
         learning_rate=1e-4,
         n_steps=10,
-        vf_coef=1,
-        verbose=0)
-
-# 모듈 초기화에 걸린 시간
-print(f"Init Time: {datetime.now() - startTime}")
-
-# 학습이 시작되는 시간
-startTrainTime = datetime.now()
+        vf_coef=1)
 
 model.learn(
-        total_timesteps=1000000,  # 백만번의 학습을 시행
-        n_eval_episodes=0)
-
-# 학습이 끝나는 시간
-print(f"Train Time: {datetime.now() - startTrainTime}")
+        total_timesteps=1000000)  # 백만번의 학습을 시행
 
 # 성능 측정을 위한 테스트 코드
 returns = [0]*10
