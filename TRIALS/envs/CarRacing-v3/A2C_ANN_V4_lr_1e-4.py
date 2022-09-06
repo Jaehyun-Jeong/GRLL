@@ -46,7 +46,7 @@ params_dict = {
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/A2C_CarRacing_v3",
-        'tag': "Averaged Returns/CNN_V2_lr=1e-4"
+        'tag': "Averaged Returns/ANN_V4_lr=1e-4"
     },
     'eps': {  # for epsilon scheduling
         'start': 0.99,
@@ -66,4 +66,4 @@ Trainer = A2C(**params_dict)
 Trainer.train(TRAIN_TIMESTEPS)
 
 # save model
-Trainer.save("../../saved_models/CarRacing_v3/A2C_lr1e-4.obj")
+Trainer.save("../../saved_models/CarRacing_v3/A2C_ANN_V4_lr1e-4.obj")
