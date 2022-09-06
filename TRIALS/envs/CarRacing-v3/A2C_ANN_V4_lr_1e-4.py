@@ -18,13 +18,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
 trainEnv = RacingEnv_v3(
-        stackSize=10,
+        stackSize=1,
         imgSize=(32, 32),
         isFlatten=True,
         ExploringStarts=True)
 
 testEnv = RacingEnv_v3(
-        stackSize=10,
+        stackSize=1,
         imgSize=(32, 32),
         isFlatten=True,
         ExploringStarts=False)
