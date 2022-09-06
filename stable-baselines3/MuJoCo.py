@@ -16,10 +16,10 @@ model = A2C(
         use_rms_prop=False,  # RMSProp 옵티마이저 대신에 Adam을 사용
         learning_rate=1e-4,
         n_steps=10,
-        vf_coef=1)
+        vf_coef=1,
+        verbose=1)
 
-model.learn(
-        total_timesteps=1000000)  # 백만번의 학습을 시행
+model.learn(total_timesteps=1000000)  # 백만번의 학습을 시행
 
 # 성능 측정을 위한 테스트 코드
 returns = [0]*10
