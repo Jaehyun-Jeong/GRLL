@@ -11,8 +11,8 @@ import torch
 import torch.optim as optim
 
 # 작성자의 모듈
-from module.PolicyGradient.models import ANN_V3
-from module.PolicyGradient import A2C
+from module.PG.models import ANN_V3
+from module.PG import A2C
 
 # 환경
 import gym
@@ -29,7 +29,7 @@ advantage_AC = A2C(
     model=A2C_model,
     device=torch.device('cuda'),
     optimizer=optimizer,
-    verbose=0,
+    verbose=1,
     policy={
         'train': 'stochastic',
         'test': 'greedy',
@@ -44,7 +44,7 @@ startTrainTime = datetime.now()
 
 advantage_AC.train(
         trainTimesteps=1000000,
-        testSize=0)
+        testSize=10)
 
 # 학습이 끝나는 시간
 print(f"Train Time: {datetime.now() - startTrainTime}")

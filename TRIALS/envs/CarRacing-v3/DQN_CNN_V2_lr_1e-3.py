@@ -6,13 +6,13 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import CNN_V2
-from module.ValueBased import DQN
+from module.VB.models import CNN_V2
+from module.VB import DQN
 
 # Environment
 from module.envs.CarRacing import RacingEnv_v3
 
-TRAIN_TIMESTEPS = 100000
+TRAIN_TIMESTEPS = int(1e7)
 MAX_TIMESTEPS = 100000
 MAX_REPLAYMEMORY = 10000
 
@@ -38,9 +38,9 @@ params_dict = {
     'model': model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
+    'discount': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 100,
+    'numBatch': 128,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/DQN_CarRacing_v3",
