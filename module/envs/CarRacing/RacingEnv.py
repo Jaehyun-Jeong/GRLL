@@ -314,7 +314,8 @@ class RacingEnv_v3(RacingEnv_v0):
             self,
             stackSize: int=4,
             ExploringStarts: bool=False,
-            skipFrame: int=2):
+            skipFrame: int=2,
+            isFlatten: bool=False):
 
         super().__init__(
             ExploringStarts=ExploringStarts
@@ -323,6 +324,7 @@ class RacingEnv_v3(RacingEnv_v0):
         self.lines = None # delete the line
         self.stackSize = stackSize
         self.skipFrame = skipFrame
+        self.isFlatten = isFlatten
 
         #=========================================================
         # STACKED GRAYSCALE IMG DATA
@@ -416,6 +418,9 @@ class RacingEnv_v3(RacingEnv_v0):
         state = torch.from_numpy(np.array(self.stackedStates))
         state = self._transforms(state)
 
+        if self.isFlatten:
+            state = torch.flatten(state)
+
         return state.to(torch.float).numpy()
 
     def init_stackedStates(self, frames: int):
@@ -466,7 +471,9 @@ class RacingEnv_v4(RacingEnv_v3):
 if __name__=="__main__":
     from random import choice
 
-    RacingEnv = RacingEnv_v4(ExploringStarts = True)
+    RacingEnv = RacingEnv_v3(
+            ExploringStarts=True,
+            isFlatten=True)
 
     for episode in range(3):
 
@@ -475,11 +482,12 @@ if __name__=="__main__":
 
         for i in range(1000):
 
-            Accel = choice([0, 1])
-            Direction = choice([0, 1, 2])
+            print(state.shape)
 
-            action = torch.Tensor([Accel, Direction])
+            action = choice([0, 1, 2])
+            action = torch.tensor(action)
             state, reward, done, _ = RacingEnv.step(action)
+
             if done:
                 break
 
