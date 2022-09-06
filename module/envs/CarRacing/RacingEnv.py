@@ -347,7 +347,12 @@ class RacingEnv_v3(RacingEnv_v0):
         # Number of actions and observations
         # There are 3 actions left, center, and right, then 8 lines to check distance to wall
         self.num_actions = 3
-        self.num_obs = self.reset().shape
+        
+        # If its flattend, then make shape as int
+        if self.isFlatten:
+            self.num_obs = self.reset().shape[0]
+        else:
+            self.num_obs = self.reset().shape
 
         #=========================================================
         
