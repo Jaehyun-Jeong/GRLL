@@ -237,7 +237,7 @@ class REINFORCE(PolicyGradient):
 
                         self.writeTensorboard(
                                 rewards[-1],
-                                self.trainedEpisodes)
+                                self.trainedTimesteps)
 
                         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

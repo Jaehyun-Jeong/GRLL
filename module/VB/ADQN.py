@@ -282,7 +282,7 @@ class ADQN(ValueBased):
 
                         self.writeTensorboard(
                                 rewards[-1],
-                                self.trainedEpisodes)
+                                self.trainedTimesteps)
 
                         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

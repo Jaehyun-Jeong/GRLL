@@ -265,7 +265,7 @@ class DQN(ValueBased):
 
                         self.writeTensorboard(
                                 rewards[-1],
-                                self.trainedEpisodes)
+                                self.trainedTimesteps)
 
                         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

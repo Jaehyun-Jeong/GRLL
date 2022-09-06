@@ -234,7 +234,7 @@ class A2C(PolicyGradient):
 
                         self.writeTensorboard(
                                 rewards[-1],
-                                self.trainedEpisodes)
+                                self.trainedTimesteps)
 
                         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
