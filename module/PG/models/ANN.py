@@ -105,22 +105,26 @@ class ANN_V4(nn.Module):
         # Actor
         self.actor_fc1 = nn.Linear(inputs, 2*inputs)
         self.actor_fc2 = nn.Linear(2*inputs, 2*inputs)
-        self.actor_fc3 = nn.Linear(inputs, outputs)
+        self.actor_fc3 = nn.Linear(2*inputs, inputs)
+        self.actor_fc4 = nn.Linear(inputs, outputs)
 
         # Critic
         self.critic_fc1 = nn.Linear(inputs, 2*inputs)
         self.critic_fc2 = nn.Linear(2*inputs, 2*inputs)
-        self.critic_fc3 = nn.Linear(inputs, outputs)
+        self.critic_fc3 = nn.Linear(2*inputs, inputs)
+        self.critic_fc4 = nn.Linear(inputs, 1)
 
     def forward(self, x):
         state = x
 
         probs = F.relu(self.actor_fc1(state))
         probs = F.relu(self.actor_fc2(probs))
-        probs = self.actor_fc3(probs)
+        probs = F.relu(self.actor_fc3(probs))
+        probs = self.actor_fc4(probs)
 
         value = F.relu(self.critic_fc1(state))
         value = F.relu(self.critic_fc2(value))
-        value = self.critic_fc3(value)
+        value = F.relu(self.critic_fc3(value))
+        value = self.critic_fc4(value)
 
         return value, probs
