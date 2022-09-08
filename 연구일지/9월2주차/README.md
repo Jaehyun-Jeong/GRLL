@@ -101,4 +101,4 @@ relu는 0 이상의 실수를 출력하는 활성함수이다. 따라서 로그 
 
 # 5.3. 여러 Exploring 지원
 
-작성자의 모듈은 지금 epsilon-greedy와 stochastic(확률 기반의 행동 선택)을 사용하여 Exploring을 보장하고 있다. 하지만 noise, State-dependent Exploring, Generalized State-dependent Exploring, 
+작성자의 모듈은 지금 epsilon-greedy와 stochastic(확률 기반의 행동 선택)을 사용하여 Exploring을 보장하고 있다. **하지만 noise, State-dependent Exploring, Generalized State-dependent Exploring, Likelihood Ratio 등 여러가지 Exploring 방법이 있다. 따라서, 각 Exploring 알고리즘을 구현하고자 한다.**
