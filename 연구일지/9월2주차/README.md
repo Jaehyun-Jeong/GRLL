@@ -86,5 +86,19 @@ relu는 0 이상의 실수를 출력하는 활성함수이다. 따라서 로그 
 *실제로 확인한 모델의 모양*<br/>
 
 - 뉴럴넷은 8개의 실수값을 출력한다.<br/><br/>
-
+ 
 **따라서, Ant-v2가 필요로 하는 사이의 8개의 실수가 완성된다.**<br/>
+
+# 5. 다음주 계획
+
+# 5.1. A2C를 사용하여 MuJoCo Ant-v2 환경 학습
+
+**지금까지 Continuous Control을 위한 Policy 설정 방식을 알아보았다. 따라서 하나의 방법을 선택하고 구현해보고자 한다.**
+
+# 5.2. 작성자의 모델과 stable-baselines3의 속도 비교
+
+**이미 stable-baselines3에서 잘 작동함은 확인했다. 따라서 비교는 간단할 것이라 예상된다.**
+
+# 5.3. 여러 Exploring 지원
+
+작성자의 모듈은 지금 epsilon-greedy와 stochastic(확률 기반의 행동 선택)을 사용하여 Exploring을 보장하고 있다. 하지만 noise, State-dependent Exploring, Generalized State-dependent Exploring, 
