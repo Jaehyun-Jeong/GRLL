@@ -150,7 +150,7 @@ class RL():
 
         # ==================================================================================
 
-    # Update Gradient
+    # Update Weights
     def step(self, loss):
 
         # Calculate Gradient

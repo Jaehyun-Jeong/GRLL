@@ -32,7 +32,7 @@ relu는 0 이상의 실수를 출력하는 활성함수이다. 따라서 로그 
 **Backpropagation 과정을 위한 메소드를 만들고 Gradient Clipping 요소를 추가했다.**<br/>
 **다음은 RL.py에 있는 step 메소드이다.**<br/>
 ```python
-    # Update Gradient
+    # Update Weights
     def step(self, loss):
 
         # Calculate Gradient
