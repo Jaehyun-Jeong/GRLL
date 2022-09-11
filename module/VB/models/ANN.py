@@ -1,4 +1,7 @@
+from typing import Union
+
 # PyTorch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -51,5 +54,29 @@ class ANN_V3(nn.Module):
         value = F.relu(self.fc1(state))
         value = F.relu(self.fc2(value))
         value = self.fc3(value)
-        
+
+        return value
+
+
+class ANN_V4(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_V4, self).__init__()
+
+        self.fc1 = nn.Linear(inputs, 2*inputs)
+        self.fc2 = nn.Linear(2*inputs, 2*inputs)
+        self.fc3 = nn.Linear(2*inputs, inputs)
+        self.fc4 = nn.Linear(inputs, outputs)
+
+    def forward(self, x):
+        state = x
+
+        value = torch.tanh(self.fc1(state))
+        value = torch.tanh(self.fc2(value))
+        value = torch.tanh(self.fc3(value))
+        value = self.fc4(value)
+
         return value
