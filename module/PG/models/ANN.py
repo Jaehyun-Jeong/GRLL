@@ -117,14 +117,14 @@ class ANN_V4(nn.Module):
     def forward(self, x):
         state = x
 
-        probs = F.relu(self.actor_fc1(state))
-        probs = F.relu(self.actor_fc2(probs))
-        probs = F.relu(self.actor_fc3(probs))
+        probs = torch.tanh(self.actor_fc1(state))
+        probs = torce.tanh(self.actor_fc2(probs))
+        probs = torce.tanh(self.actor_fc3(probs))
         probs = self.actor_fc4(probs)
 
-        value = F.relu(self.critic_fc1(state))
-        value = F.relu(self.critic_fc2(value))
-        value = F.relu(self.critic_fc3(value))
+        value = torce.tanh(self.critic_fc1(state))
+        value = torce.tanh(self.critic_fc2(value))
+        value = torce.tanh(self.critic_fc3(value))
         value = self.critic_fc4(value)
 
         return value, probs
