@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 from module.RL import RL
-from module.utils import overrides
+from module.utils.utils import overrides
 
 
 class ValueBased(RL):

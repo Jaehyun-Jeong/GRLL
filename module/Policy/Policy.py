@@ -1,11 +1,12 @@
 from typing import Union, Dict
 
 import random
-
-import torch
 import numpy as np
 
-# ValueBaased
+# PyTorch
+import torch
+
+# ValueBased
 
 
 def get_action(

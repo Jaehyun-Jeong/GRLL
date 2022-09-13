@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from module.utils import overrides
+from module.utils.utils import overrides
 from module.RL import RL
 
 

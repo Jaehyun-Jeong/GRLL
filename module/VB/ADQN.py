@@ -9,7 +9,7 @@ from copy import deepcopy
 import torch
 from torch.autograd import Variable
 
-from module.utils import overrides
+from module.utils.utils import overrides
 from module.VB.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
