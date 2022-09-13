@@ -118,13 +118,13 @@ class ANN_V4(nn.Module):
         state = x
 
         probs = torch.tanh(self.actor_fc1(state))
-        probs = torce.tanh(self.actor_fc2(probs))
-        probs = torce.tanh(self.actor_fc3(probs))
+        probs = torch.tanh(self.actor_fc2(probs))
+        probs = torch.tanh(self.actor_fc3(probs))
         probs = self.actor_fc4(probs)
 
-        value = torce.tanh(self.critic_fc1(state))
-        value = torce.tanh(self.critic_fc2(value))
-        value = torce.tanh(self.critic_fc3(value))
+        value = torch.tanh(self.critic_fc1(state))
+        value = torch.tanh(self.critic_fc2(value))
+        value = torch.tanh(self.critic_fc3(value))
         value = self.critic_fc4(value)
 
         return value, probs
