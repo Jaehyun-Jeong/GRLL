@@ -22,15 +22,22 @@ class ActionSpace():
             raise ValueError(
                     "Action Space data type should be float or integer")
 
+        # Check data type and shape
         if self.high.dtype != self.low.dtype:
             raise ValueError(
                     "high and low have different data type!")
+        if self.high.shape != self.low.shape:
+            raise ValueError(
+                    "high and low have different shape!")
 
-    #  Check the Validity of X
+    # Check the Validity of X
     def contains(
             self,
             X: np.ndarray,
             ) -> bool:
+
+        if X.shape != self.shape:
+            ValueError(f"{X} has different shape!")
 
         if False in (X <= self.high):
             return False
