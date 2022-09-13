@@ -17,10 +17,14 @@ class ActionSpace():
 
         # Check Validity
         # int or float
-        if not (self.dtype == int
-                or self.dtype == float):
+        if not (self.dtype in
+                [np.int32, np.int64, np.float32, np.float64]):
             raise ValueError(
                     "Action Space data type should be float or integer")
+
+        if self.high.dtype != self.low.dtype:
+            raise ValueError(
+                    "high and low have different data type!")
 
     #  Check the Validity of X
     def contains(
@@ -57,22 +61,22 @@ class ActionSpace():
     # Sample Random Action
     def sample(self):
 
-        if self.dtype == float:
+        if self.dtype in [np.float32, np.float64]:
 
             # Get action fron uniform distribution
             action = []
-            for low, high in self.low, self.high:
+            for low, high in zip(self.low, self.high):
                 action.append(np.random.uniform(
                     low=low,
                     high=high))
 
             return np.array(action)
 
-        elif self.dtype == int:
+        elif self.dtype in [np.int32, np.int64]:
 
             # Get action by random choice from integer range
             action = []
-            for low, high in self.low, self.high:
+            for low, high in zip(self.low, self.high):
                 action.append(choice(range(low, high)))
 
             return action
