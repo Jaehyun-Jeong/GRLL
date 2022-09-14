@@ -1,32 +1,32 @@
 import math
 import numpy as np
 
+from module.utils.scheduling import expScheduling, linScheduling
+
 ##################
 # DISCRETE NOISE #
 ##################
-
 
 # for epsilon greedy
 class epsilon():
 
     def __init__(
             self,
-            start=0.99,
-            end=0.0001,
-            decay=10000):
+            schedule=expSheduling(  # exponential, linear
+                    start=0.99,
+                    end=0.0001,
+                    decay=10000
+                    ),
+            ):
 
-        self._start = start
-        self._end = end
-        self._decay = decay
+        self.schedule = schedule
 
     def __call__(
             self,
             stepsDone: int
             ) -> float:
 
-        threshold = \
-            self._end + (self._start - self._end) * \
-            math.exp(-1. * stepsDone / self._decay)
+        threshold = self.schedule(stepsDone)
 
         return threshold
 
