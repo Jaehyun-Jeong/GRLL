@@ -65,9 +65,11 @@ class ActionSpace():
 
     # Check each element have bound or not
     def is_bounded(self):
-        return ~np.isin(
-                self.low,
-                np.array([math.inf, -math.inf]))
+
+        above = self.bounded_above()
+        below = self.bounded_below()
+
+        return np.logical_or(above, below)
 
     # Sample Random Action
     def sample(self):
