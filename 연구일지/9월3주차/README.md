@@ -26,9 +26,9 @@ OpenAI의 Box, Discrete와 같은 action space를 참고하여 모듈 내부의 
 
 **빨리 테스트를 진행하기 위해 다음과 같은 두 가지 exploring만 지원하도록 작성중이다.**<br/>
 * Discrete<br/>
-** Epsilon Exploring<br/>
+* * Epsilon Exploring<br/>
 * Continuous<br/>
-** normalized noise<br/><br/>
+* * normalized noise<br/><br/>
 
 **코드는 ./module/utils/exploring.py를 참고하면 된다.**
 
@@ -44,5 +44,4 @@ OpenAI의 Box, Discrete와 같은 action space를 참고하여 모듈 내부의 
 # 5. 다음 주 계획
 
 저번 주 과제를 이어서 하고자 한다.<br/>
-
 
