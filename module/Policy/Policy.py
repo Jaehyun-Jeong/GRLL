@@ -49,11 +49,6 @@ class DiscretePolicy(Policy):
             stepsDone: int,
             ) -> torch.Tensor:
 
-        '''
-        s = torch.Tensor(s).to(self.device).unsqueeze(0)
-        _, probs = self.model.forward(s)
-        probs = probs.squeeze(0)
-        '''
         probs = actionValue
 
         eps = self.exploration(stepsDone) if self.useEps else 0
