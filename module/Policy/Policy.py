@@ -88,4 +88,3 @@ class ContinuousPolicy(Policy):
 
     @overrides(Policy)
     def get_action(self):
-        pass
