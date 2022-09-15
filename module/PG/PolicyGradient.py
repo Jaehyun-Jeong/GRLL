@@ -1,13 +1,6 @@
-from typing import Union
-
-import random
-import numpy as np
-
 # PyTorch
-import torch
 import torch.nn as nn
 
-from module.utils.utils import overrides
 from module.RL import RL
 
 
@@ -103,7 +96,6 @@ class PolicyGradient(RL):
         )
 
         self.discount = discount
-        self.steps_done = 0  # for epsilon scheduling
 
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
@@ -111,69 +103,3 @@ class PolicyGradient(RL):
         # torch.log makes nan(not a number) error,
         # so we have to add some small number in log function
         self.ups = 1e-7
-
-    # Epsilon scheduling method
-    def __get_eps(self) -> float:
-        import math
-
-        eps_start = self.eps['start']
-        eps_end = self.eps['end']
-        eps_decay = self.eps['decay']
-
-        return eps_end + \
-            (eps_start + eps_end) * math.exp(-1. * self.steps_done / eps_decay)
-
-    # Returns the action from state s by using multinomial distribution
-    @overrides(RL)
-    @torch.no_grad()
-    def get_action(
-            self,
-            s: Union[torch.Tensor, np.ndarray],
-            useEps: bool,
-            useStochastic: bool) -> torch.Tensor:
-
-        s = torch.Tensor(s).to(self.device).unsqueeze(0)
-        _, probs = self.model.forward(s)
-        probs = probs.squeeze(0)
-
-        eps = self.__get_eps() if useEps else 0
-
-        if random.random() >= eps:
-            if useStochastic:
-                probs = self.softmax(probs)
-
-                a = probs.multinomial(num_samples=1)
-                a = a.data
-                action = a[0].cpu()
-            else:
-                action = torch.argmax(probs, dim=0)
-        else:
-            a = torch.rand(probs.shape).multinomial(num_samples=1)
-            a = a.data
-            action = a[0]
-
-        action = action.detach()
-
-        return action.tolist()
-
-    # Returns a value of the state
-    # (state value function in Reinforcement learning)
-    def value(self, s: torch.Tensor) -> torch.Tensor:
-        value, _ = self.model.forward(s)
-
-        return value
-
-    # In Reinforcement learning,
-    # pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(
-            self,
-            s: torch.Tensor,
-            a: torch.Tensor) -> torch.Tensor:
-
-        a = a.unsqueeze(dim=-1)
-
-        _, probs = self.model.forward(s)
-        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
-
-        return actionValue

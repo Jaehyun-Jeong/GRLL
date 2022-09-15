@@ -3,6 +3,7 @@ import math
 from random import choice
 
 
+# OpenAI gym Box like action space class
 class ActionSpace():
 
     def __init__(
@@ -17,8 +18,11 @@ class ActionSpace():
 
         # Check Validity
         # int or float
-        if not (self.dtype in
-                [np.int32, np.int64, np.float32, np.float64]):
+        if self.dtype in [np.int32, np.int64]:
+            self.actionType = 'Discrete'
+        elif self.dtype in [np.float32, np.float64]:
+            self.actionType = 'Continuous'
+        else:
             raise ValueError(
                     "Action Space data type should be float or integer")
 
@@ -61,9 +65,11 @@ class ActionSpace():
 
     # Check each element have bound or not
     def is_bounded(self):
-        return ~np.isin(
-                self.low,
-                np.array([math.inf, -math.inf]))
+
+        above = self.bounded_above()
+        below = self.bounded_below()
+
+        return np.logical_or(above, below)
 
     # Sample Random Action
     def sample(self):

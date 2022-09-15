@@ -28,7 +28,7 @@ class expScheduling(Scheduling):
                 end=end,
                 decay=decay,)
 
-    def get_eps(
+    def __call__(
             self,
             steps_done: int) -> float:
 
@@ -53,7 +53,7 @@ class linScheduling(Scheduling):
                 end=end,
                 decay=decay,)
 
-    def get_eps(
+    def __call__(
             self,
             steps_done: int) -> float:
 
