@@ -16,7 +16,18 @@ class ActionValue():
             self,
             policyModel: torch.nn.Module,
             actionSpace: ActionSpace,
-            actionParams: Dict[str, Union[int, float]]):
+            actionParams: Dict[str, Union[int, float, Dict]] = {
+
+                # for DISCRETE
+
+                'algorithm': "greedy",  # greedy, stochastic
+                'exploring': "epsilon",  # epsilon, None
+                'exploringParams': {
+                    'start': 0.99,
+                    'end': 0.0001,
+                    'decay': 10000
+                }
+            }):
 
         self.actionSpace = actionSpace
 
