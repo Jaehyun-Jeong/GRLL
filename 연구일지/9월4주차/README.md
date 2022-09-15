@@ -1,0 +1,163 @@
+
+---
+# 9월 4주차
+##### 정재현
+##### 이아영 (모든 이미지 작업)
+---
+
+# 9월 15일
+
+## 1. Policy Gradient의 ActionValue와 StateValue를 계산하는 class 작성
+
+```python
+from typing import Union, Dict
+
+import numpy as np
+
+# PyTorch
+import torch
+
+# module
+from module.Policy import DiscretePolicy, ContinuousPolicy
+from module.utils.ActionSpace import ActionSpace
+
+
+class Value():
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optimizer,
+        actionSpace: ActionSpace,
+        actionParams: Dict[str, Union[int, float, Dict]] = {
+
+            # for DISCRETE
+
+            'algorithm': "greedy",  # greedy, stochastic
+            'exploring': "epsilon",  # epsilon, None
+            'exploringParams': {
+                'start': 0.99,
+                'end': 0.0001,
+                'decay': 10000
+            }
+        },
+        clippingParams: Dict[str, Union[int, float]] = {
+            'pNormValue': 2,
+            'maxNorm': 1,
+        },
+    ):
+
+        # Initialize Parameter
+        self.actionSpace = actionSpace
+        self.stepsDone = 0
+
+        # Set policy
+        if self.actionSpace.actionType == 'Discrete':
+            self.policy = DiscretePolicy(**actionParams)
+        elif self.actionSpace.actionType == 'Continuous':
+            self.policy = ContinuousPolicy(**actionParams)
+        else:
+            raise ValueError(
+                "actionType only for Discrete and Continuous Action")
+
+    # Update Weights
+    def step(self, loss):
+
+        # Calculate Gradient
+        self.optimizer.zero_grad()
+        loss.backward()
+
+        # Gradient Clipping
+        torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                max_norm=self.clippingParams['maxNorm'],
+                norm_type=self.clippingParams['pNormValue'],
+                )
+
+        # Backpropagation and count steps
+        self.optimizer.step()
+        self.stepsDone += 1
+
+    # Returns a value of the state
+    # (state value function in Reinforcement learning)
+    def StateValue(
+            self,
+            s: torch.Tensor,
+            ) -> torch.Tensor:
+
+        value, _ = self.model.forward(s)
+
+        return value
+
+    # Get Action Value from state
+    def ActionValue(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            ) -> torch.Tensor:
+
+        s = torch.Tensor(s).to(self.device).unsqueeze(0)
+        _, ActionValue = self.model.forward(s)
+        ActionValue = ActionValue.squeeze(0)
+
+        return ActionValue
+
+    # In Reinforcement learning,
+    # pi means the function from state space to action probability distribution
+    # Returns probability of taken action a from state s
+    def pi(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        a = a.unsqueeze(dim=-1)
+
+        _, probs = self.model.forward(s)
+        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
+
+        return actionValue
+
+    # Get Action from State s
+    @torch.no_grad()
+    def get_action(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            ) -> torch.Tensor:
+
+        ActionValue = self.value(s)
+
+        return self.policy(
+                ActionValue,
+                self.stepsDone
+                )
+```
+
+## 1. Gym의 ActionSpace인 Box와 Discrete를 모듈 내부의 ActionSpace로 변환하는 함수 작성
+
+```python
+from gym.spaces import Box, Discrete
+import numpy as np
+
+from module.utils.ActionSpace import ActionSpace
+
+
+def fromDiscrete(
+        space: Discrete
+        ):
+
+    # Biggiest index of action is space.n - 1
+    # Because space.n is a size of action space
+    high = np.array([space.n-1], dtype=space.dtype)
+    low = np.array([0], dtype=space.dtype)
+
+    return ActionSpace(high, low)
+
+
+def fromBox(
+        space: Box
+        ):
+
+    high = space.high
+    low = space.low
+
+    return ActionSpace(high, low)
+```
