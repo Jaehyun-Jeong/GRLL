@@ -16,8 +16,8 @@ class Policy():
     def __init__(self):
         pass
 
-    def get_action(self):
-        pass
+    def __call__(self) -> torch.Tensor:
+        raise NotImplementedError()
 
 
 class DiscretePolicy(Policy):
@@ -42,8 +42,9 @@ class DiscretePolicy(Policy):
         if algorithm == 'stochastic':
             self.useStochastic = True
 
+    # Return Action
     @overrides(Policy)
-    def get_action(
+    def __call__(
             self,
             actionValue: torch.Tensor,
             stepsDone: int,
@@ -82,4 +83,5 @@ class ContinuousPolicy(Policy):
         pass
 
     @overrides(Policy)
-    def get_action(self):
+    def __call__(self):
+        pass
