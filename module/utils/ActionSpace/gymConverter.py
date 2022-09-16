@@ -1,7 +1,7 @@
 from gym.spaces import Box, Discrete
 import numpy as np
 
-from module.utils.ActionSpace import ActionSpace
+from module.utils.ActionSpace.ActionSpace import ActionSpace
 
 
 def fromDiscrete(

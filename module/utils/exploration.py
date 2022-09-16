@@ -1,18 +1,19 @@
-import math
-import numpy as np
+from typing import Union
 
-from module.utils.scheduling import expScheduling, linScheduling
+import numpy as np
+from module.utils.scheduling import expScheduling
 
 ##################
 # DISCRETE NOISE #
 ##################
 
+
 # for epsilon greedy
-class epsilon():
+class Epsilon():
 
     def __init__(
             self,
-            schedule=expSheduling(  # exponential, linear
+            schedule=expScheduling(  # exponential, linear
                     start=0.99,
                     end=0.0001,
                     decay=10000
@@ -46,5 +47,10 @@ class NormalNoise():
         self._mu = mean
         self._sigma = sigma
 
-    def __call__(self) -> np.ndarray:
-        return np.random.normal(self._mu, self._sigma)
+    def __call__(
+            self,
+            stepsDone: int,
+            shape: Union[tuple, int],
+            ) -> float:
+
+        return np.random.normal(self._mu, self._sigma, shape)

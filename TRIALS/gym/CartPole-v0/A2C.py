@@ -23,10 +23,6 @@ advantage_AC = A2C(
     model=A2C_model,
     optimizer=optimizer,
     verbose=1,
-    policy={
-        'train': 'stochastic',
-        'test': 'greedy',
-    },
     useTensorboard=True,
     tensorboardParams={
         'logdir': "../../runs/A2C_CartPole_v0",

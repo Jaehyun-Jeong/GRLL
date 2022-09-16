@@ -12,12 +12,8 @@ from module.utils.ActionSpace import ActionSpace
 
 class Value():
 
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        optimizer,
-        actionSpace: ActionSpace,
-        actionParams: Dict[str, Union[int, float, Dict]] = {
+    """
+            actionParams
 
             # for DISCRETE
 
@@ -27,8 +23,24 @@ class Value():
                 'start': 0.99,
                 'end': 0.0001,
                 'decay': 10000
+            },
+
+            # for CONTINUOUS
+
+            'algorithm': "plain",  # greedy
+            'exploring': "normal",  # normal
+            'exploringParams': {
+                'mean': 0,
+                'sigma': 1,
             }
-        },
+    """
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optimizer,
+        actionSpace: ActionSpace,
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
             'maxNorm': 1,
@@ -36,15 +48,47 @@ class Value():
     ):
 
         # Initialize Parameter
+        self.model = model
+        self.optimizer = optimizer
+        self.clippintParams = clippingParams
         self.actionSpace = actionSpace
         self.stepsDone = 0
 
         # Set policy
         if self.actionSpace.actionType == 'Discrete':
+
+            # default actionParams
+            if actionParams is None:
+                actionParams = {
+                    'algorithm': "greedy",  # greedy, stochastic
+                    'exploring': "epsilon",  # epsilon, None
+                    'exploringParams': {
+                        'start': 0.99,
+                        'end': 0.0001,
+                        'decay': 10000
+                    }
+                }
+
             self.policy = DiscretePolicy(**actionParams)
-        elif self.actionSpace.actionType == 'Continuous':
+
+        if self.actionSpace.actionType == 'Continuous':
+
+            # default actionParams
+            if actionParams is None:
+                actionParams = {
+                    'algorithm': "plain",  # greedy
+                    'exploring': "normal",  # normal
+                    'exploringParams': {
+                        'mean': 0,
+                        'sigma': 1,
+                    }
+                }
+
             self.policy = ContinuousPolicy(**actionParams)
-        else:
+
+        if self.actionSpace.actionType \
+                not in ['Discrete', 'Continuous']:
+
             raise ValueError(
                 "actionType only for Discrete and Continuous Action")
 
@@ -111,7 +155,7 @@ class Value():
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
 
-        ActionValue = self.value(s)
+        ActionValue = self.ActionValue(s)
 
         return self.policy(
                 ActionValue,

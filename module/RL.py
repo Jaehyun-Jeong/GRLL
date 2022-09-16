@@ -15,11 +15,6 @@ class RL():
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
         isRender={
 
             'train':
@@ -36,17 +31,6 @@ class RL():
             'logdir': Saved directory
             'tag':
         }
-        policy={
-
-            there are 4 types of Policy
-            'stochastic',
-            'eps-stochastic',
-            'greedy',
-            'eps-greedy'
-
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
-        }
         clippingParams={
             'maxNorm': max value of gradients
             'pNormValue': p value for p-norm
@@ -62,12 +46,8 @@ class RL():
         trainEnv,
         testEnv,
         env,
-        model,
-        optimizer,
         maxTimesteps,
-        eps,
-        policy,
-        clippingParams,
+        discount,
         device,
         isRender,
         useTensorboard,
@@ -91,13 +71,10 @@ class RL():
                 "or you set the trainEnv or testEnv with env"
             )
 
-        # init parameters
+        # Init parameters
         self.device = device
-        self.model = model.to(self.device)  # set dtype to match
-        self.optimizer = optimizer
         self.maxTimesteps = maxTimesteps
-        self.policy = policy
-        self.clippingParams = clippingParams
+        self.discount = discount
         self.isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
@@ -119,36 +96,6 @@ class RL():
                     SummaryWriter(self.tensorboardParams['logdir'])
             except ImportError:
                 ImportError("tensorboardX does not exist")
-
-        # ==================================================================================
-        # select train, test policy
-        # ==================================================================================
-
-        policyDict = {
-                # [ useEpsilon, useStochastic ]
-                'greedy': [False, False],
-                'stochastic': [False, True],
-                'eps-greedy': [True, False],
-                'eps-stochastic': [True, True]}
-
-        if not self.policy['train'] in policyDict.keys() or \
-                not self.policy['test'] in policyDict.keys():
-            raise ValueError("Possible policies are \
-                    'greedy', 'eps-greedy', \
-                    'stochastic', and 'eps-stochastic'")
-
-        trainPolicyList = policyDict[self.policy['train']]
-        testPolicyList = policyDict[self.policy['test']]
-
-        if trainPolicyList[0] or testPolicyList[0]:
-            self.eps = eps
-
-        self.useTrainEps = trainPolicyList[0]
-        self.useTrainStochastic = trainPolicyList[1]
-        self.useTestEps = testPolicyList[0]
-        self.useTestStochastic = testPolicyList[1]
-
-        # ==================================================================================
 
     # Update Weights
     def step(self, loss):

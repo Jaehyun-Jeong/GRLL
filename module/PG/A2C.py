@@ -24,11 +24,6 @@ class A2C(PolicyGradient):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         isRender={
@@ -46,17 +41,6 @@ class A2C(PolicyGradient):
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
-        }
-        policy={
-
-            there are 4 types of Policy
-            'stochastic',
-            'eps-stochastic',
-            'greedy',
-            'eps-greedy'
-
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
         }
         clippingParams={
             'maxNorm': max value of gradients
@@ -77,11 +61,7 @@ class A2C(PolicyGradient):
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: Dict[str, Union[int, float]] = {
-            'start': 0.99,
-            'end': 0.0001,
-            'decay': 10000
-        },
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
         maxTimesteps: int = 1000,
         discount: float = 0.99,
         isRender: Dict[str, bool] = {
@@ -92,10 +72,6 @@ class A2C(PolicyGradient):
         tensorboardParams: Dict[str, str] = {
             'logdir': "./runs/REINFORCE",
             'tag': "Returns"
-        },
-        policy: Dict[str, str] = {
-            'train': 'eps-stochastic',
-            'test': 'stochastic'
         },
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
@@ -113,13 +89,12 @@ class A2C(PolicyGradient):
             model=model,
             optimizer=optimizer,
             device=device,
+            actionParams=actionParams,
             maxTimesteps=maxTimesteps,
             discount=discount,
-            eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy,
             clippingParams=clippingParams,
             verbose=verbose,
         )
@@ -152,7 +127,8 @@ class A2C(PolicyGradient):
         R_tt = np.array(R_tt)
 
         # Compute n-step return
-        values = [self.value(S_tt[-1].unsqueeze(0)).squeeze(0) * notDone[-1]]
+        stateValue = self.value.StateValue(S_tt[-1].unsqueeze(0))
+        values = [stateValue.squeeze(0) * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount * values[-1])
         values.reverse()
@@ -161,19 +137,20 @@ class A2C(PolicyGradient):
 
         # get actor loss
         # log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
-        log_prob = torch.log(self.softmax(self.pi(S_t, A_t)) + self.ups)
-        advantage = values - self.value(S_t)
+        actionValue = self.value.ActionValue(S_t, A_t)
+        log_prob = torch.log(self.softmax(actionValue) + self.ups)
+        advantage = values - self.value.StateValue(S_t)
         advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        critic_loss = values - self.value(S_t)
+        critic_loss = values - self.value.StateValue(S_t)
         critic_loss = 1/2 * (critic_loss).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term
         loss = torch.sum(loss)/lenLoss
 
-        self.step(loss)
+        self.value.step(loss)
 
     def train(
         self,
@@ -202,10 +179,7 @@ class A2C(PolicyGradient):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(
-                            state,
-                            useEps=self.useTrainEps,
-                            useStochastic=self.useTrainStochastic)
+                    action = self.value.get_action(state)
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
 

@@ -10,29 +10,47 @@ from gym.spaces import Discrete, Box
 from module.utils.ActionSpace.gymConverter \
         import fromDiscrete, fromBox
 
+
 # OpenAI gym Box like action space class
 class ActionSpace():
+
+    """
+
+    case1)
+
+    use high, low parameters
+    np.ndarray high and low automatically make ActionSpace
+
+    case2)
+
+    use actionSpace parameter
+
+    Support spaces
+    1. Box from gym
+    2. Discrete from gym
+
+    """
 
     def __init__(
             self,
             high: np.ndarray = None,
             low: np.ndarray = None,
-            actionSpace: None):
-        
+            actionSpace=None):
+
         # If it has its own actionSpace
-        if (high == None and low == None) and actionSpace != None:
-            
+        if (high is None and low is None) and actionSpace is not None:
+
             if type(actionSpace) == Discrete:
                 self.__dict__ = fromDiscrete(actionSpace).__dict__
             if type(actionSpace) == Box:
-                self.__dict__ = fromDiscrete(actionSpace).__dict__
+                self.__dict__ = fromBox(actionSpace).__dict__
 
             if not (type(actionSpace) in [Discrete, Box]):
                 raise ValueError(
-                        "Discrete")
+                    f"Supported Action Spaces are {str(Discrete)}, {str(Box)}")
 
         # When high and low given
-        elif (high != None and low != None) and actionSpace == None:
+        elif (high is not None and low is not None) and actionSpace is None:
 
             self.dtype = high.dtype  # Data type of each element
             self.high = high  # Biggest values of each element
@@ -59,8 +77,7 @@ class ActionSpace():
 
         else:
             raise ValueError(
-                    "high and low have different shape!")
-
+                    "")
 
     # Check the Validity of X
     def contains(

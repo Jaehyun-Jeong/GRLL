@@ -2,6 +2,8 @@
 import torch.nn as nn
 
 from module.RL import RL
+from module.utils.ActionSpace import ActionSpace
+from module.PG.Value import Value
 
 
 class PolicyGradient(RL):
@@ -14,11 +16,6 @@ class PolicyGradient(RL):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         isRender={
@@ -36,17 +33,6 @@ class PolicyGradient(RL):
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
-        }
-        policy={
-
-            there are 4 types of Policy
-            'stochastic',
-            'eps-stochastic',
-            'greedy',
-            'eps-greedy'
-
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
         }
         clippingParams={
             'maxNorm': max value of gradients
@@ -66,13 +52,12 @@ class PolicyGradient(RL):
         model,
         optimizer,
         device,
+        actionParams,
         maxTimesteps,
         discount,
-        eps,
         isRender,
         useTensorboard,
         tensorboardParams,
-        policy,
         clippingParams,
         verbose,
     ):
@@ -83,19 +68,29 @@ class PolicyGradient(RL):
             trainEnv=trainEnv,
             testEnv=testEnv,
             env=env,
-            model=model,
-            optimizer=optimizer,
             maxTimesteps=maxTimesteps,
-            eps=eps,
+            discount=discount,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy,
-            clippingParams=clippingParams,
             verbose=verbose,
         )
 
-        self.discount = discount
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if self.trainEnv.action_space \
+                != self.testEnv.action_space:
+            raise ValueError(
+                    "Action Spaces of trainEnv and testEnv don't match")
+        actionSpace = ActionSpace(
+                actionSpace=self.trainEnv.action_space)
+
+        self.value = Value(
+                model=model.to(self.device),
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                clippingParams=clippingParams,
+                )
 
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)

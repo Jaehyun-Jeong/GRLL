@@ -1,20 +1,26 @@
 from typing import Union, Dict
 
 import random
-import numpy as np
 
 # PyTorch
 import torch
 
 # module
 from module.utils.utils import overrides
-from module.utils.exploration import epsilon
+from module.utils.exploration import Epsilon, NormalNoise
 
 
 class Policy():
 
-    def __init__(self):
-        pass
+    def __init__(
+            self,
+            algorithm: str,  # Policy Algorithm
+            exploring: str,  # Exploring Method
+            exploringParams: Dict[str, Union[int, float]]):
+
+        self.algorithm = algorithm
+        self.exploring = exploring
+        self.exploringParams = exploringParams
 
     def __call__(self) -> torch.Tensor:
         raise NotImplementedError()
@@ -32,12 +38,18 @@ class DiscretePolicy(Policy):
                 'decay': 10000
             },):
 
+        super().__init__(
+                algorithm=algorithm,
+                exploring=exploring,
+                exploringParams=exploringParams,
+                )
+
         # Initialize Parameters
         self.useEps = False
         self.useStochastic = False
         if exploring == 'epsilon':
             self.useEps = True
-            self.exploration = epsilon(
+            self.exploration = Epsilon(
                     **exploringParams)
         if algorithm == 'stochastic':
             self.useStochastic = True
@@ -78,10 +90,38 @@ class ContinuousPolicy(Policy):
     def __init__(
             self,
             algorithm: str = "plain",  # plain
-            exploring: str = "normal"):  # normal, None
+            exploring: str = "normal",  # normal, None
+            exploringParams: Dict[str, Union[int, float]] = {
+                'mean': 0,  # mean
+                'sigma': 1,  # standard deviation
+            },):
 
-        pass
+        super().__init__(
+                algorithm=algorithm,
+                exploring=exploring,
+                exploringParams=exploringParams,
+                )
 
+        # Initialize Parameters
+        if exploring == 'normal':
+            self.useEps = True
+            self.exploration = NormalNoise(
+                    **exploringParams)
+
+    # Return Action
     @overrides(Policy)
-    def __call__(self):
-        pass
+    def __call__(
+            self,
+            actionValue: torch.Tensor,
+            stepsDone: int,
+            ) -> torch.Tensor:
+
+        # Get noise
+        noise = self.exploration(
+                stepsDone,
+                actionValue.shape)
+
+        # Add noise to action
+        action = actionValue + noise
+
+        return action
