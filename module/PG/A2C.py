@@ -106,7 +106,7 @@ class A2C(PolicyGradient):
         self.printInit()
 
     # Update weights by using Actor Critic Method
-    def update_weight(self, entropy_term: float = 0):
+    def __update_weight(self, entropy_term: float = 0):
 
         lenLoss = len(self.transitions)
         S_t = [trans.state for trans in self.transitions]
@@ -137,8 +137,7 @@ class A2C(PolicyGradient):
 
         # get actor loss
         # log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
-        actionValue = self.value.ActionValue(S_t, A_t)
-        log_prob = torch.log(self.softmax(actionValue) + self.ups)
+        log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
         advantage = values - self.value.StateValue(S_t)
         advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)
@@ -191,7 +190,7 @@ class A2C(PolicyGradient):
 
                     # Train
                     if len(self.transitions) == self.nSteps or done:
-                        self.update_weight()
+                        self.__update_weight()
                         self.transitions.clear()
 
                     # ==========================================================================

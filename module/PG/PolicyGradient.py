@@ -1,8 +1,11 @@
+from typing import Union
+
 # PyTorch
 import torch.nn as nn
 
 from module.RL import RL
 from module.utils.ActionSpace import ActionSpace
+from module.utils.utils import overrides
 from module.PG.Value import Value
 
 
@@ -99,3 +102,40 @@ class PolicyGradient(RL):
         # torch.log makes nan(not a number) error,
         # so we have to add some small number in log function
         self.ups = 1e-7
+
+    # Test to measure performance
+    @overrides(RL)
+    def test(
+            self,
+            testSize: int) -> Union[float, str]:
+
+        rewards = []
+
+        for _ in range(testSize):
+
+            state = self.testEnv.reset()
+            done = False
+            cumulativeRewards = 0
+
+            for timesteps in range(self.maxTimesteps):
+                if self.isRender['test']:
+                    self.testEnv.render()
+
+                action = self.value.get_action(state)
+
+                next_state, reward, done, _ = self.testEnv.step(action)
+
+                cumulativeRewards += reward
+                state = next_state
+
+                if done or timesteps == self.maxTimesteps-1:
+                    break
+
+            rewards.append(cumulativeRewards)
+
+        if testSize > 0:
+            return sum(rewards) / testSize  # Averaged Rewards
+        elif testSize == 0:
+            return "no Test"
+        else:
+            raise ValueError("testSize can't be smaller than 0")

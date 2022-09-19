@@ -135,39 +135,7 @@ class RL():
             self,
             testSize: int) -> Union[float, str]:
 
-        rewards = []
-
-        for _ in range(testSize):
-
-            state = self.testEnv.reset()
-            done = False
-            cumulativeRewards = 0
-
-            for timesteps in range(self.maxTimesteps):
-                if self.isRender['test']:
-                    self.testEnv.render()
-
-                action = self.get_action(
-                        state,
-                        useEps=self.useTestEps,
-                        useStochastic=self.useTestStochastic)
-
-                next_state, reward, done, _ = self.testEnv.step(action)
-
-                cumulativeRewards += reward
-                state = next_state
-
-                if done or timesteps == self.maxTimesteps-1:
-                    break
-
-            rewards.append(cumulativeRewards)
-
-        if testSize > 0:
-            return sum(rewards) / testSize  # Averaged Rewards
-        elif testSize == 0:
-            return "no Test"
-        else:
-            raise ValueError("testSize can't be smaller than 0")
+        raise NotImplementedError()
 
     # Print all Initialized Properties
     def printInit(self):
