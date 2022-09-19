@@ -6,7 +6,6 @@ from random import choice
 # Gym
 from gym.spaces import Discrete, Box
 
-# Converter
 from module.utils.ActionSpace.gymConverter \
         import fromDiscrete, fromBox
 
@@ -15,10 +14,10 @@ from module.utils.ActionSpace.gymConverter \
 class ActionSpace():
 
     """
-
     case1)
 
     use high, low parameters
+
     np.ndarray high and low automatically make ActionSpace
 
     case2)
@@ -28,7 +27,6 @@ class ActionSpace():
     Support spaces
     1. Box from gym
     2. Discrete from gym
-
     """
 
     def __init__(
@@ -41,9 +39,9 @@ class ActionSpace():
         if (high is None and low is None) and actionSpace is not None:
 
             if type(actionSpace) == Discrete:
-                self.__dict__ = fromDiscrete(actionSpace).__dict__
+                self.high, self.low = fromDiscrete(actionSpace)
             if type(actionSpace) == Box:
-                self.__dict__ = fromBox(actionSpace).__dict__
+                self.high, self.low = fromBox(actionSpace)
 
             if not (type(actionSpace) in [Discrete, Box]):
                 raise ValueError(
@@ -51,33 +49,32 @@ class ActionSpace():
 
         # When high and low given
         elif (high is not None and low is not None) and actionSpace is None:
-
-            self.dtype = high.dtype  # Data type of each element
             self.high = high  # Biggest values of each element
             self.low = low  # Smallest values of each element
-            self.shape = high.shape  # Shape of Actions
-
-            # Check Validity
-            # int or float
-            if self.dtype in [np.int32, np.int64]:
-                self.actionType = 'Discrete'
-            elif self.dtype in [np.float32, np.float64]:
-                self.actionType = 'Continuous'
-            else:
-                raise ValueError(
-                        "Action Space data type should be float or integer")
-
-            # Check data type and shape
-            if self.high.dtype != self.low.dtype:
-                raise ValueError(
-                        "high and low have different data type!")
-            if self.high.shape != self.low.shape:
-                raise ValueError(
-                        "high and low have different shape!")
-
         else:
             raise ValueError(
                     "")
+
+        self.dtype = self.high.dtype  # Data type of each element
+        self.shape = self.high.shape  # Shape of Actions
+
+        # Check Validity
+        # int or float
+        if self.dtype in [np.int32, np.int64]:
+            self.actionType = 'Discrete'
+        elif self.dtype in [np.float32, np.float64]:
+            self.actionType = 'Continuous'
+        else:
+            raise ValueError(
+                    "Action Space data type should be float or integer")
+
+        # Check data type and shape
+        if self.high.dtype != self.low.dtype:
+            raise ValueError(
+                    "high and low have different data type!")
+        if self.high.shape != self.low.shape:
+            raise ValueError(
+                    "high and low have different shape!")
 
     # Check the Validity of X
     def contains(

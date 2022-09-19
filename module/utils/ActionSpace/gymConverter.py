@@ -1,8 +1,6 @@
 from gym.spaces import Box, Discrete
 import numpy as np
 
-from module.utils.ActionSpace.ActionSpace import ActionSpace
-
 
 def fromDiscrete(
         space: Discrete
@@ -13,7 +11,7 @@ def fromDiscrete(
     high = np.array([space.n-1], dtype=space.dtype)
     low = np.array([0], dtype=space.dtype)
 
-    return ActionSpace(high, low)
+    return high, low
 
 
 def fromBox(
@@ -23,4 +21,4 @@ def fromBox(
     high = space.high
     low = space.low
 
-    return ActionSpace(high, low)
+    return high, low

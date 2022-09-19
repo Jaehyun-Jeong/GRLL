@@ -33,6 +33,7 @@ class DiscretePolicy(Policy):
             algorithm: str = "greedy",  # greedy, stochastic
             exploring: str = "epsilon",  # epsilon, None
             exploringParams: Dict[str, Union[int, float]] = {
+                'schedule': 'exponential',
                 'start': 0.99,
                 'end': 0.0001,
                 'decay': 10000

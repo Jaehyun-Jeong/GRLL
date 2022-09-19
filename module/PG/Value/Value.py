@@ -38,6 +38,7 @@ class Value():
     def __init__(
         self,
         model: torch.nn.Module,
+        device: torch.device,
         optimizer,
         actionSpace: ActionSpace,
         actionParams: Dict[str, Union[int, float, Dict]] = None,
@@ -48,7 +49,8 @@ class Value():
     ):
 
         # Initialize Parameter
-        self.model = model
+        self.device = device
+        self.model = model.to(self.device)
         self.optimizer = optimizer
         self.clippintParams = clippingParams
         self.actionSpace = actionSpace

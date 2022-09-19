@@ -87,6 +87,7 @@ class PolicyGradient(RL):
 
         self.value = Value(
                 model=model.to(self.device),
+                device=device,
                 optimizer=optimizer,
                 actionSpace=actionSpace,
                 clippingParams=clippingParams,

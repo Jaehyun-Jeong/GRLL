@@ -1,7 +1,7 @@
 from typing import Union
 
 import numpy as np
-from module.utils.scheduling import expScheduling
+from module.utils.scheduling import expScheduling, linScheduling
 
 ##################
 # DISCRETE NOISE #
@@ -13,14 +13,24 @@ class Epsilon():
 
     def __init__(
             self,
-            schedule=expScheduling(  # exponential, linear
-                    start=0.99,
-                    end=0.0001,
-                    decay=10000
-                    ),
+            schedule="exponential",
+            start=0.99,
+            end=0.0001,
+            decay=10000
             ):
 
-        self.schedule = schedule
+        # Init Scheduling
+
+        scheduleDict = {
+                'exponential': expScheduling,
+                'linear': linScheduling
+                }
+
+        self.schedule = scheduleDict[schedule](
+                start=start,
+                end=end,
+                decay=decay,
+                )
 
     def __call__(
             self,
