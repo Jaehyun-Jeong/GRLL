@@ -101,11 +101,6 @@ class DQN(ValueBased):
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: Dict[str, Union[int, float]] = {
-            'start': 0.99,
-            'end': 0.0001,
-            'decay': 10000
-        },
         maxTimesteps: int = 1000,
         discount: float = 0.99,
         maxMemory: int = 100000,
@@ -118,10 +113,6 @@ class DQN(ValueBased):
         tensorboardParams: Dict[str, str] = {
             'logdir': "./runs",
             'tag': "DQN"
-        },
-        policy: Dict[str, str] = {
-            'train': 'eps-greedy',
-            'test': 'greedy'
         },
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
@@ -145,11 +136,9 @@ class DQN(ValueBased):
             maxMemory=maxMemory,
             discount=discount,
             numBatch=numBatch,
-            eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy,
             clippingParams=clippingParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,

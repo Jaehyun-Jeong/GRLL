@@ -1,14 +1,12 @@
 from typing import Union
 
-import random
-import numpy as np
-
 # PyTorch
-import torch
 import torch.nn as nn
 
 from module.RL import RL
+from module.utils.ActionSpace import ActionSpace
 from module.utils.utils import overrides
+from module.PG.Value import Value
 
 
 class ValueBased(RL):
@@ -21,11 +19,6 @@ class ValueBased(RL):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         maxMemory: Memory size for Experience Replay
@@ -45,17 +38,6 @@ class ValueBased(RL):
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
-        }
-        policy={
-
-            there are 4 types of Policy
-            'stochastic',
-            'eps-stochastic',
-            'greedy',
-            'eps-greedy'
-
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
         }
         clippingParams={
             'maxNorm': max value of gradients
@@ -85,11 +67,9 @@ class ValueBased(RL):
         maxMemory,
         discount,
         numBatch,
-        eps,
         isRender,
         useTensorboard,
         tensorboardParams,
-        policy,
         clippingParams,
         verbose,
         gradientStepPer,
@@ -103,25 +83,37 @@ class ValueBased(RL):
             trainEnv=trainEnv,
             testEnv=testEnv,
             env=env,
-            model=model,
-            optimizer=optimizer,
             maxTimesteps=maxTimesteps,
-            eps=eps,
-            policy=policy,
-            clippingParams=clippingParams,
+            discount=discount,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
             verbose=verbose
         )
 
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if self.trainEnv.action_space \
+                != self.testEnv.action_space:
+            raise ValueError(
+                    "Action Spaces of trainEnv and testEnv don't match")
+        actionSpace = ActionSpace(
+                actionSpace=self.trainEnv.action_space)
+
+        self.value = Value(
+                model=model.to(self.device),
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                clippingParams=clippingParams,
+                )
+
+        # Init
         self.maxMemory = maxMemory
-        self.discount = discount
         self.numBatch = numBatch
         self.gradientStepPer = gradientStepPer
         self.epoch = epoch
         self.trainStarts = trainStarts
-        self.steps_done = 0  # eps scheduling
 
         # Stochastic action selection
         self.softmax = nn.Softmax(dim=0)
@@ -139,78 +131,39 @@ class ValueBased(RL):
 
         return condition
 
-    # Value function shuld be overrided
-    def value(
-            self,
-            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-        pass
-
-    # In Reinforcement learning,
-    # pi means the function from state space to action probability distribution
-    # Returns probability of taken action a from state s
-    def pi(
-            self,
-            s: Union[torch.Tensor, np.ndarray],
-            a: Union[torch.Tensor, np.ndarray]):
-
-        value = self.value(s)
-        a = torch.tensor(a).to(self.device).unsqueeze(dim=-1)
-        actionValue = torch.gather(torch.clone(value), 1, a).squeeze(dim=1)
-
-        return actionValue
-
-    # Epsilon scheduling
-    def __get_eps(self):
-        import math
-
-        eps_start = self.eps['start']
-        eps_end = self.eps['end']
-        eps_decay = self.eps['decay']
-
-        eps_threshold = \
-            eps_end + (eps_start - eps_end) * \
-            math.exp(-1. * self.steps_done / eps_decay)
-
-        return eps_threshold
-
-    # Returns the action from state s by using multinomial distribution
+    # Test to measure performance
     @overrides(RL)
-    @torch.no_grad()
-    def get_action(
+    def test(
             self,
-            s: Union[torch.Tensor, np.ndarray],
-            useEps: bool,
-            useStochastic: bool):
+            testSize: int) -> Union[float, str]:
 
-        s = torch.Tensor(s).to(self.device).unsqueeze(0)
-        probs = self.model.forward(s).squeeze(0)
+        rewards = []
 
-        eps = self.__get_eps() if useEps else 0
+        for _ in range(testSize):
 
-        if random.random() >= eps:
-            if useStochastic:
-                probs = self.softmax(probs)
-                a = probs.multinomial(num_samples=1)
-                a = a.data
-                action = a[0]
-            else:
-                # all actions must be in cpu, but all states in gpu if it using
-                action = torch.argmax(probs, dim=0).cpu()
+            state = self.testEnv.reset()
+            done = False
+            cumulativeRewards = 0
+
+            for timesteps in range(self.maxTimesteps):
+                if self.isRender['test']:
+                    self.testEnv.render()
+
+                action = self.value.get_action(state)
+
+                next_state, reward, done, _ = self.testEnv.step(action)
+
+                cumulativeRewards += reward
+                state = next_state
+
+                if done or timesteps == self.maxTimesteps-1:
+                    break
+
+            rewards.append(cumulativeRewards)
+
+        if testSize > 0:
+            return sum(rewards) / testSize  # Averaged Rewards
+        elif testSize == 0:
+            return "no Test"
         else:
-            a = torch.rand(probs.shape).multinomial(num_samples=1)
-            a = a.data
-            action = a[0]
-
-        return action.tolist()
-
-    # get max Q-value
-    def max_value(
-            self,
-            s: Union[torch.Tensor, np.ndarray]):
-
-        value = self.value(s)
-
-        with torch.no_grad():
-            maxValue = torch.max(torch.clone(value), dim=1).values
-
-        return maxValue
+            raise ValueError("testSize can't be smaller than 0")
