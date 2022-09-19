@@ -348,3 +348,82 @@ class NormalNoise():
 1. Policy property를 가지고 행동을 출력한다.<br/>
 2. Value Function의 역할을 하는 뉴럴넷을 property로 가지고 관리한다.<br/>
 
+# 9월 19일
+
+## 1. 버그 고치기 
+
+### 1.1. ./module/PG/Value/Value.py에서, 모든 행동의 Value를 출력하는 메소드와 특정 행동의 Value를 출력하는 메소드 분리
+
+```python
+    # Get all Action Value as Tensor from state
+    def ActionValue(
+            self,
+            s: Union[torch.Tensor, np.ndarray],
+            ) -> torch.Tensor:
+
+        s = torch.Tensor(s).to(self.device).unsqueeze(0)
+        _, ActionValue = self.model.forward(s)
+        ActionValue = ActionValue.squeeze(0)
+
+        return ActionValue
+
+    # In Reinforcement learning,
+    # pi means the function from state space to action probability distribution
+    # Returns probability of taken action a from state s
+    def pi(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        a = a.unsqueeze(dim=-1)
+
+        _, probs = self.model.forward(s)
+        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
+
+        return actionValue
+```
+
+### 1.2. test 메소드를 ./module/RL.py에서 ./module/PG/PolicyGradient.py, ./module/VB/ValueBased.py로 이동
+
+**Policy Gradient 알고리즘과 Value Based 알고리즘은 서로 다른 self.value를 가진다.(실제로 디렉토리 구조를 보면 ./module/PG/Value, ./module/VB/Value 2개가 존재한다.) 따라서 self.value를 사용하는 test의 디렉토리를 바꿀 필요가 있다고 판단했다. (Value 폴더와 같거나 더 아래의 폴더로)**<br/><br/>
+
+```python
+    # Test to measure performance
+    @overrides(RL)
+    def test(
+            self,
+            testSize: int) -> Union[float, str]:
+
+        rewards = []
+
+        for _ in range(testSize):
+
+            state = self.testEnv.reset()
+            done = False
+            cumulativeRewards = 0
+
+            for timesteps in range(self.maxTimesteps):
+                if self.isRender['test']:
+                    self.testEnv.render()
+
+                action = self.value.get_action(state)
+
+                next_state, reward, done, _ = self.testEnv.step(action)
+
+                cumulativeRewards += reward
+                state = next_state
+
+                if done or timesteps == self.maxTimesteps-1:
+                    break
+
+            rewards.append(cumulativeRewards)
+
+        if testSize > 0:
+            return sum(rewards) / testSize  # Averaged Rewards
+        elif testSize == 0:
+            return "no Test"
+        else:
+            raise ValueError("testSize can't be smaller than 0")
+```
+
+### 1.3. 이 외에도 자잘한 버그를 수정했다. 이는 따로 기재하지 않겠다.
