@@ -38,6 +38,7 @@ class Value():
     def __init__(
         self,
         model: torch.nn.Module,
+        device: torch.device,
         optimizer,
         actionSpace: ActionSpace,
         actionParams: Dict[str, Union[int, float, Dict]] = None,
@@ -48,9 +49,10 @@ class Value():
     ):
 
         # Initialize Parameter
-        self.model = model
+        self.device = device
+        self.model = model.to(self.device)
         self.optimizer = optimizer
-        self.clippintParams = clippingParams
+        self.clippingParams = clippingParams
         self.actionSpace = actionSpace
         self.stepsDone = 0
 
@@ -121,7 +123,7 @@ class Value():
 
         return value
 
-    # Get Action Value from state
+    # Get all Action Value as Tensor from state
     def ActionValue(
             self,
             s: Union[torch.Tensor, np.ndarray],

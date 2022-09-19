@@ -37,10 +37,6 @@ REINFORCE_parameters= {
     'env': env, # environment like gym
     'model': REINFORCE_model, # torch models for policy and value funciton
     'optimizer': optimizer, # torch optimizer
-    'policy': {
-        'train': 'stochastic',
-        'test': 'greedy',
-    },
 }
 
 # Initialize Actor-Critic Mehtod

@@ -95,11 +95,7 @@ class REINFORCE(PolicyGradient):
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: dict[str, Union[int, float]] = {
-            'start': 0.99,
-            'end': 0.0001,
-            'decay': 10000
-        },
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
         maxTimesteps: int = 1000,
         discount: float = 0.99,
         isRender: Dict[str, bool] = {
@@ -110,10 +106,6 @@ class REINFORCE(PolicyGradient):
         tensorboardParams: Dict[str, str] = {
             'logdir': "./runs/REINFORCE",
             'tag': "Returns"
-        },
-        policy: Dict[str, str] = {
-            'train': 'eps-stochastic',
-            'test': 'stochastic'
         },
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
@@ -129,15 +121,14 @@ class REINFORCE(PolicyGradient):
             testEnv=testEnv,
             env=env,
             model=model,
+            actionParams=actionParams,
             optimizer=optimizer,
             device=device,
             maxTimesteps=maxTimesteps,
             discount=discount,
-            eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy,
             clippingParams=clippingParams,
             verbose=verbose,
         )
@@ -172,19 +163,20 @@ class REINFORCE(PolicyGradient):
         Qval = Qval.to(self.device)
 
         # get actor loss
-        log_prob = torch.log(self.softmax(self.pi(S_t, A_t)) + self.ups)
-        advantage = Variable(Qval - self.value(S_t) * self.useBaseline)
+        log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
+        advantage = Qval - self.value.StateValue(S_t) * self.useBaseline
+        advantage = Variable(advantage)
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        value = self.value(S_t)
+        value = self.value.StateValue(S_t)
         critic_loss = 1/2 * (Qval - value).pow(2)
 
         # calculate loss
         loss = actor_loss + critic_loss + 0.001 * entropy_term
         loss = torch.sum(loss)/lenLoss
 
-        self.step(loss)
+        self.value.step(loss)
 
     def train(
         self,
@@ -214,10 +206,7 @@ class REINFORCE(PolicyGradient):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(
-                        state,
-                        useEps=self.useTrainEps,
-                        useStochastic=self.useTrainStochastic)
+                    action = self.value.get_action(state)
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
                     Transitions.push(state, action, next_state, reward)
