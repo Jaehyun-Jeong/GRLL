@@ -4,9 +4,7 @@ from typing import Union
 import torch.nn as nn
 
 from module.RL import RL
-from module.utils.ActionSpace import ActionSpace
 from module.utils.utils import overrides
-from module.PG.Value import Value
 
 
 class ValueBased(RL):
@@ -53,6 +51,8 @@ class ValueBased(RL):
         trainStarts:
             how many steps of the model
             to collect transitions for before learning starts
+        algorithm: algorithm it use
+            e.g.) DQN, ADQN
     '''
 
     def __init__(
@@ -60,9 +60,9 @@ class ValueBased(RL):
         trainEnv,
         testEnv,
         env,
-        model,
-        optimizer,
         device,
+        value,
+        actionParams,
         maxTimesteps,
         maxMemory,
         discount,
@@ -70,7 +70,6 @@ class ValueBased(RL):
         isRender,
         useTensorboard,
         tensorboardParams,
-        clippingParams,
         verbose,
         gradientStepPer,
         epoch,
@@ -79,10 +78,10 @@ class ValueBased(RL):
 
         # init parameters
         super().__init__(
-            device=device,
             trainEnv=trainEnv,
             testEnv=testEnv,
             env=env,
+            device=device,
             maxTimesteps=maxTimesteps,
             discount=discount,
             isRender=isRender,
@@ -91,22 +90,7 @@ class ValueBased(RL):
             verbose=verbose
         )
 
-        # Init Value Function, Policy
-        # Set ActionSpace
-        if self.trainEnv.action_space \
-                != self.testEnv.action_space:
-            raise ValueError(
-                    "Action Spaces of trainEnv and testEnv don't match")
-        actionSpace = ActionSpace(
-                actionSpace=self.trainEnv.action_space)
-
-        self.value = Value(
-                model=model.to(self.device),
-                device=device,
-                optimizer=optimizer,
-                actionSpace=actionSpace,
-                clippingParams=clippingParams,
-                )
+        self.value = value
 
         # Init
         self.maxMemory = maxMemory

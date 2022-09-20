@@ -9,6 +9,8 @@ import torch
 from torch.autograd import Variable
 
 from module.VB.ValueBased import ValueBased
+from module.utils.ActionSpace.ActionSpace import ActionSpace
+from module.VB.Value.Value import Value
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))
@@ -100,6 +102,7 @@ class DQN(ValueBased):
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
         maxTimesteps: int = 1000,
         discount: float = 0.99,
         maxMemory: int = 100000,
@@ -123,14 +126,35 @@ class DQN(ValueBased):
         trainStarts: int = 50000,
     ):
 
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if env:
+            actionSpace = ActionSpace(
+                    actionSpace=env.action_space)
+        else:
+            if trainEnv.action_space \
+                    != testEnv.action_space:
+                raise ValueError(
+                        "Action Spaces of trainEnv and testEnv don't match")
+            actionSpace = ActionSpace(
+                    actionSpace=trainEnv.action_space)
+
+        value = Value(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                clippingParams=clippingParams,
+                )
+
         # init parameters
         super().__init__(
-            trainEnv,
-            testEnv,
-            env,
-            model=model,
-            optimizer=optimizer,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
+            env=env,
             device=device,
+            value=value,
+            actionParams=actionParams,
             maxTimesteps=maxTimesteps,
             maxMemory=maxMemory,
             discount=discount,
@@ -138,7 +162,6 @@ class DQN(ValueBased):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            clippingParams=clippingParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,
             epoch=epoch,
@@ -183,7 +206,7 @@ class DQN(ValueBased):
                 loss = 1/2 * (target - actionValue).pow(2)
                 loss = torch.sum(loss)/lenLoss
 
-                self.step(loss)
+                self.value.step(loss)
 
     def train(
         self,

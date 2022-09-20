@@ -10,6 +10,8 @@ import torch
 from torch.autograd import Variable
 
 from module.VB.ValueBased import ValueBased
+from module.utils.ActionSpace.ActionSpace import ActionSpace
+from module.VB.Value.Value import AveragedValue
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))
@@ -129,15 +131,34 @@ class ADQN(ValueBased):
         numPrevModels: int = 10,
     ):
 
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if env:
+            actionSpace = ActionSpace(
+                    actionSpace=env.action_space)
+        else:
+            if trainEnv.action_space \
+                    != testEnv.action_space:
+                raise ValueError(
+                        "Action Spaces of trainEnv and testEnv don't match")
+
+        value = AveragedValue(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                clippingParams=clippingParams,
+                numPrevModels=numPrevModels,
+                )
+
         # init parameters
         super().__init__(
-            trainEnv,
-            testEnv,
-            env,
-            model=model,
-            actionParams=actionParams,
-            optimizer=optimizer,
+            trainEnv=trainEnv,
+            testEnv=testEnv,
+            env=env,
             device=device,
+            value=value,
+            actionParams=actionParams,
             maxTimesteps=maxTimesteps,
             maxMemory=maxMemory,
             discount=discount,
@@ -145,7 +166,6 @@ class ADQN(ValueBased):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            clippingParams=clippingParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,
             epoch=epoch,
@@ -153,9 +173,6 @@ class ADQN(ValueBased):
         )
 
         self.replayMemory = ReplayMemory(maxMemory)
-
-        # save last K previously learned Q-networks
-        self.prevModels: deque = deque([], maxlen=numPrevModels)
 
         self.printInit()
 
@@ -193,7 +210,7 @@ class ADQN(ValueBased):
                 loss = 1/2 * (target - actionValue).pow(2)
                 loss = torch.sum(loss)/lenLoss
 
-                self.step(loss)
+                self.value.step(loss)
 
     def train(
         self,
@@ -204,7 +221,7 @@ class ADQN(ValueBased):
         try:
             rewards = []
             # save initial model
-            self.value.prevModels.append(deepcopy(self.model))
+            self.value.prevModels.append(deepcopy(self.value.model))
 
             while trainTimesteps > self.trainedTimesteps:
 
@@ -223,10 +240,7 @@ class ADQN(ValueBased):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(
-                            state,
-                            useEps=self.useTrainEps,
-                            useStochastic=self.useTrainStochastic)
+                    action = self.value.get_action(state)
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
                     self.replayMemory.push(
@@ -241,7 +255,7 @@ class ADQN(ValueBased):
                     # train
                     self.update_weight()
                     # save updated model
-                    self.value.prevModels.append(deepcopy(self.model))
+                    self.value.prevModels.append(deepcopy(self.value.model))
 
                     # ==========================================================================
                     # TEST

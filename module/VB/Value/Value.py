@@ -121,6 +121,7 @@ class Value():
             ) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device).unsqueeze(0)
+
         ActionValue = self.model.forward(s)
         ActionValue = ActionValue.squeeze(0)
 
@@ -146,9 +147,9 @@ class Value():
             s: torch.Tensor,
             a: torch.Tensor) -> torch.Tensor:
 
+        a = torch.tensor(a).to(self.device)
         a = a.unsqueeze(dim=-1)
 
-        # probs = self.model.forward(s)
         probs = self.action_value(s)
         actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
 
@@ -185,7 +186,7 @@ class AveragedValue(Value):
         numPrevModels: int = 10,
     ):
 
-        super.__init__(
+        super().__init__(
                 model=model,
                 device=device,
                 optimizer=optimizer,

@@ -10,7 +10,7 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.VB.models import ANN_V3
+from module.VB.models import ANN_V2
 from module.VB import DQN
 
 # Environment 
@@ -20,7 +20,7 @@ num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
 # set ActorCritic
-model = ANN_V3(num_states, num_actions)
+model = ANN_V2(num_states, num_actions)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
 # Initialize Actor-Critic Mehtod
@@ -38,4 +38,4 @@ print(f"Init Time: {datetime.now() - startTime}")
 startTrainTime = datetime.now()
 
 # TRAIN Agent
-DeepQN.train(trainTimesteps=100000, testPer=10000)
+DeepQN.train(trainTimesteps=1000000, testPer=10000)
