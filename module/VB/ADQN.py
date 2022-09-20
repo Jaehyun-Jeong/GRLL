@@ -9,7 +9,6 @@ from copy import deepcopy
 import torch
 from torch.autograd import Variable
 
-from module.utils.utils import overrides
 from module.VB.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
@@ -105,11 +104,7 @@ class ADQN(ValueBased):
         testEnv=None,
         env=None,
         device: torch.device = torch.device('cpu'),
-        eps: Dict[str, Union[int, float]] = {
-            'start': 0.99,
-            'end': 0.0001,
-            'decay': 10000
-        },
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
         maxTimesteps: int = 1000,
         discount: float = 0.99,
         maxMemory: int = 100000,
@@ -122,10 +117,6 @@ class ADQN(ValueBased):
         tensorboardParams: Dict[str, str] = {
             'logdir': "./runs",
             'tag': "DQN"
-        },
-        policy: Dict[str, str] = {
-            'train': 'eps-greedy',
-            'test': 'greedy'
         },
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
@@ -144,17 +135,16 @@ class ADQN(ValueBased):
             testEnv,
             env,
             model=model,
+            actionParams=actionParams,
             optimizer=optimizer,
             device=device,
             maxTimesteps=maxTimesteps,
             maxMemory=maxMemory,
             discount=discount,
             numBatch=numBatch,
-            eps=eps,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            policy=policy,
             clippingParams=clippingParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,
@@ -168,23 +158,6 @@ class ADQN(ValueBased):
         self.prevModels: deque = deque([], maxlen=numPrevModels)
 
         self.printInit()
-
-    # action seleted from previous K models by averaging it
-    @overrides(ValueBased)
-    def value(
-            self,
-            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-
-        s = torch.Tensor(s).to(self.device)
-
-        values = self.model.forward(s)
-        # last model is equal to self.model
-        for model in list(self.prevModels)[:-1]:
-            values += model.forward(s)
-
-        values = values / len(self.prevModels)
-
-        return values
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
@@ -212,8 +185,8 @@ class ADQN(ValueBased):
                 S_tt = np.array(S_tt)
                 R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-                actionValue = self.pi(S_t, A_t)
-                nextMaxValue = self.max_value(S_tt)
+                actionValue = self.value.pi(S_t, A_t)
+                nextMaxValue = self.value.max_value(S_tt)
 
                 target = R_tt + self.discount * nextMaxValue * notDone
                 target = Variable(target)  # No grad
@@ -230,7 +203,8 @@ class ADQN(ValueBased):
     ):
         try:
             rewards = []
-            self.prevModels.append(deepcopy(self.model))  # save initial model
+            # save initial model
+            self.value.prevModels.append(deepcopy(self.model))
 
             while trainTimesteps > self.trainedTimesteps:
 
@@ -267,7 +241,7 @@ class ADQN(ValueBased):
                     # train
                     self.update_weight()
                     # save updated model
-                    self.prevModels.append(deepcopy(self.model))
+                    self.value.prevModels.append(deepcopy(self.model))
 
                     # ==========================================================================
                     # TEST

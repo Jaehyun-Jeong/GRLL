@@ -1,12 +1,14 @@
 from typing import Union, Dict
 
 import numpy as np
+from collections import deque
 
 # PyTorch
 import torch
 
 # module
 from module.Policy import DiscretePolicy, ContinuousPolicy
+from module.utils.utils import overrides
 from module.utils.ActionSpace import ActionSpace
 
 
@@ -112,29 +114,29 @@ class Value():
         self.optimizer.step()
         self.stepsDone += 1
 
-    # get max Q-value
-    def MaxValue(
-            self,
-            s: Union[torch.Tensor, np.ndarray]):
-
-        value = self.value(s)
-
-        with torch.no_grad():
-            maxValue = torch.max(torch.clone(value), dim=1).values
-
-        return maxValue
-
     # Get all Action Value as Tensor from state
-    def ActionValue(
+    def action_value(
             self,
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device).unsqueeze(0)
-        _, ActionValue = self.model.forward(s)
+        ActionValue = self.model.forward(s)
         ActionValue = ActionValue.squeeze(0)
 
         return ActionValue
+
+    # get max Q-value
+    def max_value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]):
+
+        value = self.action_value(s)
+
+        with torch.no_grad():
+            maxValue = torch.max(torch.clone(value), dim=1).values
+
+        return maxValue
 
     # In Reinforcement learning,
     # pi means the function from state space to action probability distribution
@@ -146,7 +148,8 @@ class Value():
 
         a = a.unsqueeze(dim=-1)
 
-        _, probs = self.model.forward(s)
+        # probs = self.model.forward(s)
+        probs = self.action_value(s)
         actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
 
         return actionValue
@@ -158,9 +161,54 @@ class Value():
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
 
-        ActionValue = self.ActionValue(s)
+        actionValue = self.action_value(s)
 
         return self.policy(
-                ActionValue,
+                actionValue,
                 self.stepsDone
                 )
+
+
+class AveragedValue(Value):
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        device: torch.device,
+        optimizer,
+        actionSpace: ActionSpace,
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
+        clippingParams: Dict[str, Union[int, float]] = {
+            'pNormValue': 2,
+            'maxNorm': 1,
+        },
+        numPrevModels: int = 10,
+    ):
+
+        super.__init__(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                actionParams=actionParams,
+                clippingParams=clippingParams)
+
+        # save last K previously learned Q-networks
+        self.prevModels: deque = deque([], maxlen=numPrevModels)
+
+    # action seleted from previous K models by averaging it
+    @overrides(Value)
+    def action_value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+
+        s = torch.Tensor(s).to(self.device)
+
+        values = self.model.forward(s)
+        # last model is equal to self.model
+        for model in list(self.prevModels)[:-1]:
+            values += model.forward(s)
+
+        values = values / len(self.prevModels)
+
+        return values

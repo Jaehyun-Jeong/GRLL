@@ -8,7 +8,6 @@ from collections import namedtuple, deque
 import torch
 from torch.autograd import Variable
 
-from module.utils.utils import overrides
 from module.VB.ValueBased import ValueBased
 
 Transition = namedtuple('Transition',
@@ -150,15 +149,6 @@ class DQN(ValueBased):
 
         self.printInit()
 
-    # ADQN has different type of value
-    @overrides(ValueBased)
-    def value(
-            self,
-            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
-
-        s = torch.Tensor(s).to(self.device)
-        return self.model.forward(s)
-
     # Update weights by using Actor Critic Method
     def update_weight(self):
         if self.is_trainable():
@@ -185,8 +175,8 @@ class DQN(ValueBased):
                 S_tt = np.array(S_tt)
                 R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-                actionValue = self.pi(S_t, A_t)
-                nextMaxValue = self.max_value(S_tt)
+                actionValue = self.value.pi(S_t, A_t)
+                nextMaxValue = self.value.max_value(S_tt)
 
                 target = R_tt + self.discount * nextMaxValue * notDone
                 target = Variable(target)  # No grad
@@ -223,10 +213,7 @@ class DQN(ValueBased):
                     if self.isRender['train']:
                         self.trainEnv.render()
 
-                    action = self.get_action(
-                            state,
-                            useEps=self.useTrainEps,
-                            useStochastic=self.useTrainStochastic)
+                    action = self.value.get_action(state)
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
                     self.replayMemory.push(
