@@ -11,6 +11,15 @@ from module.utils.scheduling import expScheduling, linScheduling
 # for epsilon greedy
 class Epsilon():
 
+    """
+    parameters
+        schedule: Schedule algorithm name to use
+            e.g.) "exponential", "linear"
+        start: Start value of epsilon
+        end: End value of epsilon
+        decay: Decay of value
+    """
+
     def __init__(
             self,
             schedule="exponential",
@@ -48,6 +57,12 @@ class Epsilon():
 
 
 class NormalNoise():
+
+    """
+    parameter
+        mean: Mean of normal distribution
+        sigma: Standard Deviation of normal distribution
+    """
 
     def __init__(
             self,

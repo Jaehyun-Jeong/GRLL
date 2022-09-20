@@ -11,6 +11,22 @@ from module.utils.exploration import Epsilon, NormalNoise
 
 
 class Policy():
+    """
+    parameters
+        algorithm: Algorithm name want to use
+            e.g.) epsilon-greedy, greedy
+        exploring: Exploring algorithm name want to use
+        exploringParams:
+            Exploring parameters selected depanding exploring algorithm
+            e.g.)
+                When using epsilon greedy
+                'exploringParams': {
+                    'schedule': 'exponential',
+                    'start': 0.99,
+                    'end': 0.0001,
+                    'decay': 10000
+                }
+    """
 
     def __init__(
             self,

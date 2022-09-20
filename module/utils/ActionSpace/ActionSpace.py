@@ -14,19 +14,30 @@ from module.utils.ActionSpace.gymConverter \
 class ActionSpace():
 
     """
+    1. parameters
+
+    high: Biggest values of each element
+    low: Smallest values of each element
+    actionSpace:
+        When it need converting from other module (like gym)
+        use this paramter
+
+        Warning:
+            If you want to use this parameter,
+            then high and low parameters have to be None (or not specified)
+
+    2. USE CASE
+
     case1)
-
     use high, low parameters
-
     np.ndarray high and low automatically make ActionSpace
 
     case2)
-
     use actionSpace parameter
 
     Support spaces
-    1. Box from gym
-    2. Discrete from gym
+        1. Box from gym
+        2. Discrete from gym
     """
 
     def __init__(

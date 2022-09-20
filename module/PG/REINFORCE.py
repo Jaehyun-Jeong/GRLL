@@ -164,12 +164,12 @@ class REINFORCE(PolicyGradient):
 
         # get actor loss
         log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
-        advantage = Qval - self.value.StateValue(S_t) * self.useBaseline
+        advantage = Qval - self.value.state_value(S_t) * self.useBaseline
         advantage = Variable(advantage)
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        value = self.value.StateValue(S_t)
+        value = self.value.state_value(S_t)
         critic_loss = 1/2 * (Qval - value).pow(2)
 
         # calculate loss

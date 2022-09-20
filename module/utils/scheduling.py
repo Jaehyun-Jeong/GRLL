@@ -3,6 +3,13 @@ import math
 
 class Scheduling():
 
+    """
+    parameters
+        start: Start value of scheduled paramter
+        end: Etart value of scheduled paramter
+        decay: Decay of value
+    """
+
     def __init__(
             self,
             start: float,

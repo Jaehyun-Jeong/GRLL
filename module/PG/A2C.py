@@ -127,7 +127,7 @@ class A2C(PolicyGradient):
         R_tt = np.array(R_tt)
 
         # Compute n-step return
-        stateValue = self.value.StateValue(S_tt[-1].unsqueeze(0))
+        stateValue = self.value.state_value(S_tt[-1].unsqueeze(0))
         values = [stateValue.squeeze(0) * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount * values[-1])
@@ -138,12 +138,12 @@ class A2C(PolicyGradient):
         # get actor loss
         # log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
         log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
-        advantage = values - self.value.StateValue(S_t)
+        advantage = values - self.value.state_value(S_t)
         advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)
 
         # get critic loss
-        critic_loss = values - self.value.StateValue(S_t)
+        critic_loss = values - self.value.state_value(S_t)
         critic_loss = 1/2 * (critic_loss).pow(2)
 
         loss = actor_loss + critic_loss + 0.001 * entropy_term

@@ -3,7 +3,7 @@ import numpy as np
 
 
 def fromDiscrete(
-        space: Discrete
+        space: Discrete  # Discrete Action Space from gym
         ):
 
     # Biggiest index of action is space.n - 1
@@ -15,7 +15,7 @@ def fromDiscrete(
 
 
 def fromBox(
-        space: Box
+        space: Box  # Box Action Space from gym
         ):
 
     high = space.high

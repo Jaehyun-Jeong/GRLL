@@ -13,10 +13,13 @@ from module.utils.ActionSpace import ActionSpace
 class Value():
 
     """
-            actionParams
-
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        device: Device used for training, like Backpropagation
+        optimizer: torch optimizer
+        actionSapce: inner module ActionSpace class
+        actionParameters={
             # for DISCRETE
-
             'algorithm': "greedy",  # greedy, stochastic
             'exploring': "epsilon",  # epsilon, None
             'exploringParams': {
@@ -26,13 +29,13 @@ class Value():
             },
 
             # for CONTINUOUS
-
             'algorithm': "plain",  # greedy
             'exploring': "normal",  # normal
             'exploringParams': {
                 'mean': 0,
                 'sigma': 1,
             }
+        }
     """
 
     def __init__(
@@ -114,7 +117,7 @@ class Value():
 
     # Returns a value of the state
     # (state value function in Reinforcement learning)
-    def StateValue(
+    def state_value(
             self,
             s: torch.Tensor,
             ) -> torch.Tensor:
@@ -124,7 +127,7 @@ class Value():
         return value
 
     # Get all Action Value as Tensor from state
-    def ActionValue(
+    def action_value(
             self,
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
@@ -157,7 +160,7 @@ class Value():
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
 
-        ActionValue = self.ActionValue(s)
+        ActionValue = self.action_value(s)
 
         return self.policy(
                 ActionValue,
