@@ -10,7 +10,7 @@ from module.PG import A2C
 
 # 환경
 import gym
-env = gym.make('CartPole-v0')
+env = gym.make('Acrobot-v1')
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 
@@ -25,7 +25,7 @@ advantage_AC = A2C(
     verbose=1,
     useTensorboard=True,
     tensorboardParams={
-        'logdir': "../../runs/A2C_CartPole_v0",
+        'logdir': "../../runs/A2C_Acrobot_v1",
         'tag': "Averaged Returns/ANN_V3_lr=1e-4"
     },
     nSteps=50,
