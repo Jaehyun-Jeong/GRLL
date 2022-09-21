@@ -427,3 +427,121 @@ class NormalNoise():
 ```
 
 ### 1.3. 이 외에도 자잘한 버그를 수정했다. 이는 따로 기재하지 않겠다.
+
+# 9월 20일
+
+## 1. Value Based 방법론 버그 수정 DQN, ADQN
+
+### 1.1. DQN과 ADQN은 서로 다른 Value 측정 방법을 가진다.
+
+* DQN은 현재 있는 모델을 기반으로 Value를 측정한다.<br/>
+* ADQN은 과거 k개의 모델을 기반으로 Value를 측정하고, 이를 k로 나눠 평균 Value를 측정한다.<br/><br/>
+
+**따라서 A2C, REINFORCE 알고리즘과 같은 방법으로 코드 작성이 불가능하다. 왜냐하면 A2C와 REINFORCE는 마더클래스인 PolicyGradient에서 Value를 정의하기 때문이다.**<br/>
+**따라서 다음과 같은 코드로 이를 해결했다.**<br/><br/>
+
+```python
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if env:
+            actionSpace = ActionSpace(
+                    actionSpace=env.action_space)
+        else:
+            if trainEnv.action_space \
+                    != testEnv.action_space:
+                raise ValueError(
+                        "Action Spaces of trainEnv and testEnv don't match")
+            actionSpace = ActionSpace(
+                    actionSpace=trainEnv.action_space)
+
+        value = Value(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                actionParams=actionParams,
+                clippingParams=clippingParams,
+                )
+
+        # init parameters
+        super().__init__(
+            trainEnv=trainEnv,
+            testEnv=testEnv,
+            env=env,
+            device=device,
+            value=value,
+            maxTimesteps=maxTimesteps,
+            maxMemory=maxMemory,
+            discount=discount,
+            numBatch=numBatch,
+            isRender=isRender,
+            useTensorboard=useTensorboard,
+            tensorboardParams=tensorboardParams,
+            verbose=verbose,
+            gradientStepPer=gradientStepPer,
+            epoch=epoch,
+            trainStarts=trainStarts,
+        )
+```
+
+**value를 DQN, ADQN 클래스에서 정의 후, 이를 파라미터로 ValueBased 클래스에 넘겨준다. 그리고 ValueBased 클래스에서 self.value = value와 같이 프로퍼티를 정의한다.**
+
+## 2. 나머지 사항은 PolicyGradient와 비슷하게 수정
+
+## 3. DQN과 ADQN은 다른 Value를 가지기 때문에 Value를 마더클래스로 가지는 AveragedValue class 작성
+
+```python
+class AveragedValue(Value):
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        device: torch.device,
+        optimizer,
+        actionSpace: ActionSpace,
+        actionParams: Dict[str, Union[int, float, Dict]] = None,
+        clippingParams: Dict[str, Union[int, float]] = {
+            'pNormValue': 2,
+            'maxNorm': 1,
+        },
+        numPrevModels: int = 10,
+    ):
+
+        super().__init__(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                actionParams=actionParams,
+                clippingParams=clippingParams)
+
+        # save last K previously learned Q-networks
+        self.prevModels: deque = deque([], maxlen=numPrevModels)
+
+    # action seleted from previous K models by averaging it
+    @overrides(Value)
+    def action_value(
+            self,
+            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+
+        s = torch.Tensor(s).to(self.device)
+
+        values = self.model.forward(s)
+        # last model is equal to self.model
+        for model in list(self.prevModels)[:-1]:
+            values += model.forward(s)
+
+        values = values / len(self.prevModels)
+
+        return values
+```
+
+* prevModels 프로퍼티는 과거의 모델을 저장한다.
+* action_value 메소드가 평균값을 출력하게 만들어 나머지 메소드가 편균값 기반으로 작동하도록 코드를 작성했다.
+
+## 4. 테스트
+
+**CartPole-v0 환경을 사용하고, A2C(왼쪽 위), REINFORCE(왼쪽 아래), DQN(오른쪽 위), ADQN(오른쪽 아래) 알고리즘 테스트를 진행했다.**<br/>
+
+![](TrainTest.png)<br/>
+*Variance가 클 수는 있지만, A2C는 아무리 봐도 이상하다. 따라서 수정할 예정이다.*
