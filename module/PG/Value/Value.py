@@ -74,7 +74,9 @@ class Value():
                     }
                 }
 
-            self.policy = DiscretePolicy(**actionParams)
+            self.policy = DiscretePolicy(
+                    **actionParams,
+                    actionSpace=actionSpace)
 
         if self.actionSpace.actionType == 'Continuous':
 
@@ -89,7 +91,9 @@ class Value():
                     }
                 }
 
-            self.policy = ContinuousPolicy(**actionParams)
+            self.policy = ContinuousPolicy(
+                    **actionParams,
+                    actionSpace=actionSpace)
 
         if self.actionSpace.actionType \
                 not in ['Discrete', 'Continuous']:
@@ -148,10 +152,12 @@ class Value():
 
         a = a.unsqueeze(dim=-1)
 
-        _, probs = self.model.forward(s)
-        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
+        _, actionValue = self.model.forward(s)
 
-        return actionValue
+        return self.policy.pi(
+                actionValue,
+                s,
+                a)
 
     # Get Action from State s
     @torch.no_grad()

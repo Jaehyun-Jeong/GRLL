@@ -76,7 +76,9 @@ class Value():
                     }
                 }
 
-            self.policy = DiscretePolicy(**actionParams)
+            self.policy = DiscretePolicy(
+                    **actionParams,
+                    actionSpace=actionSpace,)
 
         if self.actionSpace.actionType == 'Continuous':
 
@@ -91,7 +93,9 @@ class Value():
                     }
                 }
 
-            self.policy = ContinuousPolicy(**actionParams)
+            self.policy = ContinuousPolicy(
+                    **actionParams,
+                    actionSpace=actionSpace)
 
         if self.actionSpace.actionType \
                 not in ['Discrete', 'Continuous']:

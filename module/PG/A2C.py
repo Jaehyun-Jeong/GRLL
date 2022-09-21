@@ -146,7 +146,6 @@ class A2C(PolicyGradient):
         values = torch.cat(values, 0)
 
         # get actor loss
-        # log_prob = torch.log(self.pi(S_t, A_t) + self.ups)
         log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
         advantage = values - self.value.state_value(S_t)
         advantage = Variable(advantage)  # no grad
