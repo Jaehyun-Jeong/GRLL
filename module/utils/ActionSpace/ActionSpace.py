@@ -64,7 +64,7 @@ class ActionSpace():
             self.low = low  # Smallest values of each element
         else:
             raise ValueError(
-                    "")
+                    "Use actionSpace only or both high and low")
 
         self.dtype = self.high.dtype  # Data type of each element
         self.shape = self.high.shape  # Shape of Actions

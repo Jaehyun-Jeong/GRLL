@@ -133,6 +133,11 @@ class DQN(ValueBased):
             actionSpace = ActionSpace(
                     actionSpace=trainEnv.action_space)
 
+        # Only Discrete ActionSpace is possible
+        if actionSpace.actionType not in ['Discrete']:
+            raise ValueError(
+                    "Only support Discrete ActionSpace for DQN!")
+
         value = Value(
                 model=model,
                 device=device,

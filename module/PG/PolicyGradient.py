@@ -98,6 +98,11 @@ class PolicyGradient(RL):
         actionSpace = ActionSpace(
                 actionSpace=self.trainEnv.action_space)
 
+        # Support 'Discrete', 'Continuous' ActionSpaces
+        if actionSpace.actionType not in ['Discrete', 'Continuous']:
+            raise ValueError(
+                    "Only support Discrete ActionSpace for DQN!")
+
         self.value = Value(
                 model=model.to(self.device),
                 device=device,

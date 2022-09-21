@@ -136,6 +136,11 @@ class ADQN(ValueBased):
                 raise ValueError(
                         "Action Spaces of trainEnv and testEnv don't match")
 
+        # Only Discrete ActionSpace is possible
+        if actionSpace.actionType not in ['Discrete']:
+            raise ValueError(
+                    "Only support Discrete ActionSpace for DQN!")
+
         value = AveragedValue(
                 model=model,
                 device=device,
