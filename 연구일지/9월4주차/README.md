@@ -545,3 +545,80 @@ class AveragedValue(Value):
 
 ![](TrainTest.png)<br/>
 *Variance가 클 수는 있지만, A2C는 아무리 봐도 이상하다. 따라서 수정할 예정이다.*
+
+# 9월 21일
+
+## 1. Continuous Control을 위해 ./module/PG/Value/Value.py, ./module/VB/Value/Value.py의 pi 메소드를 ./module/Policy/Policy.py의 DiscretePolicy, ContinuousPolicy로 이동
+
+```python
+    @overrides(Policy)
+    def pi(
+            self,
+            actionValue: torch.Tensor,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        actionValue = torch.gather(
+                torch.clone(actionValue), 1, a).squeeze(dim=1)
+
+        return actionValue
+```
+*DiscretePolicy 클래스의 pi 메소드*<br/><br/>
+
+```python
+    @overrides(Policy)
+    def pi(
+            self,
+            actionValue: torch.Tensor,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        a = a.squeeze(dim=-1)
+        dist = Normal(actionValue, torch.ones(actionValue.shape))
+
+        return dist.log_prob(a)
+```
+*ContinuousPolicy 클래스의 pi 메소드 (아직 오류가 있다)*<br/><br/>
+
+## 2. MuJoCo 환경에서 테스트하기 위한 코드 작성
+
+**Ant-v2 환경에서 테스트 하기 위해, ./TRIALS/mujoco/Ant-v2/ 디렉토리를 만들었다. 다음은 Ant-v2 환경의 사진이다.**<br/>
+![](ant_random.gif)<br/><br/>
+
+```python
+import sys
+sys.path.append("../../../") # to import module
+
+# 파이토치
+import torch.optim as optim
+
+# 작성자의 모듈
+from module.PG.models import ANN_V2
+from module.PG import A2C
+
+# 환경
+import gym
+env = gym.make('Ant-v2')
+num_actions = env.action_space.shape[0]
+num_states = env.observation_space.shape[0]
+
+A2C_model = ANN_V2(num_states, num_actions)
+optimizer = optim.Adam(A2C_model.parameters(), lr=1e-4)
+
+# 작성자의 모듈 초기화
+advantage_AC = A2C(
+    env=env,
+    model=A2C_model,
+    optimizer=optimizer,
+    verbose=1,
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "../../runs/A2C_Ant_v2",
+        'tag': "Averaged Returns/ANN_V3_lr=1e-4"
+    },
+    nSteps=50,
+)
+
+advantage_AC.train(trainTimesteps=1000000, testPer=10000)
+```
+*./TRIALS/mujoco/A2C.py*
