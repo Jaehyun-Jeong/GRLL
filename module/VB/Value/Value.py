@@ -15,10 +15,13 @@ from module.utils.ActionSpace import ActionSpace
 class Value():
 
     """
-            actionParams
-
+    parameters
+        model: torch.nn.Module based model for state_value, and action_value
+        device: Device used for training, like Backpropagation
+        optimizer: torch optimizer
+        actionSapce: inner module ActionSpace class
+        actionParameters={
             # for DISCRETE
-
             'algorithm': "greedy",  # greedy, stochastic
             'exploring': "epsilon",  # epsilon, None
             'exploringParams': {
@@ -28,13 +31,13 @@ class Value():
             },
 
             # for CONTINUOUS
-
             'algorithm': "plain",  # greedy
             'exploring': "normal",  # normal
             'exploringParams': {
                 'mean': 0,
                 'sigma': 1,
             }
+        }
     """
 
     def __init__(

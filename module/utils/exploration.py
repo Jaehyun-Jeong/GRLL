@@ -15,9 +15,9 @@ class Epsilon():
     parameters
         schedule: Schedule algorithm name to use
             e.g.) "exponential", "linear"
-        start: Start value of epsilon
-        end: End value of epsilon
-        decay: Decay of value
+        start: Start epsilon value for epsilon greedy policy
+        end: Final epsilon value for epsilon greedy policy
+        decay: It determines how small epsilon is
     """
 
     def __init__(

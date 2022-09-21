@@ -42,11 +42,16 @@ class DQN(ValueBased):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        eps={
-            'start': Start epsilon value for epsilon greedy policy
-            'end': Final epsilon value for epsilon greedy policy
-            'decay': It determines how small epsilon is
-        }
+        exploringParams:
+            Exploring parameters selected depanding exploring algorithm
+            e.g.)
+                When using epsilon greedy
+                'exploringParams': {
+                    'schedule': 'exponential',
+                    'start': 0.99,
+                    'end': 0.0001,
+                    'decay': 10000
+                }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         maxMemory: Memory size for Experience Replay
@@ -66,17 +71,6 @@ class DQN(ValueBased):
         tensorboardParams={ TensorBoard parameters
             'logdir': Saved directory
             'tag':
-        }
-        policy={
-
-            there are 4 types of Policy
-            'stochastic',
-            'eps-stochastic',
-            'greedy',
-            'eps-greedy'
-
-            'train': e.g. 'eps-stochastic'
-            'test': e.g. 'stochastic'
         }
         clippingParams={
             'maxNorm': max value of gradients
@@ -144,6 +138,7 @@ class DQN(ValueBased):
                 device=device,
                 optimizer=optimizer,
                 actionSpace=actionSpace,
+                actionParams=actionParams,
                 clippingParams=clippingParams,
                 )
 
@@ -154,7 +149,6 @@ class DQN(ValueBased):
             env=env,
             device=device,
             value=value,
-            actionParams=actionParams,
             maxTimesteps=maxTimesteps,
             maxMemory=maxMemory,
             discount=discount,

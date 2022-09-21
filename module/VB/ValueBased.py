@@ -17,6 +17,16 @@ class ValueBased(RL):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
+        exploringParams:
+            Exploring parameters selected depanding exploring algorithm
+            e.g.)
+                When using epsilon greedy
+                'exploringParams': {
+                    'schedule': 'exponential',
+                    'start': 0.99,
+                    'end': 0.0001,
+                    'decay': 10000
+                }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         maxMemory: Memory size for Experience Replay
@@ -62,7 +72,6 @@ class ValueBased(RL):
         env,
         device,
         value,
-        actionParams,
         maxTimesteps,
         maxMemory,
         discount,

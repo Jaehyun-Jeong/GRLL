@@ -3,16 +3,18 @@ from typing import Dict, Union
 import numpy as np
 import random
 from collections import namedtuple, deque
+from copy import deepcopy
 
 # PyTorch
 import torch
 from torch.autograd import Variable
 
-# Parent Class
-from module.PG.PolicyGradient import PolicyGradient
+from module.VB.ValueBased import ValueBased
+from module.utils.ActionSpace.ActionSpace import ActionSpace
+from module.VB.Value.Value import AveragedValue
 
 Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+                        ('state', 'action', 'done', 'next_state', 'reward'))
 
 
 class ReplayMemory(object):
@@ -31,7 +33,7 @@ class ReplayMemory(object):
         return len(self.memory)
 
 
-class REINFORCE(PolicyGradient):
+class ADQN(ValueBased):
 
     '''
     parameters
@@ -41,18 +43,11 @@ class REINFORCE(PolicyGradient):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        exploringParams:
-            Exploring parameters selected depanding exploring algorithm
-            e.g.)
-                When using epsilon greedy
-                'exploringParams': {
-                    'schedule': 'exponential',
-                    'start': 0.99,
-                    'end': 0.0001,
-                    'decay': 10000
-                }
+        actionParams: 
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
+        maxMemory: Memory size for Experience Replay
+        numBatch: Batch size for mini-batch gradient descent
         isRender={
 
             'train':
@@ -73,12 +68,19 @@ class REINFORCE(PolicyGradient):
             'maxNorm': max value of gradients
             'pNormValue': p value for p-norm
         }
-        useBaseline: True means use baseline term for REINFORCE algorithm
-
         verbose: The verbosity level:
             0 no output,
             1 only train info,
             2 train info + initialized info
+        gradientStepPer:
+            Update the neural network model every gradientStepPer timesteps
+        epoch: Epoch size to train from given data(Replay Memory)
+        trainStarts:
+            how many steps of the model
+            to collect transitions for before learning starts
+        numPrevModels:
+            ADQN averages last k models,
+            this parameter determines how many models it save
     '''
 
     def __init__(
@@ -92,85 +94,108 @@ class REINFORCE(PolicyGradient):
         actionParams: Dict[str, Union[int, float, Dict]] = None,
         maxTimesteps: int = 1000,
         discount: float = 0.99,
+        maxMemory: int = 100000,
+        numBatch: int = 64,
         isRender: Dict[str, bool] = {
             'train': False,
-            'test': False,
+            'test': False
         },
         useTensorboard: bool = False,
         tensorboardParams: Dict[str, str] = {
-            'logdir': "./runs/REINFORCE",
-            'tag': "Returns"
+            'logdir': "./runs",
+            'tag': "DQN"
         },
         clippingParams: Dict[str, Union[int, float]] = {
             'pNormValue': 2,
             'maxNorm': 1,
         },
         verbose: int = 1,
-        useBaseline: bool = True,
+        gradientStepPer: int = 4,
+        epoch: int = 1,
+        trainStarts: int = 50000,
+        numPrevModels: int = 10,
     ):
+
+        # Init Value Function, Policy
+        # Set ActionSpace
+        if env:
+            actionSpace = ActionSpace(
+                    actionSpace=env.action_space)
+        else:
+            if trainEnv.action_space \
+                    != testEnv.action_space:
+                raise ValueError(
+                        "Action Spaces of trainEnv and testEnv don't match")
+
+        value = AveragedValue(
+                model=model,
+                device=device,
+                optimizer=optimizer,
+                actionSpace=actionSpace,
+                actionParams=actionParams,
+                clippingParams=clippingParams,
+                numPrevModels=numPrevModels,
+                )
 
         # init parameters
         super().__init__(
             trainEnv=trainEnv,
             testEnv=testEnv,
             env=env,
-            model=model,
-            actionParams=actionParams,
-            optimizer=optimizer,
             device=device,
+            value=value,
             maxTimesteps=maxTimesteps,
+            maxMemory=maxMemory,
             discount=discount,
+            numBatch=numBatch,
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
-            clippingParams=clippingParams,
             verbose=verbose,
+            gradientStepPer=gradientStepPer,
+            epoch=epoch,
+            trainStarts=trainStarts,
         )
 
-        self.useBaseline = useBaseline
+        self.replayMemory = ReplayMemory(maxMemory)
 
         self.printInit()
 
     # Update weights by using Actor Critic Method
-    def __update_weight(self,
-                        Transitions: ReplayMemory,
-                        entropy_term: float = 0):
+    def update_weight(self):
+        if self.is_trainable():
+            for _ in range(self.epoch):
 
-        lenLoss = Transitions.memory.__len__()
+                # if memory is smaller then numBatch, then just use all data
+                batch_size = self.numBatch \
+                    if self.numBatch <= self.replayMemory.memory.__len__() \
+                    else self.replayMemory.__len__()
 
-        S_t = [transition.state for transition in Transitions.memory]
-        A_t = [transition.action for transition in Transitions.memory]
-        R_tt = [transition.reward for transition in Transitions.memory]
+                batches = self.replayMemory.sample(batch_size)
+                lenLoss = len(batches)
 
-        S_t = np.array(S_t)
-        S_t = torch.Tensor(S_t).to(self.device)
-        A_t = np.array(A_t)
-        A_t = torch.tensor(A_t).to(self.device)
+                S_t = [transition.state for transition in batches]
+                A_t = [transition.action for transition in batches]
+                done = [transition.done for transition in batches]
+                S_tt = [transition.next_state for transition in batches]
+                R_tt = [transition.reward for transition in batches]
 
-        # calculate Qval
-        Qval = torch.Tensor([R_tt[-1]])
+                S_t = np.array(S_t)
+                A_t = np.array(A_t)
+                done = np.array(done)
+                notDone = torch.Tensor(~done).to(self.device)
+                S_tt = np.array(S_tt)
+                R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
-        for r_tt in R_tt[:-1]:
-            newQval = torch.Tensor([r_tt + self.discount * Qval[0]])
-            Qval = torch.cat([newQval, Qval])
+                actionValue = self.value.pi(S_t, A_t)
+                nextMaxValue = self.value.max_value(S_tt)
 
-        Qval = Qval.to(self.device)
+                target = R_tt + self.discount * nextMaxValue * notDone
+                target = Variable(target)  # No grad
+                loss = 1/2 * (target - actionValue).pow(2)
+                loss = torch.sum(loss)/lenLoss
 
-        # get actor loss
-        log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
-        advantage = Qval - self.value.state_value(S_t) * self.useBaseline
-        advantage = Variable(advantage)
-        actor_loss = -(advantage * log_prob)
-
-        # get critic loss
-        value = self.value.state_value(S_t)
-        critic_loss = 1/2 * (Qval - value).pow(2)
-
-        # calculate loss
-        loss = actor_loss + critic_loss + 0.001 * entropy_term
-        loss = torch.sum(loss)/lenLoss
-
-        self.value.step(loss)
+                self.value.step(loss)
 
     def train(
         self,
@@ -178,13 +203,13 @@ class REINFORCE(PolicyGradient):
         testPer: int = 1000,  # Test per testPer timesteps
         testSize: int = 10,  # The episode size to test
     ):
-
         try:
             rewards = []
+            # save initial model
+            self.value.prevModels.append(deepcopy(self.value.model))
 
             while trainTimesteps > self.trainedTimesteps:
 
-                Transitions = ReplayMemory(self.maxTimesteps)
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
@@ -203,17 +228,27 @@ class REINFORCE(PolicyGradient):
                     action = self.value.get_action(state)
 
                     next_state, reward, done, _ = self.trainEnv.step(action)
-                    Transitions.push(state, action, next_state, reward)
+                    self.replayMemory.push(
+                            state,
+                            action,
+                            done,
+                            next_state,
+                            reward)
+
                     state = next_state
+
+                    # train
+                    self.update_weight()
+                    # save updated model
+                    self.value.prevModels.append(deepcopy(self.value.model))
 
                     # ==========================================================================
                     # TEST
                     # ==========================================================================
-
                     if self.trainedTimesteps % testPer == 0:
 
-                        averagRewards = self.test(testSize=testSize)
-                        rewards.append(averagRewards)
+                        averageRewards = self.test(testSize=testSize)
+                        rewards.append(averageRewards)
 
                         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
@@ -231,8 +266,6 @@ class REINFORCE(PolicyGradient):
 
                     if done or timesteps == self.maxTimesteps-1:
                         break
-                # train
-                self.__update_weight(Transitions)
 
         except KeyboardInterrupt:
             print("KeyboardInterruption occured")
