@@ -1,56 +1,39 @@
 import sys
 sys.path.append("../../../") # to import module
 
+# 시간 측정
+from datetime import datetime
+startTime = datetime.now()
+
 # PyTorch
 import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
-from module.ValueBased import DQN
+from module.VB.models import ANN_V2
+from module.VB import DQN
 
 # Environment 
 import gym
-
-MAX_EPISODES = 3000
-MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
-
-ALPHA = 0.0001 # learning rate
-GAMMA = 0.99 # discount rate
-
-gym_name = 'Acrobot-v1'
-
-# device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# set environment
-env = gym.make(gym_name)
-
-# set ActorCritic
+env = gym.make('Acrobot-v1')
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
-model = ANN_V2(num_states, num_actions).to(device)
-optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
-params_dict = {
-    'device': device, # device to use, 'cuda' or 'cpu'
-    'env': env, # environment like gym
-    'model': model, # torch models for policy and value funciton
-    'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 1000
-    }
-}
+# set ActorCritic
+model = ANN_V2(num_states, num_actions)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
 # Initialize Actor-Critic Mehtod
-DeepQN = DQN(**params_dict)
+DeepQN = DQN(
+    model=model, # torch models for policy and value funciton
+    env=env,
+    optimizer=optimizer, # torch optimizer
+    maxMemory=100000,
+    numBatch=64,
+    verbose=1,
+)
+
+startTrainTime = datetime.now()
 
 # TRAIN Agent
-DeepQN.train(MAX_EPISODES)
+DeepQN.train(trainTimesteps=1000000, testPer=10000)
