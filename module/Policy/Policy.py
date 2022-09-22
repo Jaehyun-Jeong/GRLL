@@ -4,7 +4,7 @@ import random
 
 # PyTorch
 import torch
-from torch.distributions import MultivariateNormal
+from torch.distributions import Normal
 
 # module
 from module.utils.utils import overrides
@@ -187,6 +187,7 @@ class ContinuousPolicy(Policy):
             a: torch.Tensor) -> torch.Tensor:
 
         a = a.squeeze(dim=-1)
-        dist = MultivariateNormal(actionValue.T, torch.ones(len(actionValue)))
+        dist = Normal(actionValue, torch.ones(actionValue.shape))
+        logProb = dist.log_prob(a).sum(dim=1)
 
         return dist.log_prob(a)
