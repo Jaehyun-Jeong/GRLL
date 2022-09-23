@@ -4,6 +4,7 @@ import random
 
 # PyTorch
 import torch
+import torch.nn as nn
 from torch.distributions import Normal
 
 # module
@@ -45,7 +46,20 @@ class Policy():
     def __call__(self) -> torch.Tensor:
         raise NotImplementedError()
 
-    def pi(self) -> torch.Tensor:
+    def pi(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        raise NotImplementedError()
+
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
         raise NotImplementedError()
 
 
@@ -70,6 +84,13 @@ class DiscretePolicy(Policy):
                 exploringParams=exploringParams,
                 actionSpace=actionSpace,
                 )
+
+        # torch.log makes nan(not a number) error,
+        # so we have to add some small number in log function
+        self.ups = 1e-7
+
+        # Stochastic action selection
+        self.softmax = nn.Softmax(dim=0)
 
         # Initialize Parameters
         self.useEps = False
@@ -125,6 +146,16 @@ class DiscretePolicy(Policy):
                 torch.clone(actionValue), 1, a).squeeze(dim=1)
 
         return actionValue
+
+    @overrides(Policy)
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        return torch.log(
+                self.softmax(self.pi(actionValue, S, A)) + self.ups)
 
 
 class ContinuousPolicy(Policy):
@@ -188,6 +219,17 @@ class ContinuousPolicy(Policy):
 
         a = a.squeeze(dim=-1)
         dist = Normal(actionValue, torch.ones(actionValue.shape))
-        logProb = dist.log_prob(a).sum(dim=1)
+        logProb = dist.log_prob(a)
 
-        return dist.log_prob(a)
+        return logProb
+
+    @overrides(Policy)
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        logProb = self.pi(actionValue, S, A)
+
+        return logProb.sum(dim=1)

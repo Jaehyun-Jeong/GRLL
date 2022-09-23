@@ -1,8 +1,5 @@
 from typing import Union
 
-# PyTorch
-import torch.nn as nn
-
 from module.RL import RL
 from module.utils.ActionSpace import ActionSpace
 from module.utils.utils import overrides
@@ -111,13 +108,6 @@ class PolicyGradient(RL):
                 actionParams=actionParams,
                 clippingParams=clippingParams,
                 )
-
-        # Stochastic action selection
-        self.softmax = nn.Softmax(dim=0)
-
-        # torch.log makes nan(not a number) error,
-        # so we have to add some small number in log function
-        self.ups = 1e-7
 
     # Test to measure performance
     @overrides(RL)

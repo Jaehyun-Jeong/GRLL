@@ -127,6 +127,7 @@ class Value():
             ) -> torch.Tensor:
 
         value, _ = self.model.forward(s)
+        value = value.squeeze(dim=-1)
 
         return value
 
@@ -155,6 +156,20 @@ class Value():
         _, actionValue = self.model.forward(s)
 
         return self.policy.pi(
+                actionValue,
+                s,
+                a)
+
+    def log_prob(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        a = a.unsqueeze(dim=-1)
+
+        _, actionValue = self.model.forward(s)
+
+        return self.policy.log_prob(
                 actionValue,
                 s,
                 a)
