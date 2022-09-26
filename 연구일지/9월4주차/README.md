@@ -726,3 +726,13 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 *하루 이상 학습한 결과*<br/><br/>
 
 **stable-baselines3에서 학습한 경우, 하루가 안되서 보상이 양수를 가졌다는 사실을 감안하면, 코드가 잘못됐음을 알 수 있었다.**
+
+# 9월 26일
+
+## 1. 학습과 테스트의 Policy를 구분
+
+학습과 테스트는 다른 Policy를 가진다. 하지만 깜빡하고 못해서 코드를 작성했다.<br/>
+```python
+```
+```python
+```
