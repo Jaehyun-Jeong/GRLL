@@ -16,16 +16,24 @@ class PolicyGradient(RL):
         testEnv: Environment which is used to test
         env: only for when it don't need to be split by trainEnv, testEnv
         device: Device used for training, like Backpropagation
-        exploringParams:
-            Exploring parameters selected depanding exploring algorithm
-            e.g.)
-                When using epsilon greedy
-                'exploringParams': {
-                    'schedule': 'exponential',
-                    'start': 0.99,
-                    'end': 0.0001,
-                    'decay': 10000
-                }
+        actionParameters={
+            # for DISCRETE
+            'algorithm': "greedy",  # greedy, stochastic
+            'exploring': "epsilon",  # epsilon, None
+            'exploringParams': {
+                'start': 0.99,
+                'end': 0.0001,
+                'decay': 10000
+            }
+
+            # for CONTINUOUS
+            'algorithm': "plain",  # greedy
+            'exploring': "normal",  # normal
+            'exploringParams': {
+                'mean': 0,
+                'sigma': 1,
+            }
+        }
         maxTimesteps: Permitted timesteps in the environment
         discount: Discount rate for calculating return(accumulated reward)
         isRender={
@@ -127,7 +135,9 @@ class PolicyGradient(RL):
                 if self.isRender['test']:
                     self.testEnv.render()
 
-                action = self.value.get_action(state)
+                action = self.value.get_action(
+                        state,
+                        isTest=True)
 
                 next_state, reward, done, _ = self.testEnv.step(action)
 

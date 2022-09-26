@@ -545,3 +545,5 @@ class AveragedValue(Value):
 
 ![](TrainTest.png)<br/>
 *Variance가 클 수는 있지만, A2C는 아무리 봐도 이상하다. 따라서 수정할 예정이다.*
+
+# 9월 21일

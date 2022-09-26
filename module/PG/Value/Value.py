@@ -179,11 +179,13 @@ class Value():
     def get_action(
             self,
             s: Union[torch.Tensor, np.ndarray],
+            isTest: bool = False,
             ) -> torch.Tensor:
 
         ActionValue = self.action_value(s)
 
         return self.policy(
                 ActionValue,
-                self.stepsDone
+                self.stepsDone,
+                isTest=isTest,
                 )

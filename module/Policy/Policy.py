@@ -108,11 +108,15 @@ class DiscretePolicy(Policy):
             self,
             actionValue: torch.Tensor,
             stepsDone: int,
+            isTest: bool = False,
             ) -> list:
 
         probs = actionValue
 
-        eps = self.exploration(stepsDone) if self.useEps else 0
+        if isTest:
+            eps = 0
+        else:
+            eps = self.exploration(stepsDone) if self.useEps else 0
 
         if random.random() >= eps:
             if self.useStochastic:
@@ -189,6 +193,7 @@ class ContinuousPolicy(Policy):
             self,
             actionValue: torch.Tensor,
             stepsDone: int,
+            isTest: bool = False,
             ) -> list:
 
         # Get noise
@@ -197,7 +202,7 @@ class ContinuousPolicy(Policy):
                 actionValue.shape)
 
         # Add noise to action
-        action = actionValue + noise
+        action = actionValue + noise * (not isTest)
 
         # clamp action by high and low
         action = torch.clamp(
