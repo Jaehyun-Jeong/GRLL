@@ -622,3 +622,107 @@ advantage_AC = A2C(
 advantage_AC.train(trainTimesteps=1000000, testPer=10000)
 ```
 *./TRIALS/mujoco/A2C.py*
+
+# 9월 22일
+
+## 1. A2C, REINFORCE 알고리즘 코드 수정
+
+우연히 찾고있던 오류를 찾아서 수정했다.<br/>
+
+```python
+        # Compute n-step return
+        stateValue = self.value.state_value(S_tt[-1].unsqueeze(0))
+        values = [stateValue.squeeze(0) * notDone[-1]]
+        for r_tt in reversed(R_tt[:-1]):
+            values.append(r_tt + self.discount * values[-1])
+        values.reverse()
+
+        values = torch.cat(values, 0)
+```
+*./module/PG/A2C.py의 139~146라인*<br/><br/>
+
+아래는 가중치를 업데이트 하는 과정에서 사용되는 코드이다.
+그리고 문제점이 values의 차원에 있다는 사실을 알았다. values는 여러개의 상태를 받아 한번에 state value를 계산한다. **그러면 상태가 n개일 때, n by 1 행렬이 나와야 하는데, n by n 행렬이 출력됐다.** 따라서 위와 같은 코드로 수정해 오류를 해결 했다. 
+
+## 2. MuJoCo test
+
+다음과 같은 코드로 테스트를 진행했다.<br/>
+```python
+import sys
+sys.path.append("../../../") # to import module
+
+# 파이토치
+import torch.optim as optim
+
+# 작성자의 모듈
+from module.PG.models import ANN_V2
+from module.PG import A2C
+
+# 환경
+import gym
+env = gym.make('Ant-v2')
+num_actions = env.action_space.shape[0]
+num_states = env.observation_space.shape[0]
+
+A2C_model = ANN_V2(num_states, num_actions)
+optimizer = optim.Adam(A2C_model.parameters(), lr=1e-4)
+
+# 작성자의 모듈 초기화
+advantage_AC = A2C(
+    env=env,
+    model=A2C_model,
+    optimizer=optimizer,
+    verbose=1,
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "../../runs/A2C_Ant_v2",
+        'tag': "Averaged Returns/ANN_V3_lr=1e-4"
+    },
+    nSteps=50,
+)
+
+advantage_AC.train(trainTimesteps=1000000, testPer=10000)
+```
+
+하지만 학습이 안된다.
+
+# 9월 23일
+
+## 1. 자료 조사
+
+**MuJoCo환경에서의 학습을 성공하기 위해, 계속해서 밴치마킹중인 stable-baselines3의 소스코드를 참고했다.**<br/>
+```python
+    def log_prob(self, actions: th.Tensor) -> th.Tensor:
+        """
+        Get the log probabilities of actions according to the distribution.
+        Note that you must first call the ``proba_distribution()`` method.
+
+        :param actions:
+        :return:
+        """
+        log_prob = self.distribution.log_prob(actions)
+        return sum_independent_dims(log_prob)
+```
+```python
+def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
+    """
+    Continuous actions are usually considered to be independent,
+    so we can sum components of the ``log_prob`` or the entropy.
+
+    :param tensor: shape: (n_batch, n_actions) or (n_batch,)
+    :return: shape: (n_batch,)
+    """
+    if len(tensor.shape) > 1:
+        tensor = tensor.sum(dim=1)
+    else:
+        tensor = tensor.sum()
+    return tensor
+```
+
+연속적인 값(행동)의 확률을 구하기 위해 정규 분포를 사용한다. 하지만 하나의 행동은 복수개의 실수로 이루어진다. 이때 어떻게 정규분포를 사용하는지에 대한 의문을 가지고 있었고, 해결하지 못했다. **따라서 위 코드를 참고했는데, 각각의 실수의 log probability(정규 분포 기반)을 구하고 다 더하는 방식을 사용함을 확인하고 작성자의 모듈에도 추가했다.**<br/>
+
+추가 후, 테스트를 진행했는데 결과가 좋지 않았다.<br/>
+![](Ant_v2_Test.PNG)<br/>
+*하루 이상 학습한 결과*<br/><br/>
+
+**stable-baselines3에서 학습한 경우, 하루가 안되서 보상이 양수를 가졌다는 사실을 감안하면, 코드가 잘못됐음을 알 수 있었다.**
