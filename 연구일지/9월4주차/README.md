@@ -732,7 +732,71 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 ## 1. 학습과 테스트의 Policy를 구분
 
 학습과 테스트는 다른 Policy를 가진다. 하지만 깜빡하고 못해서 코드를 작성했다.<br/>
+
+
+**아래와 같이 각각의 메소드에 isTest 파라미터를 추가했다.**<br/>
 ```python
+    # Return Action
+    @overrides(Policy)
+    def __call__(
+            self,
+            actionValue: torch.Tensor,
+            stepsDone: int,
+            isTest: bool = False,
+            ) -> list:
+
+        probs = actionValue
+
+        if isTest:
+            eps = 0
+        else:
+            eps = self.exploration(stepsDone) if self.useEps else 0
+
+        if random.random() >= eps:
+            if self.useStochastic:
+                probs = self.softmax(probs)
+
+                a = probs.multinomial(num_samples=1)
+                a = a.data
+                action = a[0].cpu()
+            else:
+                action = torch.argmax(probs, dim=0)
+        else:
+            a = torch.rand(probs.shape).multinomial(num_samples=1)
+            a = a.data
+            action = a[0]
+
+        action = action.detach()
+
+        return action.tolist()
 ```
+*Discrete Policy의 메소드*<br/>
 ```python
+    # Return Action
+    @overrides(Policy)
+    def __call__(
+            self,
+            actionValue: torch.Tensor,
+            stepsDone: int,
+            isTest: bool = False,
+            ) -> list:
+
+        # Get noise
+        noise = self.exploration(
+                stepsDone,
+                actionValue.shape)
+
+        # Add noise to action
+        action = actionValue + noise * (not isTest)
+
+        # clamp action by high and low
+        action = torch.clamp(
+                action,
+                min=torch.Tensor(self.actionSpace.low),
+                max=torch.Tensor(self.actionSpace.high))
+
+        return action.tolist()
 ```
+*Continuous Policy의 메소드*<br/>
+
+위와 같이 수정 후, 지금은 다시 테스트중이다.
