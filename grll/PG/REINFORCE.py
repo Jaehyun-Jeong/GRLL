@@ -182,7 +182,8 @@ class REINFORCE(PolicyGradient):
         try:
             rewards = []
 
-            while trainTimesteps > self.trainedTimesteps:
+            spentTimesteps = 0  # spent timesteps after starting train
+            while trainTimesteps >= spentTimesteps:
 
                 Transitions = ReplayMemory(self.maxTimesteps)
                 state = self.trainEnv.reset()
@@ -195,6 +196,7 @@ class REINFORCE(PolicyGradient):
 
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+                    spentTimesteps += 1
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
@@ -210,7 +212,7 @@ class REINFORCE(PolicyGradient):
                     # TEST
                     # ==========================================================================
 
-                    if self.trainedTimesteps % testPer == 0:
+                    if spentTimesteps % testPer == 0:
 
                         averagRewards = self.test(testSize=testSize)
                         rewards.append(averagRewards)

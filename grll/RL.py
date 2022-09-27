@@ -101,15 +101,7 @@ class RL():
         return self._isRender
 
     @isRender.setter
-    def isRender(
-            self,
-            train: bool,
-            test: bool):
-        
-        isRender = {
-                'train': train,
-                'test': test}
-
+    def isRender(self, isRender):
         self._isRender = isRender
 
     # Draw graph in TensorBoard only when It use TensorBoard
@@ -197,34 +189,43 @@ class RL():
         save_dict.pop('device', None)
 
         # save model state dict
-        save_dict['modelStateDict'] = save_dict['model'].state_dict()
-        save_dict.pop('model', None)
-        save_dict['optimizerStateDict'] = save_dict['optimizer'].state_dict()
-        save_dict.pop('optimizer', None)
+        save_dict['modelStateDict'] \
+            = save_dict['value'].model.state_dict()
+        save_dict['value'].model = None
+        save_dict['optimizerStateDict'] \
+            = save_dict['value'].optimizer.state_dict()
+        save_dict['value'].optimizer = None
 
         torch.save(save_dict, saveDir)
 
-    # load class
+    # Load class
     def load(self, loadDir: str):
 
-        # =============================================================================
-        # LOAD TORCH MODEL
-        # =============================================================================
-
+        # Load torch model
         loadedDict = torch.load(loadDir, map_location=self.device)
 
+        # Load state_dict of torch model, and optimizer
         try:
-            self.model.load_state_dict(
+
+            self.value.model.load_state_dict(
                     loadedDict.pop('modelStateDict'))
-            self.optimizer.load_state_dict(
+            self.value.optimizer.load_state_dict(
                     loadedDict.pop('optimizerStateDict'))
+
+            loadedDict['value'].__dict__.pop('model')
+            loadedDict['value'].__dict__.pop('optimizer')
+
+            # Load value function
+            for key, value in loadedDict['value'].__dict__.items():
+                self.value.__dict__[key] = value
+            loadedDict.pop('value')
+
         except ValueError:
-            raise ValueError("No matching torch.nn.Module, \
-                    please use equally shaped torch.nn.Module as you've done!")
+            print(
+                "No matching torch.nn.Module,"
+                "please use equally shaped torch.nn.Module as you've done!")
 
-        self.model.eval()
-
-        # =============================================================================
+        self.value.model.eval()
 
         for key, value in loadedDict.items():
             self.__dict__[key] = value

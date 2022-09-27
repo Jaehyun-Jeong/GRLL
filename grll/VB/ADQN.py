@@ -222,18 +222,17 @@ class ADQN(ValueBased):
             # save initial model
             self.value.prevModels.append(deepcopy(self.value.model))
 
-            while trainTimesteps > self.trainedTimesteps:
+            spentTimesteps = 0  # spent timesteps after starting train
+            while trainTimesteps >= spentTimesteps:
 
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
 
-                # ==========================================================================
                 # MAKE TRAIN DATA
-                # ==========================================================================
-
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
+                    spentTimesteps += 1
                     self.trainedTimesteps += 1
 
                     if self.isRender['train']:
@@ -256,22 +255,16 @@ class ADQN(ValueBased):
                     # save updated model
                     self.value.prevModels.append(deepcopy(self.value.model))
 
-                    # ==========================================================================
                     # TEST
-                    # ==========================================================================
-                    if self.trainedTimesteps % testPer == 0:
+                    if spentTimesteps % testPer == 0:
 
                         averageRewards = self.test(testSize=testSize)
                         rewards.append(averageRewards)
 
-                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
-
                         self.writeTensorboard(
                                 rewards[-1],
                                 self.trainedTimesteps)
-
-                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                         self.printResult(
                                 self.trainedEpisodes,
