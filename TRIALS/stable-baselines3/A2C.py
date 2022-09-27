@@ -17,7 +17,7 @@ model = A2C(
         learning_rate=1e-4,
         n_steps=10,
         vf_coef=1,
-        verbose=0)
+        verbose=1)
 
 # 모듈 초기화에 걸린 시간
 print(f"Init Time: {datetime.now() - startTime}")
