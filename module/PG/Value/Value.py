@@ -29,7 +29,7 @@ class Value():
             },
 
             # for CONTINUOUS
-            'algorithm': "plain",  # greedy
+            'algorithm': "plain",  # plain
             'exploring': "normal",  # normal
             'exploringParams': {
                 'mean': 0,

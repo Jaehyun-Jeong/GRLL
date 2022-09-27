@@ -74,7 +74,7 @@ class RL():
         self.device = device
         self.maxTimesteps = maxTimesteps
         self.discount = discount
-        self.isRender = isRender
+        self._isRender = isRender
         self.useTensorboard = useTensorboard
         self.tensorboardParams = tensorboardParams
         self.verbose = verbose
@@ -98,16 +98,19 @@ class RL():
 
     @property
     def isRender(self):
-        return self.isRender
+        return self._isRender
 
     @isRender.setter
     def isRender(
             self,
             train: bool,
             test: bool):
+        
+        isRender = {
+                'train': train,
+                'test': test}
 
-        self.isRender['train'] = train
-        self.isRender['test'] = test
+        self._isRender = isRender
 
     # Draw graph in TensorBoard only when It use TensorBoard
     def writeTensorboard(self, y: Union[float, str], x: int):

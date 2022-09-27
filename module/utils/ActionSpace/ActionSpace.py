@@ -26,7 +26,7 @@ class ActionSpace():
             If you want to use this parameter,
             then high and low parameters have to be None (or not specified)
 
-    2. USE CASE
+    2. Usage
 
     case1)
     use high, low parameters

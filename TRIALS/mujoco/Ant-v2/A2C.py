@@ -24,6 +24,14 @@ advantage_AC = A2C(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
+    actionParams={
+        'algorithm': 'plain',
+        'exploring': 'normal',
+        'exploringParams': {
+            'mean': 0,
+            'sigma': 0.1,
+        },
+    },
     tensorboardParams={
         'logdir': "../../runs/A2C_Ant_v2",
         'tag': "Averaged Returns/ANN_V4_lr=1e-4"
