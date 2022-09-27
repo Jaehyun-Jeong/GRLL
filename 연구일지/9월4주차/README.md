@@ -803,7 +803,7 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 
 # 9월 27일
 
-## Render 옵션을 도중에 바꿀 수 있도록 ./module/RL.py에서 isRender 프로퍼티의 getter, setter 메소드를 추가했다.
+## 1. Render 옵션을 도중에 바꿀 수 있도록 ./module/RL.py에서 isRender 프로퍼티의 getter, setter 메소드를 추가했다.
 
 ```python
     @property
@@ -819,3 +819,7 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
         self.isRender['train'] = train
         self.isRender['test'] = test
 ```
+
+## 2. 모듈의 이름을 grll(general reinforcement learning library)로 결정했다.
+
+지금까지 모듈의 최상위 폴더의 이름은 module이었는데, 모두 grll로 변경하고, 작동하도록 코드를 수정했다.
