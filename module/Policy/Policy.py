@@ -4,6 +4,7 @@ import random
 
 # PyTorch
 import torch
+import torch.nn as nn
 from torch.distributions import Normal
 
 # module
@@ -45,7 +46,20 @@ class Policy():
     def __call__(self) -> torch.Tensor:
         raise NotImplementedError()
 
-    def pi(self) -> torch.Tensor:
+    def pi(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        raise NotImplementedError()
+
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
         raise NotImplementedError()
 
 
@@ -71,6 +85,13 @@ class DiscretePolicy(Policy):
                 actionSpace=actionSpace,
                 )
 
+        # torch.log makes nan(not a number) error,
+        # so we have to add some small number in log function
+        self.ups = 1e-7
+
+        # Stochastic action selection
+        self.softmax = nn.Softmax(dim=0)
+
         # Initialize Parameters
         self.useEps = False
         self.useStochastic = False
@@ -87,11 +108,15 @@ class DiscretePolicy(Policy):
             self,
             actionValue: torch.Tensor,
             stepsDone: int,
+            isTest: bool = False,
             ) -> list:
 
         probs = actionValue
 
-        eps = self.exploration(stepsDone) if self.useEps else 0
+        if isTest:
+            eps = 0
+        else:
+            eps = self.exploration(stepsDone) if self.useEps else 0
 
         if random.random() >= eps:
             if self.useStochastic:
@@ -126,6 +151,16 @@ class DiscretePolicy(Policy):
 
         return actionValue
 
+    @overrides(Policy)
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        return torch.log(
+                self.softmax(self.pi(actionValue, S, A)) + self.ups)
+
 
 class ContinuousPolicy(Policy):
 
@@ -158,6 +193,7 @@ class ContinuousPolicy(Policy):
             self,
             actionValue: torch.Tensor,
             stepsDone: int,
+            isTest: bool = False,
             ) -> list:
 
         # Get noise
@@ -166,7 +202,7 @@ class ContinuousPolicy(Policy):
                 actionValue.shape)
 
         # Add noise to action
-        action = actionValue + noise
+        action = actionValue + noise * (not isTest)
 
         # clamp action by high and low
         action = torch.clamp(
@@ -188,5 +224,17 @@ class ContinuousPolicy(Policy):
 
         a = a.squeeze(dim=-1)
         dist = Normal(actionValue, torch.ones(actionValue.shape))
+        logProb = dist.log_prob(a)
 
-        return dist.log_prob(a)
+        return logProb
+
+    @overrides(Policy)
+    def log_prob(
+            self,
+            actionValue: torch.Tensor,
+            S: torch.Tensor,
+            A: torch.Tensor) -> torch.Tensor:
+
+        logProb = self.pi(actionValue, S, A)
+
+        return logProb.sum(dim=1)

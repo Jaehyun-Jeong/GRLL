@@ -137,16 +137,15 @@ class A2C(PolicyGradient):
         R_tt = np.array(R_tt)
 
         # Compute n-step return
-        stateValue = self.value.state_value(S_tt[-1].unsqueeze(0))
-        values = [stateValue.squeeze(0) * notDone[-1]]
+        stateValue = self.value.state_value(S_tt[-1]).unsqueeze(0)
+        values = [stateValue * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount * values[-1])
         values.reverse()
-
         values = torch.cat(values, 0)
 
         # get actor loss
-        log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
+        log_prob = self.value.log_prob(S_t, A_t)
         advantage = values - self.value.state_value(S_t)
         advantage = Variable(advantage)  # no grad
         actor_loss = -(advantage * log_prob)

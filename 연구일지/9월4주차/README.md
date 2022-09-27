@@ -547,6 +547,7 @@ class AveragedValue(Value):
 *Variance가 클 수는 있지만, A2C는 아무리 봐도 이상하다. 따라서 수정할 예정이다.*
 
 # 9월 21일
+<<<<<<< HEAD
 
 ## 1. Continuous Control을 위해 ./module/PG/Value/Value.py, ./module/VB/Value/Value.py의 pi 메소드를 ./module/Policy/Policy.py의 DiscretePolicy, ContinuousPolicy로 이동
 
@@ -800,3 +801,5 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 *Continuous Policy의 메소드*<br/>
 
 위와 같이 수정 후, 지금은 다시 테스트중이다.
+=======
+>>>>>>> test/mujoco

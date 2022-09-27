@@ -142,7 +142,9 @@ class ValueBased(RL):
                 if self.isRender['test']:
                     self.testEnv.render()
 
-                action = self.value.get_action(state)
+                action = self.value.get_action(
+                        state,
+                        isTest=True)
 
                 next_state, reward, done, _ = self.testEnv.step(action)
 

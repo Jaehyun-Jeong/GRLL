@@ -127,6 +127,7 @@ class Value():
             ) -> torch.Tensor:
 
         value, _ = self.model.forward(s)
+        value = value.squeeze(dim=-1)
 
         return value
 
@@ -159,16 +160,32 @@ class Value():
                 s,
                 a)
 
+    def log_prob(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor) -> torch.Tensor:
+
+        a = a.unsqueeze(dim=-1)
+
+        _, actionValue = self.model.forward(s)
+
+        return self.policy.log_prob(
+                actionValue,
+                s,
+                a)
+
     # Get Action from State s
     @torch.no_grad()
     def get_action(
             self,
             s: Union[torch.Tensor, np.ndarray],
+            isTest: bool = False,
             ) -> torch.Tensor:
 
         ActionValue = self.action_value(s)
 
         return self.policy(
                 ActionValue,
-                self.stepsDone
+                self.stepsDone,
+                isTest=isTest,
                 )

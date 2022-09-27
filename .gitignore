@@ -6,4 +6,5 @@
 **saved_models/
 **/*.sh
 **.mypy_cache/
+**runs/
 .vimspector.json

@@ -157,7 +157,7 @@ class REINFORCE(PolicyGradient):
         Qval = Qval.to(self.device)
 
         # get actor loss
-        log_prob = torch.log(self.softmax(self.value.pi(S_t, A_t)) + self.ups)
+        log_prob = self.value.log_prob(S_t, A_t)
         advantage = Qval - self.value.state_value(S_t) * self.useBaseline
         advantage = Variable(advantage)
         actor_loss = -(advantage * log_prob)
