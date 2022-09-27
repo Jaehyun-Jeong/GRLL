@@ -2,7 +2,6 @@ from typing import Union
 
 from datetime import datetime, timedelta
 import torch
-import numpy as np
 
 
 class RL():

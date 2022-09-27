@@ -547,7 +547,6 @@ class AveragedValue(Value):
 *Variance가 클 수는 있지만, A2C는 아무리 봐도 이상하다. 따라서 수정할 예정이다.*
 
 # 9월 21일
-<<<<<<< HEAD
 
 ## 1. Continuous Control을 위해 ./module/PG/Value/Value.py, ./module/VB/Value/Value.py의 pi 메소드를 ./module/Policy/Policy.py의 DiscretePolicy, ContinuousPolicy로 이동
 
@@ -801,5 +800,22 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 *Continuous Policy의 메소드*<br/>
 
 위와 같이 수정 후, 지금은 다시 테스트중이다.
-=======
->>>>>>> test/mujoco
+
+# 9월 27일
+
+## Render 옵션을 도중에 바꿀 수 있도록 ./module/RL.py에서 isRender 프로퍼티의 getter, setter 메소드를 추가했다.
+
+```python
+    @property
+    def isRender(self):
+        return self.isRender
+
+    @isRender.setter
+    def isRender(
+            self,
+            train: bool,
+            test: bool):
+
+        self.isRender['train'] = train
+        self.isRender['test'] = test
+```
