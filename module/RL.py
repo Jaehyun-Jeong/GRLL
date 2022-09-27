@@ -97,38 +97,24 @@ class RL():
             except ImportError:
                 ImportError("tensorboardX does not exist")
 
-    # Update Weights
-    def step(self, loss):
+    @property
+    def isRender(self):
+        return self.isRender
 
-        # Calculate Gradient
-        self.optimizer.zero_grad()
-        loss.backward()
+    @isRender.setter
+    def isRender(
+            self,
+            train: bool,
+            test: bool):
 
-        # Gradient Clipping
-        torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(),
-                max_norm=self.clippingParams['maxNorm'],
-                norm_type=self.clippingParams['pNormValue'],
-                )
-
-        # Backpropagation and count steps
-        self.optimizer.step()
-        self.steps_done += 1
+        self.isRender['train'] = train
+        self.isRender['test'] = test
 
     # Draw graph in TensorBoard only when It use TensorBoard
     def writeTensorboard(self, y: Union[float, str], x: int):
         if self.useTensorboard:
             self.tensorboardWriter.add_scalar(
                     self.tensorboardParams['tag'], y, x)
-
-    # get_action method to be overrided
-    def get_action(
-            self,
-            s: Union[torch.Tensor, np.ndarray],
-            useEps: bool,
-            useStochastic: bool) -> torch.Tensor:
-
-        pass
 
     # Test to measure performance
     def test(
