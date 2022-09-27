@@ -823,3 +823,70 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 ## 2. 모듈의 이름을 grll(general reinforcement learning library)로 결정했다.
 
 지금까지 모듈의 최상위 폴더의 이름은 module이었는데, 모두 grll로 변경하고, 작동하도록 코드를 수정했다.
+
+## 3. 최근에 진행한 모듈의 디렉토리 구조화 후, ./grll/RL.py의 RL 클래스에서 save, load가 작동하지 않아, 코드를 수정했다.
+
+**수정 후의 메소드**<br/>
+```python
+    # save class
+    def save(self, saveDir: str = str(datetime)+".obj"):
+
+        save_dict = self.__dict__
+
+        # belows are impossible to dump
+        save_dict.pop('tensorboardWriter', None)
+        save_dict.pop('trainEnv', None)
+        save_dict.pop('testEnv', None)
+        save_dict.pop('device', None)
+
+        # save model state dict
+        save_dict['modelStateDict'] \
+            = save_dict['value'].model.state_dict()
+        save_dict['value'].model = None
+        save_dict['optimizerStateDict'] \
+            = save_dict['value'].optimizer.state_dict()
+        save_dict['value'].optimizer = None
+
+        torch.save(save_dict, saveDir)
+
+    # Load class
+    def load(self, loadDir: str):
+
+        # Load torch model
+        loadedDict = torch.load(loadDir, map_location=self.device)
+
+        # Load state_dict of torch model, and optimizer
+        try:
+
+            self.value.model.load_state_dict(
+                    loadedDict.pop('modelStateDict'))
+            self.value.optimizer.load_state_dict(
+                    loadedDict.pop('optimizerStateDict'))
+
+            loadedDict['value'].__dict__.pop('model')
+            loadedDict['value'].__dict__.pop('optimizer')
+
+            # Load value function
+            for key, value in loadedDict['value'].__dict__.items():
+                self.value.__dict__[key] = value
+            loadedDict.pop('value')
+
+        except ValueError:
+            print(
+                "No matching torch.nn.Module,"
+                "please use equally shaped torch.nn.Module as you've done!")
+
+        self.value.model.eval()
+
+        for key, value in loadedDict.items():
+            self.__dict__[key] = value
+
+        self.timePrevStep = datetime.now()  # Recalculating time spent
+```
+
+## 4. 수정 후, 테스트하면서 오류 발견
+
+![](TrainError.png)<br/>
+
+**Timesteps를 확인해보면 마지막 세 자리가 162로 공통되게 출력됨을 알 수 있다. 나는 30만 번의 Timestep으로 테스트했으며, 1000번 마다 결과를 출력하게 만들었으므로, 마지막 세 자리는 000이 되어야 하는데 그렇지가 않다. 따라서 이는 오류이고, 수정하고자 한다.**
+
