@@ -4,6 +4,7 @@
 ---
 
 | **Algorithm** | **Discrete Action Space** | **Continuous Action Space** | 
+| ------------- | ------------------------- | --------------------------- |
 | A2C | :o: | :o: |
 | REINFORCE | :o: | :o: |
 | DQN | :o: | :x: |
