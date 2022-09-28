@@ -140,7 +140,8 @@ class RL():
             self,
             episode: int,
             timesteps: int,
-            averageReward: Union[str, float]):
+            meanReward: Union[str, float],
+            meanEpisode: Union[str, float]):
 
         if self.verbose >= 1:  # Print After checking verbosity level
             try:
@@ -155,9 +156,10 @@ class RL():
             results = \
                 f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} "\
                 f"/ {str(episode)[0:10]:>10} "\
-                f"| Averag Reward: {str(averageReward)[0:10]:>10} "\
+                f"| Reward Mean: {str(meanReward)[0:10]:>10} "\
+                f"| Episode Mean: {str(meanEpisode)[0:10]:>10} "\
                 f"| Time Spent : {str(self.timeSpent):10} "\
-                f"/ {str(datetime.now()-self.timePrevStep):10} | "
+                f"/ {str(datetime.now()-self.timePrevStep):10} | "\
 
             splited = results.split('|')[1:-1]
             frameString = "+"

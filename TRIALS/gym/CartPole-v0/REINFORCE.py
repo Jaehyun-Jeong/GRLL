@@ -6,8 +6,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.PG.models import ANN_V2
-from module.PG import REINFORCE
+from grll.PG.models import ANN_V2
+from grll.PG import REINFORCE
 
 # Environment 
 import gym

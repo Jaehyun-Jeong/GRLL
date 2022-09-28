@@ -203,8 +203,8 @@ class A2C(PolicyGradient):
                     # TEST
                     if spentTimesteps % testPer == 0:
 
-                        averagRewards = self.test(testSize=testSize)
-                        rewards.append(averagRewards)
+                        meanReward, meanEpisode = self.test(testSize=testSize)
+                        rewards.append(meanReward)
 
                         # TENSORBOARD
                         self.writeTensorboard(
@@ -214,7 +214,8 @@ class A2C(PolicyGradient):
                         self.printResult(
                                 self.trainedEpisodes,
                                 self.trainedTimesteps,
-                                rewards[-1])
+                                rewards[-1],
+                                meanEpisode)
 
                     if done \
                             or timesteps == self.maxTimesteps-1 \

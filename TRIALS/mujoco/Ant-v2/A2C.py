@@ -5,8 +5,8 @@ sys.path.append("../../../") # to import module
 import torch.optim as optim
 
 # 작성자의 모듈
-from module.PG.models import ANN_V4
-from module.PG import A2C
+from grll.PG.models import ANN_V4
+from grll.PG import A2C
 
 # 환경
 import gym
@@ -29,7 +29,7 @@ advantage_AC = A2C(
         'exploring': 'normal',
         'exploringParams': {
             'mean': 0,
-            'sigma': 0.1,
+            'sigma': 0,
         },
     },
     tensorboardParams={
@@ -39,4 +39,4 @@ advantage_AC = A2C(
     nSteps=50,
 )
 
-advantage_AC.train(trainTimesteps=int(1e8), testPer=10000)
+advantage_AC.train(trainTimesteps=int(1e8), testPer=100)

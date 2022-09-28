@@ -10,8 +10,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.VB.models import ANN_V2
-from module.VB import DQN
+from grll.VB.models import ANN_V2
+from grll.VB import DQN
 
 # Environment 
 import gym

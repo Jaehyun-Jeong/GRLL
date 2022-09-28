@@ -251,8 +251,8 @@ class DQN(ValueBased):
                     # TEST
                     if spentTimesteps % testPer == 0:
 
-                        averageRewards = self.test(testSize=testSize)
-                        rewards.append(averageRewards)
+                        meanReward, meanEpisode = self.test(testSize=testSize)
+                        rewards.append(meanReward)
 
                         # TENSORBOARD
                         self.writeTensorboard(
@@ -262,7 +262,8 @@ class DQN(ValueBased):
                         self.printResult(
                                 self.trainedEpisodes,
                                 self.trainedTimesteps,
-                                rewards[-1])
+                                rewards[-1],
+                                meanEpisode)
 
                     if done \
                             or timesteps == self.maxTimesteps-1 \

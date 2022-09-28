@@ -123,13 +123,17 @@ class PolicyGradient(RL):
             self,
             testSize: int) -> Union[float, str]:
 
+        # Calculate mean rewards
         rewards = []
+        # Calculate mean episode length
+        episodesLen = []
 
         for _ in range(testSize):
 
             state = self.testEnv.reset()
             done = False
             cumulativeRewards = 0
+            episodeLen = 0
 
             for timesteps in range(self.maxTimesteps):
                 if self.isRender['test']:
@@ -142,16 +146,21 @@ class PolicyGradient(RL):
                 next_state, reward, done, _ = self.testEnv.step(action)
 
                 cumulativeRewards += reward
+                episodeLen += 1
                 state = next_state
 
                 if done or timesteps == self.maxTimesteps-1:
                     break
 
+            episodesLen.append(episodeLen)
             rewards.append(cumulativeRewards)
 
         if testSize > 0:
-            return sum(rewards) / testSize  # Averaged Rewards
+            meanEpisode = sum(episodesLen) / testSize
+            meanReward = sum(rewards) / testSize  # Averaged Rewards
+
+            return meanReward, meanEpisode
         elif testSize == 0:
-            return "no Test"
+            return "no Test", "no Test"
         else:
             raise ValueError("testSize can't be smaller than 0")
