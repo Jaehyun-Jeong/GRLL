@@ -5,10 +5,10 @@
 
 | **Algorithm** | **Discrete Action Space** | **Continuous Action Space** | 
 | ------------- | ------------------------- | --------------------------- |
-| A2C | :o: | :o: |
-| REINFORCE | :o: | :o: |
-| DQN | :o: | :x: |
-| ADQN | :o: | :x: |
+| A2C | :heavy_check_mark: | :heavy_check_mark: |
+| REINFORCE | :heavy_check_mark: | :heavy_check_mark: |
+| DQN | :heavy_check_mark: | :x: |
+| ADQN | :heavy_check_mark: | :x: |
 
 ## Install
 
