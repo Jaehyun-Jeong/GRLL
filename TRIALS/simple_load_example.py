@@ -36,4 +36,7 @@ AC.isRender = {
         'test': False}  # 환경을 출력하도록 변경
 
 # 학습진행
-AC.train(trainTimesteps=200000)
+AC.train(trainTimesteps=100000)
+
+# 클래스 저장
+AC.save("./saved_models/test.obj")

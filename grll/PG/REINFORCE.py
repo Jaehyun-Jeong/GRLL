@@ -183,17 +183,14 @@ class REINFORCE(PolicyGradient):
             rewards = []
 
             spentTimesteps = 0  # spent timesteps after starting train
-            while trainTimesteps >= spentTimesteps:
+            while trainTimesteps > spentTimesteps:
 
                 Transitions = ReplayMemory(self.maxTimesteps)
                 state = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
 
-                # ==========================================================================
                 # MAKE TRAIN DATA
-                # ==========================================================================
-
                 # while not done:
                 for timesteps in range(self.maxTimesteps):
                     spentTimesteps += 1
@@ -208,30 +205,25 @@ class REINFORCE(PolicyGradient):
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
 
-                    # ==========================================================================
                     # TEST
-                    # ==========================================================================
-
                     if spentTimesteps % testPer == 0:
 
                         averagRewards = self.test(testSize=testSize)
                         rewards.append(averagRewards)
 
-                        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                         # TENSORBOARD
-
                         self.writeTensorboard(
                                 rewards[-1],
                                 self.trainedTimesteps)
-
-                        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
                         self.printResult(
                                 self.trainedEpisodes,
                                 self.trainedTimesteps,
                                 rewards[-1])
 
-                    if done or timesteps == self.maxTimesteps-1:
+                    if done \
+                            or timesteps == self.maxTimesteps-1 \
+                            or spentTimesteps >= trainTimesteps:
                         break
                 # train
                 self.__update_weight(Transitions)

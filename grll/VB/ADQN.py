@@ -223,7 +223,7 @@ class ADQN(ValueBased):
             self.value.prevModels.append(deepcopy(self.value.model))
 
             spentTimesteps = 0  # spent timesteps after starting train
-            while trainTimesteps >= spentTimesteps:
+            while trainTimesteps > spentTimesteps:
 
                 state = self.trainEnv.reset()
                 done = False
@@ -271,7 +271,9 @@ class ADQN(ValueBased):
                                 self.trainedTimesteps,
                                 rewards[-1])
 
-                    if done or timesteps == self.maxTimesteps-1:
+                    if done \
+                            or timesteps == self.maxTimesteps-1 \
+                            or spentTimesteps >= trainTimesteps:
                         break
 
         except KeyboardInterrupt:
