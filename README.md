@@ -1,9 +1,7 @@
 
-# 이름이나 로고 넣는 곳
-
-후보<br/>
-1. General Reinforcement Learning
-2. Easy RL
+# GRLL
+##### General Reinforcement Learning Library
+---
 
 ## Install
 
