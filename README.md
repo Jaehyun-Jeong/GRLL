@@ -52,7 +52,8 @@ from GRLL.VB import ADQN
 
 ### RacingEnv
 
-![](static/RacingEnv.png)<br/>
+<img src="/static/RacingEnv.png" align="right" width="40%"/>
+
 *RacingEnv-v0*
 
 RacingEnv_v0: 8개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, 가운데의 3개의 행동을 가진다.<br/>
