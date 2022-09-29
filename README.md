@@ -15,8 +15,8 @@
 
 ```python
 import torch.optim as optim
-from GRL.PG.models import ANN_V2
-from GRL.PG import A2C
+from GRLL.PG.models import ANN_V2
+from GRLL.PG import A2C
 import gym
 
 env = gym.make('CartPole-v0')
@@ -38,11 +38,11 @@ advantage_AC.train(trainTimesteps=1000000)
 
 만약 다른 알고리즘을 사용하고 싶다면 다음과 같이 작성하면 된다.<br/>
 ```python
-from GRL.PG import REINFORCE
+from GRLL.PG import REINFORCE
 """
 또는
-from GRL.VB import DQN
-from GRL.VB import ADQN
+from GRLL.VB import DQN
+from GRLL.VB import ADQN
 """
 ```
 
