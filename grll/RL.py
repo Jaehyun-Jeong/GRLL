@@ -153,25 +153,42 @@ class RL():
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
-            results = \
-                f"| Timesteps / Episode : {str(timesteps)[0:10]:>10} "\
-                f"/ {str(episode)[0:10]:>10} "\
-                f"| Reward Mean: {str(meanReward)[0:10]:>10} "\
-                f"| Episode Mean: {str(meanEpisode)[0:10]:>10} "\
-                f"| Time Spent : {str(self.timeSpent):10} "\
-                f"/ {str(datetime.now()-self.timePrevStep):10} | "\
+            Result = [
+                f"| Timesteps / Episode :"
+                f" {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10} |",
+                f"| Reward Mean         :"
+                f" {str(meanReward)[0:10]:>10}              |",
+                f"| Episode Mean        :"
+                f" {str(meanEpisode)[0:10]:>10}              |",
+                f"| Time Spent (step)   :"
+                f" {str(datetime.now()-self.timePrevStep):>20}    |",
+                f"| Time Spent (train)  :"
+                f" {str(self.timeSpent):>20}    |"]
 
-            splited = results.split('|')[1:-1]
+            frameLen = len(Result[0])-2  # -2 exist to make + shape frames
             frameString = "+"
-
-            for split in splited:
-                frameString += "-"*len(split) + "+"
+            frameString += "-"*frameLen + "+"
 
             if len(frameString) > printLength:
                 frameString = frameString[:printLength]
-            if len(results) > printLength:
-                results = results[:printLength-3]
-                results += "..."
+            if len(Result[0]) > printLength:
+                Result[0] = Result[0][:printLength-3]
+                Result[1] = Result[1][:printLength-3]
+                Result[2] = Result[2][:printLength-3]
+                Result[3] = Result[3][:printLength-3]
+                Result[4] = Result[4][:printLength-3]
+                Result[0] += "..."
+                Result[1] += "..."
+                Result[2] += "..."
+                Result[3] += "..."
+                Result[4] += "..."
+
+            results = ""
+            results += Result[0] + "\n"
+            results += Result[1] + "\n"
+            results += Result[2] + "\n"
+            results += Result[3] + "\n"
+            results += Result[4]
 
             print(frameString)
             print(results)
