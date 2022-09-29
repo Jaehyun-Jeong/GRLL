@@ -39,4 +39,4 @@ advantage_AC = A2C(
     nSteps=50,
 )
 
-advantage_AC.train(trainTimesteps=int(1e8), testPer=100)
+advantage_AC.train(trainTimesteps=int(1e8))

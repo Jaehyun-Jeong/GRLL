@@ -157,9 +157,9 @@ class RL():
                 f"| Timesteps / Episode :"
                 f" {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10} |",
                 f"| Reward Mean         :"
-                f" {str(meanReward)[0:10]:>10}              |",
+                f" {str(meanReward)[0:10]:>20}    |",
                 f"| Episode Mean        :"
-                f" {str(meanEpisode)[0:10]:>10}              |",
+                f" {str(meanEpisode)[0:10]:>20}    |",
                 f"| Time Spent (step)   :"
                 f" {str(datetime.now()-self.timePrevStep):>20}    |",
                 f"| Time Spent (train)  :"
