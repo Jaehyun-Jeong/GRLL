@@ -1,6 +1,4 @@
-
 # GRLL
-##### General Reinforcement Learning Library
 
 | **Algorithm** | **Discrete Action Space** | **Continuous Action Space** | 
 | ------------- | ------------------------- | --------------------------- |
