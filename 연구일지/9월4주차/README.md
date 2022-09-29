@@ -897,3 +897,73 @@ def sum_independent_dims(tensor: th.Tensor) -> th.Tensor:
 **학습 코드의 for문 안에, 모든 스텝이 끝나면 알아서 끝나도록 코드를 수정해 오류를 해결했다.**
 
 ![](TrainErrorSolved.png)<br/>
+
+## 2. 에피소드의 길이를 출력하도록 코드 수정
+
+**보상과 에피소드의 길이는 전혀 다른 값을 가진다. 따라서 에피소드의 길이를 출력하도록 코드를 수정했다.**<br/>
+**그리고 가로 폭이 너무 길어서 출력 방식을 수정했다.**<br/>
+![](PrintFormat.PNG)<br/>
+
+```python
+    # Print all measured performance
+    def printResult(
+            self,
+            episode: int,
+            timesteps: int,
+            meanReward: Union[str, float],
+            meanEpisode: Union[str, float]):
+
+        if self.verbose >= 1:  # Print After checking verbosity level
+            try:
+                # Not working with nohup command
+                import os
+                printLength = os.get_terminal_size().columns
+            except OSError:
+                printLength = 30000
+
+            self.timeSpent += datetime.now() - self.timePrevStep
+
+            Result = [
+                f"| Timesteps / Episode :"
+                f" {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10} |",
+                f"| Reward Mean         :"
+                f" {str(meanReward)[0:10]:>20}    |",
+                f"| Episode Mean        :"
+                f" {str(meanEpisode)[0:10]:>20}    |",
+                f"| Time Spent (step)   :"
+                f" {str(datetime.now()-self.timePrevStep):>20}    |",
+                f"| Time Spent (train)  :"
+                f" {str(self.timeSpent):>20}    |"]
+
+            frameLen = len(Result[0])-2  # -2 exist to make + shape frames
+            frameString = "+"
+            frameString += "-"*frameLen + "+"
+
+            if len(frameString) > printLength:
+                frameString = frameString[:printLength]
+            if len(Result[0]) > printLength:
+                Result[0] = Result[0][:printLength-3]
+                Result[1] = Result[1][:printLength-3]
+                Result[2] = Result[2][:printLength-3]
+                Result[3] = Result[3][:printLength-3]
+                Result[4] = Result[4][:printLength-3]
+                Result[0] += "..."
+                Result[1] += "..."
+                Result[2] += "..."
+                Result[3] += "..."
+                Result[4] += "..."
+
+            results = ""
+            results += Result[0] + "\n"
+            results += Result[1] + "\n"
+            results += Result[2] + "\n"
+            results += Result[3] + "\n"
+            results += Result[4]
+
+            print(frameString)
+            print(results)
+            print(frameString)
+
+            self.timePrevStep = datetime.now()
+```
+*수정된 출력 코드 (for문을 생각할 수 있지만, 그 수가 고정되고 적은 상황에서는 한 줄씩 적성한 코드가 더 빠르다)*
