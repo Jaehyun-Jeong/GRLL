@@ -131,7 +131,7 @@ class Value():
                 )
 ```
 
-## 1. Gym의 ActionSpace인 Box와 Discrete를 모듈 내부의 ActionSpace로 변환하는 함수 작성
+## 2. Gym의 ActionSpace인 Box와 Discrete를 모듈 내부의 ActionSpace로 변환하는 함수 작성
 
 ```python
 from gym.spaces import Box, Discrete
