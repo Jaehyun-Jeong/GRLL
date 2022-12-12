@@ -4,7 +4,7 @@ import math
 try:
     from utils import scale_image, blit_rotate_center, blit_text_center
 except:
-    from module.envs.CarRacing.utils import scale_image, blit_rotate_center, blit_text_center
+    from grll.envs.CarRacing.utils import scale_image, blit_rotate_center, blit_text_center
 
 import os.path as path
 root_dir = path.dirname(path.abspath(__file__))

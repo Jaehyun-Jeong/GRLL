@@ -3,9 +3,9 @@ sys.path.append("../../../")  # to import module
 
 import torch
 import torch.optim as optim
-from module.PG.models import ANN_V4
-from module.PG import A2C
-from module.envs.CarRacing import RacingEnv_v3
+from grll.PG.models import ANN_V4
+from grll.PG import A2C
+from grll.envs.CarRacing import RacingEnv_v3
 
 TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 100000
@@ -48,14 +48,14 @@ params_dict = {
         'logdir': "../../runs/A2C_CarRacing_v3",
         'tag': "Averaged Returns/ANN_V4_lr=1e-4"
     },
-    'eps': {  # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 300000
-    },
-    'policy': {
-        'train': 'stochastic',
-        'test': 'greedy',
+    'actionParams': {
+        'algorithm': 'stochastic',
+        'exploring': 'epsilon',
+        'eps': {  # for epsilon scheduling
+            'start': 0.99,
+            'end': 0.00001,
+            'decay': 300000
+        },
     },
 }
 

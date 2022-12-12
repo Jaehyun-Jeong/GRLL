@@ -8,8 +8,9 @@ if __name__=="__main__":
     from main import *
     from utils import action_to_int, check_actionList
 else:
-    from module.envs.CarRacing.main import *
-    from module.envs.CarRacing.utils import action_to_int, check_actionList
+    from grll.envs.CarRacing.main import *
+    from grll.envs.CarRacing.utils import action_to_int, check_actionList
+    from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 
 class Lines():
@@ -321,6 +322,13 @@ class RacingEnv_v3(RacingEnv_v0):
         super().__init__(
             ExploringStarts=ExploringStarts
         )
+
+        # Actions are possible from [0, 0] to [1, 2]
+        # which means [Accel, direction]
+        self.action_space = ActionSpace(
+                high=np.array([1, 2]),
+                low=np.array([0, 0]),
+                )
 
         self.lines = None # delete the line
         self.stackSize = stackSize
