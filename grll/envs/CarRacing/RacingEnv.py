@@ -4,13 +4,12 @@ import numpy as np
 import math
 import pygame
 
-if __name__=="__main__":
-    from main import *
-    from utils import action_to_int, check_actionList
-else:
-    from grll.envs.CarRacing.main import *
-    from grll.envs.CarRacing.utils import action_to_int, check_actionList
-    from grll.utils.ActionSpace.ActionSpace import ActionSpace
+import sys
+sys.path.append("../../../")
+
+from grll.envs.CarRacing.main import *
+from grll.envs.CarRacing.utils import action_to_int, check_actionList
+from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 
 class Lines():
