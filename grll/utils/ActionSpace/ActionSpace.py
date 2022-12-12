@@ -87,6 +87,17 @@ class ActionSpace():
             raise ValueError(
                     "high and low have different shape!")
 
+    def __eq__(
+            self,
+            actionSpace: 'ActionSpace'):
+        # actionSpace is a ActionSpace instance
+
+        highEquality = (self.high == actionSpace.high).all()
+        lowEquality = (self.low == actionSpace.low).all()
+        typeEquality = self.actionType = actionSpace.actionType
+
+        return highEquality and lowEquality and typeEquality
+
     # Check the Validity of X
     def contains(
             self,
