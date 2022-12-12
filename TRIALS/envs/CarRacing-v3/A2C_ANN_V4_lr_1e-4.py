@@ -51,11 +51,11 @@ params_dict = {
     'actionParams': {
         'algorithm': 'stochastic',
         'exploring': 'epsilon',
-        'eps': {  # for epsilon scheduling
+        'exploringParams': {
             'start': 0.99,
             'end': 0.00001,
             'decay': 300000
-        },
+        }
     },
 }
 

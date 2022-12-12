@@ -486,8 +486,7 @@ if __name__=="__main__":
     from random import choice
 
     RacingEnv = RacingEnv_v3(
-            ExploringStarts=True,
-            isFlatten=True)
+            ExploringStarts=True)
 
     for episode in range(3):
 

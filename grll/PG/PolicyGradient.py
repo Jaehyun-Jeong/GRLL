@@ -100,8 +100,13 @@ class PolicyGradient(RL):
                 != self.testEnv.action_space:
             raise ValueError(
                     "Action Spaces of trainEnv and testEnv don't match")
-        actionSpace = ActionSpace(
-                actionSpace=self.trainEnv.action_space)
+
+        # If trainEnv, testEnv are using same ActionSpace in this module
+        if isinstance(self.trainEnv.action_space, ActionSpace):
+            actionSpace = self.trainEnv.action_space
+        else:
+            actionSpace = ActionSpace(
+                    actionSpace=self.trainEnv.action_space)
 
         # Support 'Discrete', 'Continuous' ActionSpaces
         if actionSpace.actionType not in ['Discrete', 'Continuous']:
