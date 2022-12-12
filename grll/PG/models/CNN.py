@@ -87,8 +87,8 @@ class CNN_V2(nn.Module):
         probs = self.actor_linear2(probs)
 
         value = F.relu(self.critic_conv1(state))
-        value = F.relu(self.critic_conv2(probs))
-        value = F.relu(self.critic_conv3(probs))
+        value = F.relu(self.critic_conv2(value))
+        value = F.relu(self.critic_conv3(value))
         value = torch.flatten(value, 1)
         value = F.relu(self.critic_linear1(value))
         value = self.critic_linear2(value)

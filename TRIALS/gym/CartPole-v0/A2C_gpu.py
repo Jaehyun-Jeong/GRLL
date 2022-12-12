@@ -11,8 +11,8 @@ import torch
 import torch.optim as optim
 
 # 작성자의 모듈
-from module.PG.models import ANN_V3
-from module.PG import A2C
+from grll.PG.models import ANN_V3
+from grll.PG import A2C
 
 # 환경
 import gym

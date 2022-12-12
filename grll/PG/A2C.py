@@ -137,7 +137,7 @@ class A2C(PolicyGradient):
         R_tt = np.array(R_tt)
 
         # Compute n-step return
-        stateValue = self.value.state_value(S_tt[-1]).unsqueeze(0)
+        stateValue = self.value.state_value(S_tt[-1].unsqueeze(0))
         values = [stateValue * notDone[-1]]
         for r_tt in reversed(R_tt[:-1]):
             values.append(r_tt + self.discount * values[-1])
