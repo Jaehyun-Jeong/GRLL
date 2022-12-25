@@ -49,7 +49,6 @@ class Board(QFrame):
     BoardHeight = 22
     Speed = 300
 
-
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -506,4 +505,7 @@ class Shape:
 # def main():
 app = QApplication([])
 tetris = Tetris()
+
+print(dir(app))
+
 app.exec()
