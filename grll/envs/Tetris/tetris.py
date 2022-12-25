@@ -1,5 +1,4 @@
 import random
-import sys
 
 from PyQt6.QtCore import Qt, QBasicTimer, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor
@@ -12,7 +11,6 @@ class Tetris(QMainWindow):
         super().__init__()
 
         self.initUI()
-
 
     def initUI(self):
         """initiates application UI"""
@@ -29,7 +27,6 @@ class Tetris(QMainWindow):
         self.center()
         self.setWindowTitle('Tetris by ComEdu at KNU openscience')
         self.show()
-
 
     def center(self):
         """centers the window on the screen"""
@@ -54,7 +51,6 @@ class Board(QFrame):
 
         self.initBoard()
 
-
     def initBoard(self):
         """initiates board"""
 
@@ -71,30 +67,25 @@ class Board(QFrame):
         self.isPaused = False
         self.clearBoard()
 
-
     def shapeAt(self, x, y):
         """determines shape at the board position"""
 
         return self.board[(y * Board.BoardWidth) + x]
-
 
     def setShapeAt(self, x, y, shape):
         """sets a shape at the board"""
 
         self.board[(y * Board.BoardWidth) + x] = shape
 
-
     def squareWidth(self):
         """returns the width of one square"""
 
         return self.contentsRect().width() // Board.BoardWidth
 
-
     def squareHeight(self):
         """returns the height of one square"""
 
         return self.contentsRect().height() // Board.BoardHeight
-
 
     def start(self):
         """starts game"""
@@ -111,7 +102,6 @@ class Board(QFrame):
 
         self.newPiece()
         self.timer.start(Board.Speed, self)
-
 
     def pause(self):
         """pauses game"""
@@ -130,7 +120,6 @@ class Board(QFrame):
             self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
         self.update()
-
 
     def paintEvent(self, event):
         """paints all shapes of the game"""
@@ -157,7 +146,6 @@ class Board(QFrame):
                 self.drawSquare(painter, rect.left() + x * self.squareWidth(),
                             boardTop + (Board.BoardHeight - y - 1) * self.squareHeight(),
                             self.curPiece.shape())
-
 
     def keyPressEvent(self, event):
         """processes key press events"""
@@ -196,7 +184,6 @@ class Board(QFrame):
         else:
             super(Board, self).keyPressEvent(event)
 
-
     def timerEvent(self, event):
         """handles timer event"""
 
@@ -211,13 +198,11 @@ class Board(QFrame):
         else:
             super(Board, self).timerEvent(event)
 
-
     def clearBoard(self):
         """clears shapes from the board"""
 
         for i in range(Board.BoardHeight * Board.BoardWidth):
             self.board.append(Tetrominoe.NoShape)
-
 
     def dropDown(self):
         """drops down a shape"""
@@ -233,13 +218,11 @@ class Board(QFrame):
 
         self.pieceDropped()
 
-
     def oneLineDown(self):
         """goes one line down with a shape"""
 
         if not self.tryMove(self.curPiece, self.curX, self.curY - 1):
             self.pieceDropped()
-
 
     def pieceDropped(self):
         """after dropping shape, remove full lines and create new shape"""
@@ -253,7 +236,6 @@ class Board(QFrame):
 
         if not self.isWaitingAfterLine:
             self.newPiece()
-
 
     def removeFullLines(self):
         """removes all full lines from the board"""
@@ -289,7 +271,6 @@ class Board(QFrame):
             self.curPiece.setShape(Tetrominoe.NoShape)
             self.update()
 
-
     def newPiece(self):
         """creates a new shape"""
 
@@ -304,7 +285,6 @@ class Board(QFrame):
             self.timer.stop()
             self.isStarted = False
             self.msg2Statusbar.emit("Game over")
-
 
     def tryMove(self, newPiece, newX, newY):
         """tries to move a shape"""
@@ -327,7 +307,6 @@ class Board(QFrame):
 
         return True
 
-
     def drawSquare(self, painter, x, y, shape):
         """draws a square of a shape"""
 
@@ -347,6 +326,12 @@ class Board(QFrame):
                          x + self.squareWidth() - 1, y + self.squareHeight() - 1)
         painter.drawLine(x + self.squareWidth() - 1,
                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
+
+    # =============================
+    # Belows are created by Jaehyun
+    # =============================
+
+    # Methods for Reinforcement Learning
 
 
 class Tetrominoe:
@@ -381,12 +366,10 @@ class Shape:
 
         self.setShape(Tetrominoe.NoShape)
 
-
     def shape(self):
         """returns shape"""
 
         return self.pieceShape
-
 
     def setShape(self, shape):
         """sets a shape"""
@@ -399,36 +382,30 @@ class Shape:
 
         self.pieceShape = shape
 
-
     def setRandomShape(self):
         """chooses a random shape"""
 
         self.setShape(random.randint(1, 7))
-
 
     def x(self, index):
         """returns x coordinate"""
 
         return self.coords[index][0]
 
-
     def y(self, index):
         """returns y coordinate"""
 
         return self.coords[index][1]
-
 
     def setX(self, index, x):
         """sets x coordinate"""
 
         self.coords[index][0] = x
 
-
     def setY(self, index, y):
         """sets y coordinate"""
 
         self.coords[index][1] = y
-        
 
     def minX(self):
         """returns min x value"""
@@ -439,7 +416,6 @@ class Shape:
 
         return m
 
-
     def maxX(self):
         """returns max x value"""
 
@@ -448,7 +424,6 @@ class Shape:
             m = max(m, self.coords[i][0])
 
         return m
-
 
     def minY(self):
         """returns min y value"""
@@ -459,7 +434,6 @@ class Shape:
 
         return m
 
-
     def maxY(self):
         """returns max y value"""
 
@@ -468,7 +442,6 @@ class Shape:
             m = max(m, self.coords[i][1])
 
         return m
-
 
     def rotateLeft(self):
         """rotates shape to the left"""
@@ -484,7 +457,6 @@ class Shape:
             result.setY(i, -self.x(i))
 
         return result
-
 
     def rotateRight(self):
         """rotates shape to the right"""
@@ -502,10 +474,7 @@ class Shape:
         return result
 
 
-# def main():
-app = QApplication([])
-tetris = Tetris()
-
-print(dir(app))
-
-app.exec()
+if __name__ == "__main__":
+    app = QApplication([])
+    tetris = Tetris()
+    app.exec()
