@@ -1,22 +1,17 @@
 import torch
 import numpy as np
-from PyQt6.QtCore import QBasicTimer
 
 if __name__=="__main__":
-    from tetris import *
+    from tetris_env import *
 else:
-    from module.envs.Tetris.tetris import *
+    from module.envs.Tetris.tetris_env import *
 
 
 class TetrisEnv_v0():
-    
-    def __init__(self):
-        
-        self.app = QApplication([])
-        self.tetris = Tetris()
-        self.app.exec()
 
-        self.step(1)
+    def __init__(self):
+
+        super.__init__()
 
     # Return next_state, reward, done, action
     def step(
