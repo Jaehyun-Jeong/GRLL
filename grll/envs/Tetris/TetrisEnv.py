@@ -1,17 +1,17 @@
 import torch
 import numpy as np
 
-if __name__=="__main__":
-    from tetris_env import *
+if __name__ == "__main__":
+    from tetris import *
 else:
-    from module.envs.Tetris.tetris_env import *
+    from module.envs.Tetris.tetris import *
 
 
 class TetrisEnv_v0():
 
     def __init__(self):
-
-        super.__init__()
+        self.board = Board()
+        self.board.start()
 
     # Return next_state, reward, done, action
     def step(
@@ -19,10 +19,13 @@ class TetrisEnv_v0():
             action: torch.Tensor) \
             -> tuple[np.ndarray, float, bool, torch.Tensor]:
 
-        import time
-        time.sleep(10)
-
-        self.tetris.tboard.pause()
+        # action
+        # 0: Move Left
+        # 1: Move Right
+        # 2: Rotate Left
+        # 3: Rotate Right
+        action = int(action)  # torch tensor to int
+        self.board.move(action)
 
     def render(self):
         pass
@@ -36,3 +39,4 @@ class TetrisEnv_v0():
 
 if __name__ == "__main__":
     env = TetrisEnv_v0()
+    env.step(1)
