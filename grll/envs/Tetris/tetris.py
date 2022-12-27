@@ -68,6 +68,9 @@ class Board():
         elif action == 3:  # Rotate Left
             self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
 
+        elif action == 4:  # Drop down
+            self.dropDown()
+
         else:
             raise ValueError(
                     "Action is out of bound!!"
@@ -75,7 +78,7 @@ class Board():
 
         self.moveCnt += 1
         if self.moveCnt % Board.oneLineDropPer == 0:
-            self.board.oneLineDown()
+            self.oneLineDown()
 
         # 아래의 코드는 4번의 행동을 취할 때 마다 실행 (한 번 내려갈 때 4번의 행동)
         # self.oneLineDown()
