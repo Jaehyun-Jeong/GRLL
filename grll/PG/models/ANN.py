@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 # PyTorch
 import torch
@@ -98,7 +98,7 @@ class ANN_V4(nn.Module):
     def __init__(
             self,
             inputs: Union[torch.Tensor, int],
-            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+            outputs: Union[torch.Tensor, int]):
 
         super(ANN_V4, self).__init__()
 
@@ -114,7 +114,7 @@ class ANN_V4(nn.Module):
         self.critic_fc3 = nn.Linear(2*inputs, inputs)
         self.critic_fc4 = nn.Linear(inputs, 1)
 
-    def forward(self, x):
+    def forward(self, x) -> Tuple[torch.Tensor, torch.Tensor]:
         state = x
 
         probs = torch.tanh(self.actor_fc1(state))

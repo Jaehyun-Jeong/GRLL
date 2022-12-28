@@ -25,8 +25,9 @@ class TetrisEnv_v0():
         # 4: Drop down
         self.action_space = ActionSpace(
                 high=np.array([4]),
-                low=np.array([0]),
-                )
+                low=np.array([0]))
+        self.num_actions = 5
+        self.num_obs = 457
 
     # Return next_state, reward, done, action
     def step(
@@ -105,28 +106,35 @@ class TetrisEnv_v0():
         raise NotImplementedError("Not supporting render option")
 
     def reset(self):
+
+        # Re initialize the board
         self.board.initBoard()
+        self.board.start()
+
+        # Return the current state
+        return self.get_state()
 
     def close(self):
         self.reset()
 
 
+# Return flattened state
 class TetrisEnv_v1(TetrisEnv_v0):
 
     def __init__(self):
         super().__init__()
 
-    # Return next_state, reward, done, action
-    def step(
-            self,
-            action: torch.Tensor) \
-            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+    # Get flattened state
+    def get_state(self):
+        state = super().get_state()
 
-        next_state, reward, done, action = super().step(action)
-        flattened_board_state = next_state[0].flatten()
-        rest_state = np.array(next_state[1])
-        next_state = np.concatenate((flattened_board_state,
+        # Flatten and concatenate all states
+        flattened_board_state = state[0].flatten()
+        rest_state = np.array(state[1])
+        state = np.concatenate((flattened_board_state,
                                      rest_state))
+
+        return state
 
 
 if __name__ == "__main__":
