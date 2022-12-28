@@ -1,10 +1,11 @@
+from typing import Tuple
 import torch
 import numpy as np
 
 import sys
 sys.path.append("../../../")
 
-from grll.envs.Tetris.tetris import *
+from grll.envs.Tetris.tetris import Board
 from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 
@@ -53,7 +54,7 @@ class TetrisEnv_v0():
 
         return next_state, reward, done, action
 
-    def get_state(self):
+    def get_state(self) -> Tuple[np.ndarray, list]:
 
         # Check the walls, (check self.board.board)
         board_state = [1 if i != 0 else 0 for i in self.board.board]
@@ -96,7 +97,7 @@ class TetrisEnv_v0():
         map_state = np.array(map_state)
 
         # get final state
-        state = [map_state, block_height + shape_onehot]
+        state = (map_state, block_height + shape_onehot)
 
         return state
 
@@ -110,14 +111,31 @@ class TetrisEnv_v0():
         self.reset()
 
 
+class TetrisEnv_v1(TetrisEnv_v0):
+
+    def __init__(self):
+        super().__init__()
+
+    # Return next_state, reward, done, action
+    def step(
+            self,
+            action: torch.Tensor) \
+            -> tuple[np.ndarray, float, bool, torch.Tensor]:
+
+        next_state, reward, done, action = super().step(action)
+        flattened_board_state = next_state[0].flatten()
+        rest_state = np.array(next_state[1])
+        next_state = np.concatenate((flattened_board_state,
+                                     rest_state))
+
+
 if __name__ == "__main__":
-    env = TetrisEnv_v0()
-    
+    env = TetrisEnv_v1()
+
     action_list = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
     # action_list = [4, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 4, 1, 4]
 
     for action in action_list:
         env.step(action)
-        env.get_state()
 
     env.reset()
