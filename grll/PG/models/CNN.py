@@ -49,6 +49,7 @@ class CNN_V1(nn.Module):
         
         return value, probs
 
+
 class CNN_V2(nn.Module):
     def __init__(self, input_dim, output_dim):
         super().__init__()

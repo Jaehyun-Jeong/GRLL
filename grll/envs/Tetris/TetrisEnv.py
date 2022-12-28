@@ -1,10 +1,11 @@
 import torch
 import numpy as np
 
-if __name__ == "__main__":
-    from tetris import *
-else:
-    from module.envs.Tetris.tetris import *
+import sys
+sys.path.append("../../../")
+
+from grll.envs.Tetris.tetris import *
+from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 
 class TetrisEnv_v0():
@@ -15,13 +16,26 @@ class TetrisEnv_v0():
         self.board = Board()
         self.board.start()
 
+        # Actions are possible from [0] to [4]
+        # 0: Move Left
+        # 1: Move Right
+        # 2: Rotate Left
+        # 3: Rotate Right
+        # 4: Drop down
+        self.action_space = ActionSpace(
+                high=np.array([4]),
+                low=np.array([0]),
+                )
+
     # Return next_state, reward, done, action
     def step(
             self,
             action: torch.Tensor) \
             -> tuple[np.ndarray, float, bool, torch.Tensor]:
 
-        # action
+        before_return = self.board.numLinesRemoved
+
+        # Actions
         # 0: Move Left
         # 1: Move Right
         # 2: Rotate Left
@@ -29,6 +43,15 @@ class TetrisEnv_v0():
         # 4: Drop down
         action = int(action)  # torch tensor to int
         self.board.move(action)
+
+        after_return = self.board.numLinesRemoved
+
+        # reward of one step is the removed lines after action
+        reward = after_return - before_return
+        done = not self.board.isStarted
+        next_state = self.get_state()
+
+        return next_state, reward, done, action
 
     def get_state(self):
 
@@ -50,48 +73,51 @@ class TetrisEnv_v0():
                         else block_height[i]
                         for i, v in enumerate(two_dim_board[-1])]
 
+        # Create controlable block data as 2d list
+        block_board = [
+                [0] * self.board.BoardWidth
+                for _ in range(self.board.BoardHeight)]
         coords = self.board.curPiece.coords
-        posX = self.board.curX - 1
+        posX = self.board.curX
         posY = self.board.BoardHeight - (self.board.curY + 1)
-        two_dim_board[posY + coords[0][1]][posX + coords[0][0]] = 2
-        two_dim_board[posY + coords[1][1]][posX + coords[1][0]] = 2
-        two_dim_board[posY + coords[2][1]][posX + coords[2][0]] = 2
-        two_dim_board[posY + coords[3][1]][posX + coords[3][0]] = 2
 
-        for line in two_dim_board:
-            print(line)
-        print("=====================================")
+        # Fill the positions that block exists
+        block_board[posY + coords[0][1]][posX + coords[0][0]] = 1
+        block_board[posY + coords[1][1]][posX + coords[1][0]] = 1
+        block_board[posY + coords[2][1]][posX + coords[2][0]] = 1
+        block_board[posY + coords[3][1]][posX + coords[3][0]] = 1
 
         # piece shape number to one hot encoding
         shape_onehot = [0 for _ in range(TetrisEnv_v0.num_shapes)]
         shape_onehot[self.board.curPiece.shape()-1] = 1
 
-        '''
-        print(f"X: {self.board.curX}")
-        print(f"Y: {self.board.curY}")
-        print(block_height)
-        print(f"return: {self.board.numLinesRemoved}")
-        print(shape_onehot)
-        print(self.board.curPiece.coords)
-        print(self.board.curPiece.pieceShape)
-        '''
+        # get map information as 3d array
+        map_state = [two_dim_board, block_board]
+        map_state = np.array(map_state)
+
+        # get final state
+        state = [map_state, block_height + shape_onehot]
+
+        return state
 
     def render(self):
-        pass
+        raise NotImplementedError("Not supporting render option")
 
     def reset(self):
-        self.tetris.tboard.initBoard()
+        self.board.initBoard()
 
     def close(self):
-        pass
+        self.reset()
 
 
 if __name__ == "__main__":
     env = TetrisEnv_v0()
-    action_list = [4, 1, 3, 1, 1, 3]
+    
+    action_list = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
     # action_list = [4, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 4, 1, 4]
 
     for action in action_list:
         env.step(action)
         env.get_state()
 
+    env.reset()
