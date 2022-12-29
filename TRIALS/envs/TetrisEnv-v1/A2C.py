@@ -51,8 +51,10 @@ params_dict = {
 # Initialize Actor-Critic Mehtod
 Trainer = A2C(**params_dict)
 
-# TRAIN Agent
-Trainer.train(TRAIN_TIMESTEPS)
+for _ in range(100):
 
-# save model
-Trainer.save("../../saved_models/TetrisEnv_v1/A2C_ANN_V4_lr1e-4.obj")
+    # TRAIN Agent
+    Trainer.train(int(TRAIN_TIMESTEPS / 100))
+
+    # save model
+    Trainer.save("../../saved_models/TetrisEnv_v1/A2C_ANN_V4_lr1e-4.obj")
