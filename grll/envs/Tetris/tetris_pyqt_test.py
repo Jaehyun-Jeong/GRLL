@@ -1,11 +1,14 @@
 import random
+from typing import Tuple
+import numpy as np
 
 from PyQt6.QtCore import Qt, QBasicTimer, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import QMainWindow, QFrame, QApplication
 
 
-class Tetris_AI(QMainWindow):
+class Tetris_AI_v1(QMainWindow):
+
 
     def __init__(self, rl_object):
         super().__init__()
@@ -15,7 +18,7 @@ class Tetris_AI(QMainWindow):
     def initUI(self, rl_object):
         """initiates application UI"""
 
-        self.tboard = Board_AI(self)
+        self.tboard = Board_AI(self, rl_object)
         self.setCentralWidget(self.tboard)
 
         self.statusbar = self.statusBar()
@@ -46,10 +49,16 @@ class Board_AI(QFrame):
     BoardHeight = 22
     Speed = 300
 
+    oneLineDropPer = 10  # Every 10 action one line drops
+    num_shapes = 7
+
     def __init__(self, parent, rl_object):
         super().__init__(parent)
 
         self.initBoard()
+        
+        self.rl_object = rl_object
+        self.moveCnt = 0
 
     def initBoard(self):
         """initiates board"""
@@ -193,6 +202,7 @@ class Board_AI(QFrame):
                 self.isWaitingAfterLine = False
                 self.newPiece()
             else:
+                self.move_AI()
                 self.oneLineDown()
 
         else:
@@ -326,6 +336,99 @@ class Board_AI(QFrame):
                          x + self.squareWidth() - 1, y + self.squareHeight() - 1)
         painter.drawLine(x + self.squareWidth() - 1,
                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
+
+    # ===========================================
+    # Belows are for Reinforcment Learning system
+    # ===========================================
+    
+    def get_state(self) -> Tuple[np.ndarray, list]:
+
+        # Check the walls, (check self.board)
+        board_state = [1 if i != 0 else 0 for i in self.board]
+        two_dim_board = []
+        block_height = [0 for _ in range(self.BoardWidth)]
+        for height in reversed(range(self.BoardHeight)):
+            two_dim_board.append(board_state[
+                self.BoardWidth*height:
+                self.BoardWidth*height + self.BoardWidth])
+
+            # If this line has blocks
+            # Calculate height of columns
+            if 1 in two_dim_board[-1]:
+                block_height = [
+                        height + 1
+                        if (block_height[i] == 0 and v == 1)
+                        else block_height[i]
+                        for i, v in enumerate(two_dim_board[-1])]
+
+        # Create controlable block data as 2d list
+        block_board = [
+                [0] * self.BoardWidth
+                for _ in range(self.BoardHeight)]
+        coords = self.curPiece.coords
+        posX = self.curX
+        posY = self.BoardHeight - (self.curY + 1)
+
+        # Fill the positions that block exists
+        block_board[posY + coords[0][1]][posX + coords[0][0]] = 1
+        block_board[posY + coords[1][1]][posX + coords[1][0]] = 1
+        block_board[posY + coords[2][1]][posX + coords[2][0]] = 1
+        block_board[posY + coords[3][1]][posX + coords[3][0]] = 1
+
+        # piece shape number to one hot encoding
+        shape_onehot = [0 for _ in range(self.num_shapes)]
+        shape_onehot[self.curPiece.shape()-1] = 1
+
+        # get map information as 3d array
+        map_state = [two_dim_board, block_board]
+        map_state = np.array(map_state)
+
+        # get final state
+        state = (map_state, block_height + shape_onehot)
+
+        # Get flattened state
+        # Flatten and concatenate all states
+        flattened_board_state = state[0].flatten()
+        rest_state = np.array(state[1])
+        state = np.concatenate((flattened_board_state,
+                                     rest_state))
+
+        return state
+
+    def move(
+            self,
+            action: int):
+        """processes key press events"""
+
+        if action == 0:  # Move Left
+            self.tryMove(self.curPiece, self.curX - 1, self.curY)
+
+        elif action == 1:  # Move Right
+            self.tryMove(self.curPiece, self.curX + 1, self.curY)
+
+        elif action == 2:  # Rotate Right
+            self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
+
+        elif action == 3:  # Rotate Left
+            self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
+
+        elif action == 4:  # Drop down
+            self.dropDown()
+
+        else:
+            raise ValueError(
+                    "Action is out of bound!!"
+                    "only 0, 1, 2, 3 are possible")
+
+        self.moveCnt += 1
+
+    def move_AI(self):
+        for _ in range(self.oneLineDropPer):
+            state = self.get_state()
+            action = self.rl_object.value.get_action(
+                    state,
+                    isTest = True)
+            self.move(action)
 
 
 class Tetrominoe:
@@ -470,7 +573,42 @@ class Shape:
 
 if __name__ == "__main__":
 
+    import sys
+    sys.path.append("../../../")
+
+    import torch
+    import torch.optim as optim
+    from grll.PG.models import ANN_V4
+    from grll.PG import A2C
+    from grll.envs.Tetris import TetrisEnv_v1
+
+    # device to use
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # set environment
+    env = TetrisEnv_v1()
+
+    num_actions = env.num_actions
+    num_states = env.num_obs
+    ALPHA = 1e-4  # learning rate
+
+    model = ANN_V4(num_states, num_actions).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=ALPHA)
+
+    Agent = A2C(
+        device = device,  # device to use, 'cuda' or 'cpu'
+        env = env,
+        model = model,  # torch models for policy and value funciton
+        optimizer = optimizer,  # torch optimizer
+    )
+
+    Agent.load(
+            "../../../TRIALS/saved_models/TetrisEnv_v1/" +
+            "A2C_ANN_V4_lr1e-4_step_600000.obj")
+
     # Below codes are not working
     app = QApplication([])
-    tetris = Tetris_AI()
+    tetris = Tetris_AI_v1(Agent)
     app.exec()
+
+    print(tetris.tboard.moveCnt)
