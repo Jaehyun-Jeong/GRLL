@@ -1,6 +1,5 @@
 from typing import Union
 
-from copy import deepcopy
 from datetime import datetime, timedelta
 import torch
 
@@ -200,7 +199,7 @@ class RL():
     # save class
     def save(self, saveDir: str = str(datetime)+".obj"):
 
-        save_dict = deepcopy(self.__dict__)
+        save_dict = self.__dict__
 
         # belows are impossible to dump
         save_dict.pop('tensorboardWriter', None)

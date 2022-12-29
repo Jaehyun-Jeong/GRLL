@@ -48,6 +48,18 @@ params_dict = {
     },
 }
 
+load_params_dict = {
+    'device': device,  # device to use, 'cuda' or 'cpu'
+    'env': env,
+    'model': model,  # torch models for policy and value funciton
+    'optimizer': optimizer,  # torch optimizer
+    'useTensorboard': True,
+    'tensorboardParams': {
+        'logdir': "../../runs/A2C_TetrisEnv_v1",
+        'tag': "Averaged Returns/ANN_V4_lr=1e-4"
+    },
+}
+
 # Initialize Actor-Critic Mehtod
 Trainer = A2C(**params_dict)
 
@@ -59,5 +71,11 @@ for i in range(1000):
 
     # save model
     Trainer.save(
+            "../../saved_models/TetrisEnv_v1/" +
+            f"A2C_ANN_V4_lr1e-4_step_{separated_train_step * (i+1)}.obj")
+
+    Trainer = A2C(**load_params_dict)
+
+    Trainer.load(
             "../../saved_models/TetrisEnv_v1/" +
             f"A2C_ANN_V4_lr1e-4_step_{separated_train_step * (i+1)}.obj")
