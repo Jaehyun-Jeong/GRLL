@@ -138,12 +138,13 @@ class TetrisEnv_v1(TetrisEnv_v0):
 
 
 if __name__ == "__main__":
-    env = TetrisEnv_v1()
+    env = TetrisEnv_v0()
 
-    action_list = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-    # action_list = [4, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 4, 1, 4]
+    # action_list = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+    action_list = [4, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 4, 1, 4]
 
     for action in action_list:
-        env.step(action)
+        state, _, _, _ = env.step(action)
+        print(state)
 
     env.reset()
