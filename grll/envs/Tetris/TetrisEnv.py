@@ -132,9 +132,51 @@ class TetrisEnv_v1(TetrisEnv_v0):
         flattened_board_state = state[0].flatten()
         rest_state = np.array(state[1])
         state = np.concatenate((flattened_board_state,
-                                     rest_state))
+                                rest_state))
 
         return state
+
+
+# Return flattened state
+class TetrisEnv_v2(TetrisEnv_v0):
+
+    def __init__(self):
+        super().__init__()
+        self.num_obs = (
+                2,  # channel: two_dim_board, block_board
+                self.board.BoardHeight,
+                self.board.BoardWidth)
+
+    # Get flattened state
+    def get_state(self) -> np.ndarray:
+
+        # Check the walls, (check self.board.board)
+        board_state = [1 if i != 0 else 0 for i in self.board.board]
+        two_dim_board = []
+        for height in reversed(range(self.board.BoardHeight)):
+            two_dim_board.append(board_state[
+                self.board.BoardWidth*height:
+                self.board.BoardWidth*height + self.board.BoardWidth])
+
+        # Create controlable block data as 2d list
+        block_board = [
+                [0] * self.board.BoardWidth
+                for _ in range(self.board.BoardHeight)]
+        coords = self.board.curPiece.coords
+        posX = self.board.curX
+        posY = self.board.BoardHeight - (self.board.curY + 1)
+
+        # Fill the positions that block exists
+        block_board[posY + coords[0][1]][posX + coords[0][0]] = 1
+        block_board[posY + coords[1][1]][posX + coords[1][0]] = 1
+        block_board[posY + coords[2][1]][posX + coords[2][0]] = 1
+        block_board[posY + coords[3][1]][posX + coords[3][0]] = 1
+
+        # get map information as 3d array
+        map_state = [two_dim_board, block_board]
+        map_state = np.array(map_state)
+
+        return map_state
 
 
 if __name__ == "__main__":

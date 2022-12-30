@@ -170,3 +170,58 @@ class CNN_V3(nn.Module):
         value = self.critic_linear2(state)
 
         return value, probs
+
+
+class CNN_V4(nn.Module):
+
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+
+        c, h, w = input_dim
+
+        # This parts are shared
+        self.conv1_1 = nn.Conv2d(
+                in_channels=c, out_channels=128, kernel_size=3, stride=1)
+        self.conv1_2 = nn.Conv2d(
+                in_channels=128, out_channels=6, kernel_size=3, stride=1)
+        self.maxpool1 = nn.MaxPool2d((15, 5), stride=(1, 1))
+        self.avgpool1 = nn.AvgPool2d((15, 5), stride=(1, 1))
+
+        self.conv2_1 = nn.Conv2d(
+                in_channels=c, out_channels=128, kernel_size=3, stride=1)
+        self.conv2_2 = nn.Conv2d(
+                in_channels=128, out_channels=4, kernel_size=3, stride=1)
+        self.maxpool2 = nn.MaxPool2d((15, 5), stride=(1, 1))
+        self.avgpool2 = nn.AvgPool2d((15, 5), stride=(1, 1))
+
+        self.linear1 = nn.Linear(160, 128)
+        self.linear2 = nn.Linear(128, 64)
+        self.actor_linear3 = nn.Linear(64, output_dim)
+        self.critic_linear3 = nn.Linear(64, 1)
+
+    def forward(self, x: torch.Tensor) \
+            -> tuple[torch.Tensor, torch.Tensor]:
+
+        state = x
+
+        a = F.relu(self.conv1_1(state))
+        a = F.relu(self.conv1_2(a))
+        a1 = self.maxpool1(a)
+        a2 = self.avgpool1(a)
+        a = torch.cat((a1, a2), dim=1)
+
+        b = F.relu(self.conv2_1(state))
+        b = F.relu(self.conv2_2(b))
+        b1 = self.maxpool2(b)
+        b2 = self.avgpool2(b)
+        b = torch.cat((b1, b2), dim=1)
+
+        x = torch.cat((a, b), dim=1)
+        x = torch.flatten(x, 1)
+        x = self.linear1(x)
+        x = self.linear2(x)
+
+        probs = self.actor_linear3(x)
+        value = self.critic_linear3(x)
+
+        return value, probs

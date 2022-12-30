@@ -128,3 +128,34 @@ class ANN_V4(nn.Module):
         value = self.critic_fc4(value)
 
         return value, probs
+
+
+class ANN_V4_shared(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]):
+
+        super(ANN_V4, self).__init__()
+
+        self.fc1 = nn.Linear(inputs, 2*inputs)
+        self.fc2 = nn.Linear(2*inputs, 2*inputs)
+        self.fc3 = nn.Linear(2*inputs, inputs)
+
+        # Actor
+        self.actor_fc4 = nn.Linear(inputs, outputs)
+
+        # Critic
+        self.critic_fc4 = nn.Linear(inputs, 1)
+
+    def forward(self, x) -> Tuple[torch.Tensor, torch.Tensor]:
+        state = x
+
+        state = torch.tanh(self.fc1(state))
+        state = torch.tanh(self.fc2(probs))
+        state = torch.tanh(self.fc3(probs))
+
+        probs = self.actor_fc4(probs)
+        value = self.critic_fc4(value)
+
+        return value, probs
