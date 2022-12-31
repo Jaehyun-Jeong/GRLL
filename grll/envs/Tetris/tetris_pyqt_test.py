@@ -604,7 +604,7 @@ if __name__ == "__main__":
 
     Agent.load(
             "../../../TRIALS/saved_models/TetrisEnv_v1/" +
-            "A2C_ANN_V4_lr1e-4_step_600000.obj")
+            "A2C_ANN_V4_lr1e-4_step_100000.obj")
 
     # Below codes are not working
     app = QApplication([])
