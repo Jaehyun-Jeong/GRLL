@@ -127,7 +127,7 @@ class Value():
             s: Union[torch.Tensor, np.ndarray],
             ) -> torch.Tensor:
 
-        s = torch.Tensor(s).to(self.device).unsqueeze(0)
+        s = torch.Tensor(s).to(self.device)  # .unsqueeze(0)
 
         ActionValue = self.model.forward(s)
         ActionValue = ActionValue.squeeze(0)
@@ -170,6 +170,7 @@ class Value():
             isTest: bool = False,
             ) -> torch.Tensor:
 
+        s = torch.Tensor(s).to(self.device).unsqueeze(0)
         actionValue = self.action_value(s)
 
         return self.policy(

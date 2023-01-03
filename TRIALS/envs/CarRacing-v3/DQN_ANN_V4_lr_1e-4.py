@@ -6,11 +6,11 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.VB.models import ANN_V4
-from module.VB import DQN
+from grll.VB.models import ANN_V4
+from grll.VB import DQN
 
 # Environment
-from module.envs.CarRacing import RacingEnv_v3
+from grll.envs.CarRacing import RacingEnv_v3
 
 TRAIN_TIMESTEPS = int(1e7)
 MAX_TIMESTEPS = 100000

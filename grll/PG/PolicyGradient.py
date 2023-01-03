@@ -2,7 +2,7 @@ from typing import Union
 
 from grll.RL import RL
 from grll.utils.ActionSpace import ActionSpace
-from grll.utils.utils import overrides
+from grll.utils.utils import overrides, get_action_space
 from grll.PG.Value import Value
 
 
@@ -96,17 +96,9 @@ class PolicyGradient(RL):
 
         # Init Value Function, Policy
         # Set ActionSpace
-        if self.trainEnv.action_space \
-                != self.testEnv.action_space:
-            raise ValueError(
-                    "Action Spaces of trainEnv and testEnv don't match")
-
-        # If trainEnv, testEnv are using same ActionSpace in this module
-        if isinstance(self.trainEnv.action_space, ActionSpace):
-            actionSpace = self.trainEnv.action_space
-        else:
-            actionSpace = ActionSpace(
-                    actionSpace=self.trainEnv.action_space)
+        actionSpace = get_action_space(
+               self.trainEnv,
+               self.testEnv)
 
         # Support 'Discrete', 'Continuous' ActionSpaces
         if actionSpace.actionType not in ['Discrete', 'Continuous']:

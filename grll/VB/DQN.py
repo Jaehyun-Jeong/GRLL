@@ -9,8 +9,8 @@ import torch
 from torch.autograd import Variable
 
 from grll.VB.ValueBased import ValueBased
-from grll.utils.ActionSpace.ActionSpace import ActionSpace
 from grll.VB.Value.Value import Value
+from grll.utils.utils import get_action_space
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'done', 'next_state', 'reward'))
@@ -123,15 +123,13 @@ class DQN(ValueBased):
         # Init Value Function, Policy
         # Set ActionSpace
         if env:
-            actionSpace = ActionSpace(
-                    actionSpace=env.action_space)
-        else:
-            if trainEnv.action_space \
-                    != testEnv.action_space:
-                raise ValueError(
-                        "Action Spaces of trainEnv and testEnv don't match")
-            actionSpace = ActionSpace(
-                    actionSpace=trainEnv.action_space)
+            actionSpace = get_action_space(
+                    env,
+                    env)
+        elif trainEnv and testEnv:
+            actionSpace = get_action_space(
+                    trainEnv,
+                    testEnv)
 
         # Only Discrete ActionSpace is possible
         if actionSpace.actionType not in ['Discrete']:
