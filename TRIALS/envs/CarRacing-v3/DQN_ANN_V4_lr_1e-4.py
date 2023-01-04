@@ -56,12 +56,7 @@ params_dict = {
         'logdir': "../../runs/DQN_CarRacing_v3",
         'tag': "Averaged Returns/ANN_V4_lr=1e-4"
     },
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 300000
-    },
-    'trainStarts': 10
+    'trainStarts': 50000
 }
 
 # Initialize Actor-Critic Mehtod

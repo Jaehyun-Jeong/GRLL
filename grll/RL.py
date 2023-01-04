@@ -244,6 +244,7 @@ class RL():
                 "No matching torch.nn.Module,"
                 "please use equally shaped torch.nn.Module as you've done!")
 
+        self.value.model.to(self.device)
         self.value.model.eval()
 
         for key, value in loadedDict.items():
