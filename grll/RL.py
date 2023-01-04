@@ -1,4 +1,5 @@
 from typing import Union
+import warnings
 
 from datetime import datetime, timedelta
 import torch
@@ -244,8 +245,14 @@ class RL():
                 "No matching torch.nn.Module,"
                 "please use equally shaped torch.nn.Module as you've done!")
 
-        self.value.model.to(self.device)
         self.value.model.eval()
+
+        if self.device:
+            loadedDict.pop('device')
+        else:
+            warnings.warn(
+                    "Please use device parameter to check your device\n"
+                    "It could be a problem, if you were using CUDA, but now different device")
 
         for key, value in loadedDict.items():
             self.__dict__[key] = value
