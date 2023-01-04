@@ -560,7 +560,7 @@ if __name__ == "__main__":
     from grll.envs.Tetris import TetrisEnv_v2
 
     # device to use
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
 
     # set environment
     env = TetrisEnv_v2()
@@ -570,7 +570,7 @@ if __name__ == "__main__":
     ALPHA = 1e-4  # learning rate
 
     model = CNN_V4(num_states, num_actions).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=ALPHA)
+    optimizer = optim.SGD(model.parameters(), lr=ALPHA, momentum=0.9)
 
     Agent = A2C(
         device=device,  # device to use, 'cuda' or 'cpu'
@@ -581,7 +581,7 @@ if __name__ == "__main__":
 
     Agent.load(
             "../../../TRIALS/saved_models/TetrisEnv_v2/" +
-            "A2C_CNN_V4_lr1e-4_step_1200000.obj")
+            "A2C_CNN_V4_SGD_lr1e-4_step_30000000.obj")
 
     # Below codes are not working
     app = QApplication([])
