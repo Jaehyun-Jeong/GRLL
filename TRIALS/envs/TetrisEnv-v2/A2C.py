@@ -11,7 +11,7 @@ TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 100000
 
 ALPHA = 1e-4  # learning rate
-GAMMA = 0.9999  # discount rate
+GAMMA = 1  # 0.9999  # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,7 +39,7 @@ params_dict = {
     },
     'actionParams': {
         'algorithm': 'stochastic',
-        'exploring': 'epsilon',
+        'exploring': None,
         'exploringParams': {
             'start': 0.99,
             'end': 0.00001,
