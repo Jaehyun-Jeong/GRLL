@@ -80,3 +80,32 @@ class ANN_V4(nn.Module):
         value = self.fc4(value)
 
         return value
+
+
+class ANN_Cal(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_Cal, self).__init__()
+
+        self.layers = nn.Sequential(
+                nn.Linear(inputs, 10),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(10),
+                nn.Linear(10, 20),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(20),
+                nn.Linear(20, 50),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(50),
+                nn.Linear(50, outputs),
+                nn.LogSoftmax(dim=-1)
+            )
+
+    def forward(self, x):
+
+        value = self.layers(x)
+
+        return value

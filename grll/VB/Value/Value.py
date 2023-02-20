@@ -55,7 +55,11 @@ class Value():
 
         # Initialize Parameter
         self.device = device
+
+        # Load model and set to eval mod
         self.model = model.to(self.device)
+        self.model.eval()
+
         self.optimizer = optimizer
         self.clippingParams = clippingParams
         self.actionSpace = actionSpace

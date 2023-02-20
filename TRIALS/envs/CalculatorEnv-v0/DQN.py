@@ -6,28 +6,28 @@ import torch
 import torch.optim as optim
 
 # import model
-from grll.VB.models import CNN_V4
+from grll.VB.models import ANN_Cal
 from grll.VB import DQN
 
 # Environment
-from grll.envs.Tetris import TetrisEnv_v2
+from grll.envs.Calculator import CalculatorEnv_v0
 
 TRAIN_TIMESTEPS = int(1e8)
-MAX_TIMESTEPS = 1000000
+MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 1000000
 
 ALPHA = 1e-4 # learning rate
-GAMMA = 0.9999 # discount rate
+GAMMA = 1 # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = TetrisEnv_v2()
+env = CalculatorEnv_v0()
 num_actions = env.num_actions
 num_states = env.num_obs
 
-model = CNN_V4(num_states, num_actions).to(device)
+model = ANN_Cal(num_states, num_actions).to(device)
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
@@ -41,13 +41,8 @@ params_dict = {
     'numBatch': 128,
     'useTensorboard': True,
     'tensorboardParams': {
-        'logdir': "../../runs/DQN_Tetris_v2",
-        'tag': "Averaged Returns/CNN_V4_lr=1e-4"
-    },
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 300000
+        'logdir': "../../runs/DQN_Calculator_v0",
+        'tag': "Averaged Returns/ANN_Cal_lr=1e-4"
     },
 }
 

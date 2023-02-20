@@ -171,6 +171,7 @@ class DQN(ValueBased):
 
     # Update weights by using Actor Critic Method
     def update_weight(self):
+        self.value.model.train()
         if self.is_trainable():
             for _ in range(self.epoch):
 
@@ -204,6 +205,7 @@ class DQN(ValueBased):
                 loss = torch.sum(loss)/lenLoss
 
                 self.value.step(loss)
+        self.value.model.eval()
 
     def train(
         self,

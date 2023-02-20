@@ -36,8 +36,8 @@ class CalculatorEnv_v0():
         self.num_obs = 5
 
         self.action_space = ActionSpace(
-                high=np.array([10, 10, 1, 1, 1]),
-                low=np.array([1, 1, 0, 0, 0]))
+                high=np.array([110]),
+                low=np.array([0]))
 
         # To get reward, we should remember previous answer
         self.prev_answer = None
