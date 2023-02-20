@@ -1,0 +1,70 @@
+import sys
+sys.path.append("../../../") # to import module
+
+# PyTorch
+import torch
+import torch.optim as optim
+
+# import model
+from grll.VB.models import CNN_V4
+from grll.VB import DQN
+
+# Environment
+from grll.envs.Tetris import TetrisEnv_v2
+
+TRAIN_TIMESTEPS = int(1e8)
+MAX_TIMESTEPS = 1000000
+MAX_REPLAYMEMORY = 1000000
+
+ALPHA = 1e-4 # learning rate
+GAMMA = 0.9999 # discount rate
+
+# device to use
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# set environment
+env = TetrisEnv_v2()
+num_actions = env.num_actions
+num_states = env.num_obs
+
+model = CNN_V4(num_states, num_actions).to(device)
+optimizer = optim.Adam(model.parameters(), lr=ALPHA)
+
+params_dict = {
+    'device': device, # device to use, 'cuda' or 'cpu'
+    'env': env,
+    'model': model, # torch models for policy and value funciton
+    'optimizer': optimizer, # torch optimizer
+    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
+    'discount': GAMMA, # step-size for updating Q value
+    'maxMemory': MAX_REPLAYMEMORY,
+    'numBatch': 128,
+    'useTensorboard': True,
+    'tensorboardParams': {
+        'logdir': "../../runs/DQN_Tetris_v2",
+        'tag': "Averaged Returns/CNN_V4_lr=1e-4"
+    },
+    'eps': { # for epsilon scheduling
+        'start': 0.99,
+        'end': 0.00001,
+        'decay': 300000
+    },
+}
+
+# Initialize Actor-Critic Mehtod
+DeepQN = DQN(**params_dict)
+
+separated_train_step = int(TRAIN_TIMESTEPS / 1000)
+for i in range(1000):
+
+# TRAIN Agent
+    DeepQN.train(TRAIN_TIMESTEPS)
+
+# save model
+    DeepQN.save("../../saved_models/TetrisEnv_v2/"
+            f"DQN_lr1e-4_step_{separated_train_step * (i+1)}.obj")
+
+    DeepQN = DQN(**load_params_dict)
+
+    DeepQN.load("../../saved_models/TetrisEnv_v2/"
+            f"DQN_lr1e-4_step_{separated_train_step * (i+1)}.obj")
