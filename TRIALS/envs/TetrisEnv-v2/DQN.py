@@ -51,7 +51,7 @@ params_dict = {
     },
 }
 
-params_dict = {
+load_params_dict = {
     'device': device, # device to use, 'cuda' or 'cpu'
     'env': env,
     'model': model, # torch models for policy and value funciton

@@ -105,7 +105,7 @@ class TetrisEnv_v0():
     def render(self):
         raise NotImplementedError("Not supporting render option")
 
-    def reset(self):
+    def reset(self) -> Tuple[np.ndarray, list]:
 
         # Re initialize the board
         self.board.initBoard()
