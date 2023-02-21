@@ -118,6 +118,8 @@ class A2C(PolicyGradient):
     # Update weights by using Actor Critic Method
     def __update_weight(self, entropy_term: float = 0):
 
+        self.value.model.train()
+
         lenLoss = len(self.transitions)
         S_t = [trans.state for trans in self.transitions]
         A_t = [trans.action for trans in self.transitions]
@@ -158,6 +160,8 @@ class A2C(PolicyGradient):
         loss = torch.sum(loss)/lenLoss
 
         self.value.step(loss)
+
+        self.value.model.eval()
 
     def train(
         self,
