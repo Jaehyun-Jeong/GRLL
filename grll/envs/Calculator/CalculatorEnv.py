@@ -22,7 +22,7 @@ class CalculatorEnv_v0():
     OPERATOR_LIST = list(OPERATOR.keys())
 
     # This Environment never going to be end
-    DONE = False
+    DONE = True
 
     def __init__(self):
 
