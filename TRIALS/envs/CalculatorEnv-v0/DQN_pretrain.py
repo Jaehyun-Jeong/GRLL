@@ -5,8 +5,6 @@ sys.path.append("../../../") # to import module
 import torch
 import torch.optim as optim
 
-import math
-
 # import model
 from grll.VB.models import ANN_Cal
 from grll.VB import DQN
@@ -16,9 +14,9 @@ from grll.envs.Calculator import CalculatorEnv_v0
 
 TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 50000
+MAX_REPLAYMEMORY = 1000000
 
-ALPHA = 1e-5 # learning rate
+ALPHA = 1e-4 # learning rate
 GAMMA = 1 # discount rate
 
 # device to use
@@ -30,6 +28,10 @@ num_actions = env.num_actions
 num_states = env.num_obs
 
 model = ANN_Cal(num_states, num_actions).to(device)
+
+# Load pretrained model
+model.load_state_dict(torch.load("./model.pth")["model"])
+
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
@@ -40,12 +42,12 @@ params_dict = {
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 2,
+    'numBatch': 128,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/DQN_Calculator_v0",
         'tag': "Averaged Returns/ANN_Cal_lr=1e-4"
-    }
+    },
 }
 
 # Initialize Actor-Critic Mehtod

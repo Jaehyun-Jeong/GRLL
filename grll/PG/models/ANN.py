@@ -159,3 +159,39 @@ class ANN_V4_shared(nn.Module):
         value = self.critic_fc4(value)
 
         return value, probs
+
+
+class ANN_Cal(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_Cal, self).__init__()
+
+        self.layers = nn.Sequential(
+                nn.Linear(inputs, 10),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(10),
+                nn.Linear(10, 20),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(20),
+                nn.Linear(20, 50),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(50),
+            )
+
+        self.actor_fc = nn.Sequential(
+                nn.Linear(50, outputs),
+                nn.LogSoftmax(dim=-1)
+            )
+
+        self.critic_fc = nn.Linear(50, 1)
+
+    def forward(self, x):
+
+        x = self.layers(x)
+        probs = self.actor_fc(x)
+        value = self.critic_fc(x)
+
+        return value, probs
