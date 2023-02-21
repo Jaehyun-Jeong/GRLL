@@ -23,7 +23,6 @@ num_actions = env.num_actions
 num_states = env.num_obs
 
 model = ANN_Cal(num_states, num_actions).to(device)
-
 optimizer = optim.Adam(model.parameters(), lr=ALPHA)
 
 params_dict = {
