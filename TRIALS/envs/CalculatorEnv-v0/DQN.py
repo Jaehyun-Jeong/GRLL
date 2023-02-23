@@ -18,8 +18,8 @@ TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 50000
 
-ALPHA = 1e-5 # learning rate
-GAMMA = 1 # discount rate
+ALPHA = 0.0001 # learning rate
+GAMMA = 0 # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -40,12 +40,23 @@ params_dict = {
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount': GAMMA, # step-size for updating Q value
     'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 2,
+    'numBatch': 32,
     'useTensorboard': True,
     'tensorboardParams': {
         'logdir': "../../runs/DQN_Calculator_v0",
         'tag': "Averaged Returns/ANN_Cal_lr=1e-4"
-    }
+    },
+    'actionParams': {
+        # for DISCRETE
+        'algorithm': "greedy",  # greedy, stochastic
+        'exploring': "epsilon",  # epsilon, None
+        'exploringParams': {
+            'start': 0.99,
+            'end': 0.05,
+            'decay': int(TRAIN_TIMESTEPS*0.8),
+        },
+    },
+    'verbose': 2,
 }
 
 # Initialize Actor-Critic Mehtod

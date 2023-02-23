@@ -17,7 +17,7 @@ MAX_TIMESTEPS = 1000
 MAX_REPLAYMEMORY = 1000000
 
 ALPHA = 1e-4 # learning rate
-GAMMA = 1 # discount rate
+GAMMA = 0 # discount rate
 
 # device to use
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

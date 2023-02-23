@@ -10,7 +10,7 @@ from grll.envs.Calculator import CalculatorEnv_v0
 TRAIN_TIMESTEPS = int(1e8)
 MAX_TIMESTEPS = 1000
 
-ALPHA = 1e-5  # learning rate
+ALPHA = 1e-4  # learning rate
 GAMMA = 1  # discount rate
 
 # device to use
