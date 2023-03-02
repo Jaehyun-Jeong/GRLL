@@ -61,18 +61,4 @@ params_dict = {
 
 # Initialize Actor-Critic Mehtod
 DeepQN = DQN(**params_dict)
-
-separated_train_step = int(TRAIN_TIMESTEPS / 1000)
-for i in range(1000):
-
-# TRAIN Agent
-    DeepQN.train(TRAIN_TIMESTEPS, 1000, 100)
-
-# save model
-    DeepQN.save("../../saved_models/TetrisEnv_v2/"
-            f"DQN_lr1e-4_step_{separated_train_step * (i+1)}.obj")
-
-    DeepQN = DQN(**load_params_dict)
-
-    DeepQN.load("../../saved_models/TetrisEnv_v2/"
-            f"DQN_lr1e-4_step_{separated_train_step * (i+1)}.obj")
+DeepQN.train(TRAIN_TIMESTEPS, 1000, 100)
