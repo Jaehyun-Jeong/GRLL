@@ -51,9 +51,9 @@ params_dict = {
         'algorithm': "greedy",  # greedy, stochastic
         'exploring': "epsilon",  # epsilon, None
         'exploringParams': {
-            'start': 0.99,
+            'start': 0.95,
             'end': 0.05,
-            'decay': int(TRAIN_TIMESTEPS*0.8),
+            'decay': 1000000,
         },
     },
     'verbose': 2,
@@ -66,7 +66,7 @@ separated_train_step = int(TRAIN_TIMESTEPS / 1000)
 for i in range(1000):
 
 # TRAIN Agent
-    DeepQN.train(TRAIN_TIMESTEPS)
+    DeepQN.train(TRAIN_TIMESTEPS, 1000, 100)
 
 # save model
     DeepQN.save("../../saved_models/TetrisEnv_v2/"

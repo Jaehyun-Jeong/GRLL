@@ -162,7 +162,7 @@ class Value():
         a = a.unsqueeze(dim=-1)
 
         probs = self.action_value(s)
-        actionValue = torch.gather(torch.clone(probs), 1, a).squeeze(dim=1)
+        actionValue = torch.gather(probs, 1, a).squeeze(dim=1)
 
         return actionValue
 

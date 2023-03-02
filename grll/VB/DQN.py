@@ -6,6 +6,7 @@ from collections import namedtuple, deque
 
 # PyTorch
 import torch
+from torch.nn import functional as F
 from torch.autograd import Variable
 
 from grll.VB.ValueBased import ValueBased
@@ -201,8 +202,9 @@ class DQN(ValueBased):
 
                 target = R_tt + self.discount * nextMaxValue * notDone
                 target = Variable(target)  # No grad
-                loss = 1/2 * (target - actionValue).pow(2)
-                loss = torch.sum(loss)/lenLoss
+
+                loss = F.mse_loss(target, actionValue)
+                loss = loss/lenLoss
 
                 self.value.step(loss)
         self.value.model.eval()

@@ -47,6 +47,7 @@ class ANN_V3(nn.Module):
         self.fc1 = nn.Linear(inputs, 64)
         self.fc2 = nn.Linear(64, 64)
         self.fc3 = nn.Linear(64, outputs)
+        self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, x):
         state = x
@@ -101,7 +102,6 @@ class ANN_Cal(nn.Module):
                 nn.LeakyReLU(),
                 nn.BatchNorm1d(50),
                 nn.Linear(50, outputs),
-                nn.LogSoftmax(dim=-1)
             )
 
     def forward(self, x):
