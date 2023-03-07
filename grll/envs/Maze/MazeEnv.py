@@ -1,9 +1,9 @@
 from typing import Union, Tuple
 
-if __name__ == "__main__":
-    from Maze_Generator import Maze
-else:
-    from module.envs.Maze.Maze_Generator import Maze
+import sys
+sys.path.append("../../../")
+
+from grll.envs.Maze.Maze_Generator import Maze
 
 from copy import deepcopy
 import torch

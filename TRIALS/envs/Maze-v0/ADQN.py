@@ -1,17 +1,17 @@
 
 import sys
-sys.path.append("../") # to import module
+sys.path.append("../../../") # to import module
 
 # PyTorch
 import torch
 import torch.optim as optim
 
 # import model
-from module.ValueBased.models import ANN_V2
-from module.ValueBased.ADQN import ADQN
+from grll.VB.models import ANN_V2
+from grll.VB.ADQN import ADQN
 
 # Environment 
-from module.envs.maze.Maze_Solver import MazeSolverEnv
+from grll.envs.Maze import MazeEnv_v0
 
 MAX_EPISODES = 3000
 MAX_TIMESTEPS = 1000
@@ -26,7 +26,7 @@ gym_name = 'maze'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # set environment
-env = MazeSolverEnv()
+env = MazeEnv_v0()
 
 # set ActorCritic
 num_actions = env.num_action
@@ -51,6 +51,10 @@ params_dict = {
     'policy': {
         'train': 'eps-stochastic',
         'test': 'stochastic',
+    },
+    'isRender': {
+        'train': False,
+        'test': False
     }
 }
 
