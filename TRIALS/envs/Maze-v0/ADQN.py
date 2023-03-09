@@ -1,65 +1,40 @@
-
 import sys
 sys.path.append("../../../") # to import module
 
-# PyTorch
-import torch
+# 파이토치
 import torch.optim as optim
 
-# import model
+# 작성자의 모듈
 from grll.VB.models import ANN_V2
-from grll.VB.ADQN import ADQN
+from grll.VB import ADQN
 
-# Environment 
+# 환경
 from grll.envs.Maze import MazeEnv_v0
+trainEnv = MazeEnv_v0()
+testEnv = MazeEnv_v0()
+num_actions = trainEnv.num_action
+num_states = trainEnv.num_obs
 
-MAX_EPISODES = 3000
-MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 100000
+ADQN_model = ANN_V2(num_states, num_actions)
 
-ALPHA = 0.0001 # learning rate
-GAMMA = 0.99 # discount rate
+print(ADQN_model)
 
-gym_name = 'maze'
+optimizer = optim.Adam(ADQN_model.parameters(), lr=1e-4)
 
-# device to use
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# set environment
-env = MazeEnv_v0()
-
-# set ActorCritic
-num_actions = env.num_action
-num_states = env.num_obs
-model = ANN_V2(num_states, num_actions).to(device)
-optimizer = optim.Adam(model.parameters(), lr=ALPHA)
-
-params_dict = {
-    'device': device, # device to use, 'cuda' or 'cpu'
-    'env': env, # environment like gym
-    'model': model, # torch models for policy and value funciton
-    'optimizer': optimizer, # torch optimizer
-    'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
-    'discount_rate': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
-    'numBatch': 64,
-    'eps': { # for epsilon scheduling
-        'start': 0.99,
-        'end': 0.00001,
-        'decay': 100000
+# 작성자의 모듈 초기화
+AveragedDQN= ADQN(
+    trainEnv=trainEnv,
+    testEnv=testEnv,
+    model=ADQN_model,
+    optimizer=optimizer,
+    verbose=1,
+    useTensorboard=True,
+    tensorboardParams={
+        'logdir': "../../runs/ADQN_CartPole_v0",
+        'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
-    'policy': {
-        'train': 'eps-stochastic',
-        'test': 'stochastic',
-    },
-    'isRender': {
-        'train': False,
-        'test': False
-    }
-}
+)
 
-# Initialize Actor-Critic Mehtod
-averagedDQN = ADQN(**params_dict)
-
-# TRAIN Agent
-averagedDQN.train(MAX_EPISODES, testPer=1)
+AveragedDQN.train(
+        1_000_000,
+        testPer=1)

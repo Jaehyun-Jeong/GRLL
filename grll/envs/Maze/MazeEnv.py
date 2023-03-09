@@ -4,6 +4,7 @@ import sys
 sys.path.append("../../../")
 
 from grll.envs.Maze.Maze_Generator import Maze
+from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 from copy import deepcopy
 import torch
@@ -14,7 +15,10 @@ import pygame
 
 class MazeEnv_base():
 
-    def __init__(self, displaySize: Tuple[int, int] = (500, 500)):
+    def __init__(
+            self,
+            displaySize: Tuple[int, int] = (500, 500)
+        ):
 
         # set display size
         self.displaySize = displaySize
@@ -212,6 +216,14 @@ class MazeEnv_v0(MazeEnv_base):
     def __init__(self):
         super().__init__()
 
+        # Left, Right, Up, Down
+        self.num_action = 4
+        self.num_obs = self.blocks.shape[0] * self.blocks.shape[1]
+
+        self.action_space = ActionSpace(
+                high=np.array([3]),
+                low=np.array([0]))
+
     def reset(self) -> np.ndarray:
 
         charPos = self.get_char_pos()
@@ -288,3 +300,7 @@ if __name__ == "__main__":
         env.render()
         action = choice([0, 1, 2, 3])
         results = env.step(action)
+
+        print("=================================")
+        print(type(results[0]))
+        print(len(results[0]))
