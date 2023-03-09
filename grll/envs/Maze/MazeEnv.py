@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 import sys
 sys.path.append("../../../")
@@ -251,7 +251,10 @@ class MazeEnv_v0(MazeEnv_base):
 
         return next_state, reward, done, action
 
-    def move(self, action: Union[int, torch.Tensor]) -> bool:
+    def move(
+            self,action: Union[List[int], torch.Tensor, np.ndarray]) -> bool:
+        
+        action = action[0]
 
         if action not in [0, 1, 2, 3]:
             raise ValueError("Action is out of bound")
