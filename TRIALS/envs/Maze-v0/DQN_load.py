@@ -42,7 +42,7 @@ DeepQN= DQN(
     },
 )
 
-DeepQN.load("../../saved_models/DQN_Maze_v0.obj")
+DeepQN.load("../../saved_models/MazeEnv_v0/DQN_Maze_v0.obj")
 DeepQN.isRender['test'] = True
 
 DeepQN.test(testSize=1)

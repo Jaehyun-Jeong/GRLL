@@ -46,4 +46,4 @@ DeepQN.train(
         1_000_000,
         testPer=10000)
 
-DeepQN.save("../../saved_models/DQN_Maze_v0.obj")
+DeepQN.save("../../saved_models/MazeEnv_v0/DQN_Maze_v0.obj")
