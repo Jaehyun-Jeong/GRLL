@@ -28,6 +28,11 @@ advantage_AC = A2C(
         'logdir': "../../runs/A2C_CartPole_v0",
         'tag': "Averaged Returns/ANN_V3_lr=1e-4"
     },
+    actionParams={
+        # for DISCRETE
+        'algorithm': "greedy",  # greedy, stochastic
+        'exploring': None,  # epsilon, None
+    },
     nSteps=50,
 )
 

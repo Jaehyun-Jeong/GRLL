@@ -1,5 +1,4 @@
 from typing import Union
-import warnings
 
 from datetime import datetime, timedelta
 import torch
@@ -154,17 +153,31 @@ class RL():
 
             self.timeSpent += datetime.now() - self.timePrevStep
 
+            # For exploring algorithms, print exploringRate
+            # else print None
+            exploringRate = round(self.value.policy.exploration(timesteps), 4)\
+                if hasattr(self.value.policy, 'exploration') else None
+
             Result = [
-                f"| Timesteps / Episode :"
-                f" {str(timesteps)[0:10]:>10} / {str(episode)[0:10]:>10} |",
-                f"| Reward Mean         :"
-                f" {str(meanReward)[0:10]:>20}    |",
-                f"| Episode Mean        :"
-                f" {str(meanEpisode)[0:10]:>20}    |",
-                f"| Time Spent (step)   :"
-                f" {str(datetime.now()-self.timePrevStep):>20}    |",
-                f"| Time Spent (train)  :"
-                f" {str(self.timeSpent):>20}    |"]
+                "| Timesteps / Episode : "
+                f"{str(timesteps)} / {str(episode)}",
+                "| Reward Mean         : "
+                f"{str(meanReward)}",
+                "| Episode Mean        : "
+                f"{str(meanEpisode)}",
+                "| Time Spent (step)   : "
+                # Splitting remove microsecond
+                f"{str(datetime.now()-self.timePrevStep).split('.')[0]}",
+                "| Time Spent (train)  : "
+                f"{str(self.timeSpent).split('.')[0]}",
+                "| Exploring Rate      : "
+                f"{exploringRate}",
+            ]
+
+            longestLineLength = max([len(string) for string in Result])
+            Result = [
+                line + ' '*(longestLineLength-len(line)) + ' |'
+                for line in Result]
 
             frameLen = len(Result[0])-2  # -2 exist to make + shape frames
             frameString = "+"
@@ -178,18 +191,21 @@ class RL():
                 Result[2] = Result[2][:printLength-3]
                 Result[3] = Result[3][:printLength-3]
                 Result[4] = Result[4][:printLength-3]
+                Result[5] = Result[5][:printLength-3]
                 Result[0] += "..."
                 Result[1] += "..."
                 Result[2] += "..."
                 Result[3] += "..."
                 Result[4] += "..."
+                Result[5] += "..."
 
             results = ""
             results += Result[0] + "\n"
             results += Result[1] + "\n"
             results += Result[2] + "\n"
             results += Result[3] + "\n"
-            results += Result[4]
+            results += Result[4] + "\n"
+            results += Result[5]
 
             print(frameString)
             print(results)

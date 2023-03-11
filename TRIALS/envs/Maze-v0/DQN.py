@@ -19,7 +19,7 @@ DQN_model = ANN_V2(num_states, num_actions)
 optimizer = optim.Adam(DQN_model.parameters(), lr=1e-3)
 
 # 작성자의 모듈 초기화
-DeepQN= DQN(
+DeepQN = DQN(
     trainEnv=trainEnv,
     testEnv=testEnv,
     model=DQN_model,
