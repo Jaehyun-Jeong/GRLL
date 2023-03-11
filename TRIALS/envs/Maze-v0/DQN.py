@@ -16,7 +16,7 @@ num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
 DQN_model = ANN_V2(num_states, num_actions)
-optimizer = optim.Adam(DQN_model.parameters(), lr=5e-4)
+optimizer = optim.Adam(DQN_model.parameters(), lr=1e-3)
 
 # 작성자의 모듈 초기화
 DeepQN= DQN(
@@ -26,6 +26,7 @@ DeepQN= DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
+    maxTimesteps=1_000_000,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
@@ -35,8 +36,7 @@ DeepQN= DQN(
             'end': 0.05,
             'decay': 1000000,
         },
-    },
-    tensorboardParams={
+    }, tensorboardParams={
         'logdir': "../../runs/DQN_Maze_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
@@ -44,6 +44,7 @@ DeepQN= DQN(
 
 DeepQN.train(
         1_000_000,
-        testPer=10000)
+        testPer=10000,
+        testSize=2,)
 
 DeepQN.save("../../saved_models/MazeEnv_v0/DQN_Maze_v0.obj")
