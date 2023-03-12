@@ -226,6 +226,9 @@ class MazeEnv_v0(MazeEnv_base):
 
     def reset(self) -> np.ndarray:
 
+        # To make render method work, It should be initialized as False
+        self.isRender = False
+
         charPos = self.get_char_pos()
         self.blocks[charPos[0]][charPos[1]] = 0
         self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
@@ -245,7 +248,7 @@ class MazeEnv_v0(MazeEnv_base):
         if done:
             reward = 1
         else:
-            reward = -0.75 if hitWall else -0.04
+            reward = -0.04
 
         next_state = self.blocks.flatten()
 
@@ -288,6 +291,43 @@ class MazeEnv_v0(MazeEnv_base):
 
     def close(self):
         pygame.quit()
+
+
+# This Env contains one more feature,
+# which is the move_cnt,
+# meaning how many times agent have been moved
+class MazeEnv_v1(MazeEnv_v0):
+
+    def __init__(self):
+
+        super().__init__()
+
+        # + 1 for added feature, counts the number of times the agent moved
+        self.num_obs = self.blocks.shape[0] * self.blocks.shape[1] + 1
+
+        # Count how many times it moved
+        self.move_cnt = 0
+
+    def reset(self) -> np.ndarray:
+
+        flattened_blocks = super().reset()
+        next_state = np.concatenate(
+            (flattened_blocks, np.array([self.move_cnt])),
+            axis=0)
+
+        return next_state
+
+    def step(self, action: Union[int, torch.Tensor]) \
+            -> Tuple[np.ndarray, float, bool, torch.Tensor]:
+
+        next_state, reward, done, action = super().step(action)
+        self.move_cnt += 1
+
+        next_state = np.concatenate(
+            (next_state, np.array([self.move_cnt])),
+            axis=0)
+
+        return next_state, reward, done, action
 
 
 if __name__ == "__main__":
