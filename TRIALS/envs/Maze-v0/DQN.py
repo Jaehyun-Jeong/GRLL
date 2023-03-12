@@ -44,7 +44,7 @@ DeepQN = DQN(
 
 DeepQN.train(
         1_000_000,
-        testPer=10000,
+        testPer=50000,
         testSize=2,)
 
 DeepQN.save("../../saved_models/MazeEnv_v0/DQN_Maze_v0.obj")
