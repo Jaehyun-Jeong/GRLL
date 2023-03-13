@@ -20,19 +20,30 @@ class MazeEnv_base():
             displaySize: Tuple[int, int] = (500, 500)
         ):
 
-        # set display size
+        # Set display size
         self.displaySize = displaySize
+        
+        # Create new maze and set player and goal
+        self.initNewMaze()
 
-        # set blocks and character = 2, goal = 3
-        self.blocks = self.makeMaze()
-        self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
-        self.blocks[1][1] = 3
-
+        # When you have display set pygame screen as pygame.display
+        # But, if you not set it as pygame.Surface which don't have to be displayed
         try:
             self.screen = pygame.display.set_mode(
                     self.displaySize, flags=pygame.HIDDEN)
         except pygame.error:
             self.screen = pygame.Surface(self.displaySize)
+
+        self.isRender = False
+
+    def initNewMaze(self):
+        # set blocks and character = 2, goal = 3
+        self.blocks = self.makeMaze()
+        self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
+        self.blocks[1][1] = 3
+
+    # Only use when displaying environment
+    def displaySetting(self):
 
         # =================================================================================
         # IMG PATH SETTING
@@ -70,7 +81,6 @@ class MazeEnv_base():
 
         self.loadImages()
         self.imgMat = self.__init_ImgMat()
-        self.isRender = False
 
     def makeMaze(self):
 
@@ -213,6 +223,9 @@ class MazeEnv_base():
 
 class MazeEnv_v0(MazeEnv_base):
 
+    characterValue = 0.5
+    goalValue = 0.3
+
     def __init__(self):
         super().__init__()
 
@@ -243,8 +256,7 @@ class MazeEnv_v0(MazeEnv_base):
             -> Tuple[np.ndarray, float, bool, torch.Tensor]:
 
         # Get reward
-        moved, done = self.move(action)
-        hitWall = not moved
+        _, done = self.move(action)
         if done:
             reward = 1
         else:
@@ -253,6 +265,17 @@ class MazeEnv_v0(MazeEnv_base):
         next_state = self.blocks.flatten()
 
         return next_state, reward, done, action
+
+    def get_state(self):
+        state = self.blocks.flatten()
+        state = state.astype(np.float32)
+
+        # Find Character index and change the value
+        charPos = self.get_char_pos()
+        charPosIdx = charPos[0]*self.blocks.shape[0] + charPos[1]
+        state[charPosIdx] = self.characterValue
+
+        state[self.blocks.shape[0]+1] = self.goalValue
 
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
@@ -293,55 +316,97 @@ class MazeEnv_v0(MazeEnv_base):
         pygame.quit()
 
 
-# This Env contains one more feature,
-# which is the move_cnt,
-# meaning how many times agent have been moved
+# This one added return information like below
+# 1. Track the character moved and if character reach that spot, then give -.25 reward
+# 2. If it hits the wall then give -.75 reward
 class MazeEnv_v1(MazeEnv_v0):
+
+    passedValue = 4  # To indicate road that character passed
 
     def __init__(self):
 
         super().__init__()
 
-        # + 1 for added feature, counts the number of times the agent moved
-        self.num_obs = self.blocks.shape[0] * self.blocks.shape[1] + 1
-
-        # Count how many times it moved
-        self.move_cnt = 0
-
-    def reset(self) -> np.ndarray:
-
-        flattened_blocks = super().reset()
-        next_state = np.concatenate(
-            (flattened_blocks, np.array([self.move_cnt])),
-            axis=0)
-
-        return next_state
-
     def step(self, action: Union[int, torch.Tensor]) \
             -> Tuple[np.ndarray, float, bool, torch.Tensor]:
 
-        next_state, reward, done, action = super().step(action)
-        self.move_cnt += 1
+        # Get reward
+        moved, done, passed = self.move(action)
+        hitWall = not moved
+        if done:
+            reward = 1
+        elif hitWall:
+            reward = -0.75
+        elif passed:
+            reward = -0.25
+        else:
+            reward = -0.04
 
-        next_state = np.concatenate(
-            (next_state, np.array([self.move_cnt])),
-            axis=0)
+        next_state = self.blocks.flatten()
 
         return next_state, reward, done, action
+
+    def move(
+            self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
+        
+        if action not in [0, 1, 2, 3]:
+            raise ValueError("Action is out of bound")
+
+        # get Position to move
+        charPos = self.get_char_pos()
+        movePos = list(deepcopy(charPos))
+        if action == 0:  # east
+            movePos[1] += 1
+        if action == 1:  # west
+            movePos[1] -= 1
+        if action == 2:  # south
+            movePos[0] += 1
+        if action == 3:  # north
+            movePos[0] -= 1
+        movePos = tuple(movePos)
+
+        if self.blocks[movePos[0]][movePos[1]] == 0:
+            self.blocks[movePos[0]][movePos[1]] = 2  # Road Pos to Char
+            self.blocks[charPos[0]][charPos[1]] = self.passedValue  # Char Pos to Passed Road
+            moved = True
+            done = False
+            passed = False
+        elif self.blocks[movePos[0]][movePos[1]] == 3:  # Value 3 means goal
+            self.blocks[movePos[0]][movePos[1]] = 2  # Road Pos to Char
+            self.blocks[charPos[0]][charPos[1]] = self.passedValue  # Char Pos to Passed Road
+            moved = True
+            done = True
+            passed = False
+        elif self.blocks[movePos[0]][movePos[1]] == 4:  # Value 4 means passed road
+            self.blocks[movePos[0]][movePos[1]] = 2  # Road Pos to Char
+            self.blocks[charPos[0]][charPos[1]] = self.passedValue  # Char Pos to Passed Road
+            moved = True
+            done = False
+            passed = True
+
+        else:  # not movable
+            moved = False
+            done = False
+            passed = True
+
+        return moved, done, passed
 
 
 if __name__ == "__main__":
 
     from random import choice 
+    import os
 
-    env = MazeEnv_v0()
+    env = MazeEnv_v1()
     running = True
 
     while True:
-        env.render()
         action = choice([0, 1, 2, 3])
         results = env.step(action)
 
-        print("=================================")
-        print(type(results[0]))
-        print(len(results[0]))
+        for i in range(23): 
+            print(results[0][i*23:i*23+23])
+        print(results[1])
+
+        input()
+        os.system('clear')

@@ -26,7 +26,7 @@ DeepQN = DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
-    maxTimesteps=1_000_000,
+    maxTimesteps=1000,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
@@ -45,6 +45,6 @@ DeepQN = DQN(
 DeepQN.train(
         1_000_000,
         testPer=50000,
-        testSize=2,)
+        testSize=5,)
 
 DeepQN.save("../../saved_models/MazeEnv_v1/DQN_Maze_v0.obj")
