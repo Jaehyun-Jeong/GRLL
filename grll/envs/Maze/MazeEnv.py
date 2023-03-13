@@ -262,7 +262,7 @@ class MazeEnv_v0(MazeEnv_base):
         else:
             reward = -0.04
 
-        next_state = self.blocks.flatten()
+        next_state = self.get_state()
 
         return next_state, reward, done, action
 
@@ -276,6 +276,8 @@ class MazeEnv_v0(MazeEnv_base):
         state[charPosIdx] = self.characterValue
 
         state[self.blocks.shape[0]+1] = self.goalValue
+
+        return state
 
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
@@ -342,9 +344,15 @@ class MazeEnv_v1(MazeEnv_v0):
         else:
             reward = -0.04
 
-        next_state = self.blocks.flatten()
+        next_state = self.get_state()
 
         return next_state, reward, done, action
+
+    def get_state(self):
+        state = super().get_state()
+        state[state == self.passedValue] = 0.7
+
+        return state
 
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:

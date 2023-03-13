@@ -32,9 +32,9 @@ DeepQN = DQN(
         'algorithm': "greedy",  # greedy, stochastic
         'exploring': "epsilon",  # epsilon, None
         'exploringParams': {
-            'start': 0.95,
+            'start': 1,
             'end': 0.05,
-            'decay': 1000000,
+            'decay': 1e10,
         },
     }, tensorboardParams={
         'logdir': "../../runs/DQN_Maze_v0",
@@ -43,7 +43,7 @@ DeepQN = DQN(
 )
 
 DeepQN.train(
-        1_000_000,
+        1e10,
         testPer=50000,
         testSize=5,)
 
