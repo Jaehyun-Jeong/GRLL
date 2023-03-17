@@ -9,14 +9,14 @@ from grll.VB.models import ANN_Maze
 from grll.VB import DQN
 
 # 환경
-from grll.envs.Maze import MazeEnv_v1
-trainEnv = MazeEnv_v1()
-testEnv = MazeEnv_v1()
+from grll.envs.Maze import MazeEnv_v2
+trainEnv = MazeEnv_v2()
+testEnv = MazeEnv_v2()
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
 DQN_model = ANN_Maze(num_states, num_actions)
-optimizer = optim.Adam(DQN_model.parameters(), lr=1e-4)
+optimizer = optim.Adam(DQN_model.parameters(), lr=1e-5)
 
 # 작성자의 모듈 초기화
 DeepQN = DQN(
@@ -26,27 +26,28 @@ DeepQN = DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
-    maxTimesteps=int(1e3),
+    maxTimesteps=int(1e100),
     maxMemory=num_states*8,  # 8 times of state size
-    numBatch=32,
+    numBatch=16,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
         'exploring': "epsilon",  # epsilon, None
         'exploringParams': {
-            'start': 0.0001,
-            'end': 0.0001,
-            'decay': 1e10,
+            'start': 0.95,
+            'end': 0.001,
+            'decay': 1e5,
         },
     }, tensorboardParams={
         'logdir': "../../runs/DQN_Maze_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
+    epoch=8,
 )
 
 DeepQN.train(
         1e10,
-        testPer=1000,
-        testSize=5,)
+        testPer=10000,
+        testSize=1,)
 
-DeepQN.save("../../saved_models/MazeEnv_v1/DQN_Maze_v0.obj")
+DeepQN.save("../../saved_models/MazeEnv_v2/DQN_Maze_v0.obj")

@@ -17,7 +17,7 @@ class MazeEnv_base():
 
     def __init__(
             self,
-            displaySize: Tuple[int, int] = (500, 500)
+            displaySize: Tuple[int, int] = (200, 200)
         ):
 
         # Set display size
@@ -250,7 +250,7 @@ class MazeEnv_v0(MazeEnv_base):
         if pygame.display.get_active():
             pygame.display.set_mode(self.displaySize, flags=pygame.HIDDEN)
 
-        return self.blocks.flatten()
+        return self.get_state()
 
     def step(self, action: Union[int, torch.Tensor]) \
             -> Tuple[np.ndarray, float, bool, torch.Tensor]:
@@ -400,21 +400,77 @@ class MazeEnv_v1(MazeEnv_v0):
         return moved, done, passed
 
 
+# Added below features
+# min_reward: minimum reward agent can reach
+# If agent blocked then get "min_reward - 1" which is smaller then min_reward
+# Wall as 0 and Road as 1. (It was opposite)
+class MazeEnv_v2(MazeEnv_v1):
+
+    def __init__(self):
+        super().__init__()
+
+        # min_reward depend on the maze size
+        self.min_reward = -0.5 * \
+                self.blocks.shape[0] * self.blocks.shape[1]
+
+        # Cumulative Reward to compare with min_reward
+        self.cumulative_reward = 0
+
+    # Opposite wall and road
+    def get_state(self):
+        state = super().get_state()
+
+        # 0 were roads, 1 were walls
+        state[state == 0] = -1  # Temporarily, set walls to -1
+        state[state == 1] = 0
+        state[state == -1] = 1
+
+        return state
+
+    def step(self, action: Union[int, torch.Tensor]) \
+            -> Tuple[np.ndarray, float, bool, torch.Tensor]:
+
+        # Get reward
+        moved, done, passed = self.move(action)
+        hitWall = not moved
+        if done:
+            reward = 1
+        elif hitWall:
+            reward = -0.75
+        elif passed:
+            reward = -0.25
+        else:
+            reward = -0.04
+
+        next_state = self.get_state()
+
+        # If cumulative reward is smaller than min_reward, then end the game
+        self.cumulative_reward += reward
+        done = True if self.cumulative_reward < self.min_reward else done
+
+        return next_state, reward, done, action
+
+    def reset(self):
+
+        self.cumulative_reward = 0
+
+        return super().reset()
+
+
 if __name__ == "__main__":
 
     from random import choice 
-    import os
 
     env = MazeEnv_v1()
     running = True
+    state = env.reset()
 
     while True:
         action = choice([0, 1, 2, 3])
-        results = env.step(action)
+        state, _, _, _= env.step(action)
 
-        for i in range(23): 
-            print(results[0][i*23:i*23+23])
-        print(results[1])
+        print(type(state))
+        print(state.shape)
+        print(state)
 
         input()
-        os.system('clear')
