@@ -404,9 +404,13 @@ class MazeEnv_v1(MazeEnv_v0):
 # min_reward: minimum reward agent can reach
 # If agent blocked then get "min_reward - 1" which is smaller then min_reward
 # Wall as 0 and Road as 1. (It was opposite)
+# Support Exploring Starts
 class MazeEnv_v2(MazeEnv_v1):
 
-    def __init__(self):
+    def __init__(
+            self,
+            exploring_starts: bool):
+
         super().__init__()
 
         # min_reward depend on the maze size
@@ -416,14 +420,19 @@ class MazeEnv_v2(MazeEnv_v1):
         # Cumulative Reward to compare with min_reward
         self.cumulative_reward = 0
 
+        # Exploring Starts
+        self.exploring_starts = exploring_starts
+
     # Opposite wall and road
     def get_state(self):
         state = super().get_state()
 
         # 0 were roads, 1 were walls
         state[state == 0] = -1  # Temporarily, set walls to -1
-        state[state == 1] = 0
+        state[state == 0.5] = -2
+        state[state > 0] = 0
         state[state == -1] = 1
+        state[state == -2] = self.characterValue
 
         return state
 
@@ -450,27 +459,56 @@ class MazeEnv_v2(MazeEnv_v1):
 
         return next_state, reward, done, action
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
 
         self.cumulative_reward = 0
 
-        return super().reset()
+        # Reset passed road
+        self.blocks[self.blocks == self.passedValue] = 0
+
+        # To make render method work, It should be initialized as False
+        self.isRender = False
+
+        # Delete Character from map
+        charPos = self.get_char_pos()
+        self.blocks[charPos[0]][charPos[1]] = 0
+
+        # Set goal
+        self.blocks[1][1] = 3
+
+        # Exploring starts
+        # which means, start at random state
+        if self.exploring_starts:
+            possible_char_pos = np.transpose(np.where(self.blocks == 0))
+            randCharPos = possible_char_pos[np.random.randint(possible_char_pos.shape[0])]
+            self.blocks[randCharPos[0]][randCharPos[1]] = 2
+        else:
+            self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
+
+        if pygame.display.get_active():
+            pygame.display.set_mode(self.displaySize, flags=pygame.HIDDEN)
+
+        return self.get_state()
+
 
 
 if __name__ == "__main__":
 
     from random import choice 
 
-    env = MazeEnv_v1()
+    env = MazeEnv_v2(exploring_starts=True)
     running = True
-    state = env.reset()
 
     while True:
-        action = choice([0, 1, 2, 3])
-        state, _, _, _= env.step(action)
 
-        print(type(state))
-        print(state.shape)
-        print(state)
+        state = env.reset()
+        done = False
 
-        input()
+        while not done:
+            action = choice([0, 1, 2, 3])
+            state, reward, done, _= env.step(action)
+
+            print(env.blocks)
+            print(reward)
+            print(done)
+            input()
