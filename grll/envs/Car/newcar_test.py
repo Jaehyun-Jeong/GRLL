@@ -6,22 +6,19 @@ import random
 import sys
 import os
 
-import neat
 import pygame
 
 # Constants
 # WIDTH = 1600
 # HEIGHT = 880
 
-WIDTH = 1920
+WIDTH = 1980
 HEIGHT = 1080
 
 CAR_SIZE_X = 60    
 CAR_SIZE_Y = 60
 
 BORDER_COLOR = (255, 255, 255, 255) # Color To Crash on Hit
-
-current_generation = 0 # Generation counter
 
 class Car:
 
@@ -154,35 +151,19 @@ class Car:
         return rotated_image
 
 
-def run_simulation(genomes, config):
+def run_simulation():
     
     # Empty Collections For Nets and Cars
-    nets = []
-    cars = []
 
     # Initialize PyGame And The Display
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SHOWN)
 
-    # For All Genomes Passed Create A New Neural Network
-    for i, g in genomes:
-        net = neat.nn.FeedForwardNetwork.create(g, config)
-        nets.append(net)
-        g.fitness = 0
-
-        cars.append(Car())
-
+    car = Car()
+   
     # Clock Settings
     # Font Settings & Loading Map
-    clock = pygame.time.Clock()
-    generation_font = pygame.font.SysFont("Arial", 30)
-    alive_font = pygame.font.SysFont("Arial", 20)
     game_map = pygame.image.load('map.png').convert() # Convert Speeds Up A Lot
-
-    global current_generation
-    current_generation += 1
-
-    # Simple Counter To Roughly Limit Time (Not Good Practice)
     counter = 0
 
     while True:
@@ -191,30 +172,26 @@ def run_simulation(genomes, config):
             if event.type == pygame.QUIT:
                 sys.exit(0)
 
+        print(car.get_data())
+
         # For Each Car Get The Acton It Takes
-        for i, car in enumerate(cars):
-            output = nets[i].activate(car.get_data())
-            choice = output.index(max(output))
-            if choice == 0:
-                car.angle += 10 # Left
-            elif choice == 1:
-                car.angle -= 10 # Right
-            elif choice == 2:
-                if(car.speed - 2 >= 12):
-                    car.speed -= 2 # Slow Down
-            else:
-                car.speed += 2 # Speed Up
-        
+        choice = random.randint(0, 4)
+        if choice == 0:
+            car.angle += 10 # Left
+        elif choice == 1:
+            car.angle -= 10 # Right
+        elif choice == 2:
+            if(car.speed - 2 >= 12):
+                car.speed -= 2 # Slow Down
+        else:
+            car.speed += 2 # Speed Up
+
         # Check If Car Is Still Alive
         # Increase Fitness If Yes And Break Loop If Not
-        still_alive = 0
-        for i, car in enumerate(cars):
-            if car.is_alive():
-                still_alive += 1
-                car.update(game_map)
-                genomes[i][1].fitness += car.get_reward()
-
-        if still_alive == 0:
+        still_alive = car.is_alive()
+        if still_alive:
+            car.update(game_map)
+        else:
             break
 
         counter += 1
@@ -223,39 +200,14 @@ def run_simulation(genomes, config):
 
         # Draw Map And All Cars That Are Alive
         screen.blit(game_map, (0, 0))
-        for car in cars:
-            if car.is_alive():
-                car.draw(screen)
+        if car.is_alive():
+            car.draw(screen)
 
-        # Display Info
-        text = generation_font.render("Generation: " + str(current_generation), True, (0,0,0))
-        text_rect = text.get_rect()
-        text_rect.center = (900, 450)
-        screen.blit(text, text_rect)
-
-        text = alive_font.render("Still Alive: " + str(still_alive), True, (0, 0, 0))
-        text_rect = text.get_rect()
-        text_rect.center = (900, 490)
         screen.blit(text, text_rect)
 
         pygame.display.flip()
-        clock.tick(60) # 60 FPS
 
 if __name__ == "__main__":
-    
-    # Load Config
-    config_path = "./config.txt"
-    config = neat.config.Config(neat.DefaultGenome,
-                                neat.DefaultReproduction,
-                                neat.DefaultSpeciesSet,
-                                neat.DefaultStagnation,
-                                config_path)
 
-    # Create Population And Add Reporters
-    population = neat.Population(config)
-    population.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    population.add_reporter(stats)
-    
-    # Run Simulation For A Maximum of 1000 Generations
-    population.run(run_simulation, 1000)
+    for _ in range(10):
+        run_simulation() 
