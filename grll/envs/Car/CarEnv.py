@@ -3,7 +3,7 @@ from typing import Union, Tuple
 import sys
 sys.path.append("../../../")
 
-from grll.envs.Car.newcar_test import Car
+from grll.envs.Car.Car import Car
 from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
 import pygame
