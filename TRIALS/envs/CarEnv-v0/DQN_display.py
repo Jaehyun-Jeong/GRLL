@@ -42,6 +42,6 @@ DeepQN = DQN(
 )
 
 DeepQN.load("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
-#DeepQN.isRender['test'] = True
+DeepQN.isRender['test'] = True
 
 DeepQN.test(testSize=1)
