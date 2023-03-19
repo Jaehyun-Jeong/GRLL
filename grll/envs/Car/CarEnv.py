@@ -110,7 +110,9 @@ class CarEnv_v0(CarEnv_base):
 
         if pygame.display.get_active():
             pygame.display.set_mode((self.WIDTH, self.HEIGHT), flags=pygame.HIDDEN)
-
+        
+        # it makes render option work
+        self.isRender = False
 
         return self.get_state()
 

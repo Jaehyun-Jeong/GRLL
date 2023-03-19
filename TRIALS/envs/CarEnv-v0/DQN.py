@@ -44,12 +44,12 @@ DeepQN = DQN(
         'train': False,
         'test': True,
     },
-    trainStarts=10000,
+    trainStarts=5000,
 )
 
 DeepQN.train(
         100_000,
-        testPer=10000,
+        testPer=1000,
         testSize=10,)
 
 DeepQN.save("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
