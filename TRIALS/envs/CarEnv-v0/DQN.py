@@ -40,6 +40,10 @@ DeepQN = DQN(
         'logdir': "../../runs/DQN_Car_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
+    isRender={
+        'train': False,
+        'test': True,
+    },
     trainStarts=10000,
 )
 
