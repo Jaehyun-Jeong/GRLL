@@ -40,12 +40,12 @@ DeepQN = DQN(
         'logdir': "../../runs/DQN_Car_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
-    trainStarts=1000,
+    trainStarts=10000,
 )
 
 DeepQN.train(
-        10000,
-        testPer=100,
-        testSize=2,)
+        100_000,
+        testPer=10000,
+        testSize=10,)
 
 DeepQN.save("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
