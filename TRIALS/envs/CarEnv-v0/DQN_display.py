@@ -26,7 +26,6 @@ DeepQN = DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
-    maxTimesteps=10000,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
@@ -40,12 +39,9 @@ DeepQN = DQN(
         'logdir': "../../runs/DQN_Car_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
-    trainStarts=10000,
 )
 
-DeepQN.train(
-        100_000,
-        testPer=10000,
-        testSize=1,)
+DeepQN.load("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
+#DeepQN.isRender['test'] = True
 
-DeepQN.save("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
+DeepQN.test(testSize=1)
