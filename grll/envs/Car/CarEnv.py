@@ -6,6 +6,7 @@ sys.path.append("../../../")
 from grll.envs.Car.Car import Car
 from grll.utils.ActionSpace.ActionSpace import ActionSpace
 
+import os.path as path
 import pygame
 import numpy as np
 import torch
@@ -29,7 +30,8 @@ class CarEnv_base():
         self.car = Car()
 
         # Load game_map image
-        self.game_map = pygame.image.load('map.png').convert() # Convert Speeds Up A Lot
+        map_img_path = path.join(path.dirname(path.abspath(__file__)), 'map.png')
+        self.game_map = pygame.image.load(map_img_path).convert() # Convert Speeds Up A Lot
 
         # count frame
         self.counter = 0
@@ -81,7 +83,7 @@ class CarEnv_v0(CarEnv_base):
         # 1: Right
         # 2: Slow Down
         # 3: Speed Up
-        self.num_actions = 4
+        self.num_action = 4
         self.num_obs = 5  # Car has 5 lazers
 
         self.action_space = ActionSpace(

@@ -24,7 +24,8 @@ class Car:
 
     def __init__(self):
         # Load Car Sprite and Rotate
-        self.sprite = pygame.image.load('car.png').convert() # Convert Speeds Up A Lot
+        car_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'car.png')
+        self.sprite = pygame.image.load(car_img_path).convert() # Convert Speeds Up A Lot
         self.sprite = pygame.transform.scale(self.sprite, (CAR_SIZE_X, CAR_SIZE_Y))
         self.rotated_sprite = self.sprite 
 
