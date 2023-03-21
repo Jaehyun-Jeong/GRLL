@@ -16,7 +16,7 @@ testEnv = MazeEnv_v2(exploring_starts=False)
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
-lr = 0.0019
+lr = 0.002
 discount = 0.5
 
 DQN_model = ANN_Maze(num_states, num_actions)

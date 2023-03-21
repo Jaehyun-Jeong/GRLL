@@ -17,12 +17,13 @@ class MazeEnv_base():
 
     def __init__(
             self,
-            displaySize: Tuple[int, int] = (200, 200)
+            displaySize: Tuple[int, int] = (200, 200),
+            maze: np.array = None,
         ):
 
         # Set display size
         self.displaySize = displaySize
-        
+
         # Create new maze and set player and goal
         self.initNewMaze()
 
@@ -82,15 +83,18 @@ class MazeEnv_base():
         self.loadImages()
         self.imgMat = self.__init_ImgMat()
 
-    def makeMaze(self):
+    def makeMaze(
+            self,
+            maze: np.ndarray = None):
 
         # set screen size and initialize it
         disp_size = self.displaySize
         # the rect inside which to draw the maze. Top x, top y, width, height.
         rect = np.array([0, 0, disp_size[0], disp_size[1]])
-        block_size = 20  # block size in pixels
         screen = pygame.Surface(disp_size)
         pygame.display.set_caption('Maze')
+
+        block_size = 20  # block size in pixels
 
         # intialize a maze, given size (y, x)
         self.maze = Maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
