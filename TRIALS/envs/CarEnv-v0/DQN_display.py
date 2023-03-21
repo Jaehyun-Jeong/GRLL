@@ -10,8 +10,8 @@ from grll.VB import DQN
 
 # 환경
 from grll.envs.Car import CarEnv_v0
-trainEnv = CarEnv_v0()
-testEnv = CarEnv_v0()
+trainEnv = CarEnv_v0(difficulty=5)
+testEnv = CarEnv_v0(difficulty=5)
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
@@ -26,15 +26,6 @@ DeepQN = DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
-    actionParams={
-        # for DISCRETE
-        'algorithm': "greedy",  # greedy, stochastic
-        'exploring': "epsilon",  # epsilon, None
-        'exploringParams': {
-            'start': 0.95,
-            'end': 0.05,
-            'decay': 1000,
-        },
     }, tensorboardParams={
         'logdir': "../../runs/DQN_Car_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"

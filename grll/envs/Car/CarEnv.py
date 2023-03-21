@@ -17,7 +17,12 @@ class CarEnv_base():
     WIDTH = 1980
     HEIGHT = 1080
 
-    def __init__(self):
+    def __init__(
+            self,
+            difficulty: int):
+
+        if not difficulty in [1, 2, 3, 4, 5]:
+            raise ValueError("Difficulty must be between 1 to 5!")
 
         try:
             self.screen = pygame.display.set_mode(
@@ -30,7 +35,7 @@ class CarEnv_base():
         self.car = Car()
 
         # Load game_map image
-        map_img_path = path.join(path.dirname(path.abspath(__file__)), 'map.png')
+        map_img_path = path.join(path.dirname(path.abspath(__file__)), f'map{difficulty}.png')
         self.game_map = pygame.image.load(map_img_path).convert() # Convert Speeds Up A Lot
 
         # count frame
@@ -74,9 +79,13 @@ class CarEnv_base():
 
 class CarEnv_v0(CarEnv_base):
 
-    def __init__(self):
+    def __init__(
+            self,
+            difficulty: int = 1):
 
-        super().__init__()
+        super().__init__(
+                difficulty=difficulty,
+                )
 
         # Car have 4 movements
         # 0: Left
