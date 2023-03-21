@@ -103,7 +103,7 @@ class MazeEnv_base():
         screen.fill((0, 0, 0))
         self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
-
+        
         self.maze.gen_maze_2D()
 
         return self.maze.blocks
