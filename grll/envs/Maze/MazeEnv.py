@@ -15,14 +15,24 @@ import pygame
 
 class MazeEnv_base():
 
+    BLOCK_SIZE = 20
+
     def __init__(
             self,
-            displaySize: Tuple[int, int] = (200, 200),
-            maze: np.array = None,
+            mazeSize: Tuple[int, int] = (9, 9),
+            maze: np.array = None,  # Custom Maze, If it is None than create random Maze
         ):
 
+        # If mazeSize and size of maze not matching
+        if maze and not mazeSize == maze.shape:
+            raise Value
+
+        self.mazeSize = mazeSize
+
         # Set display size
-        self.displaySize = displaySize
+        self.displaySize = (
+                self.mazeSize[0]*self.BLOCK_SIZE,
+                self.mazeSize[1]*self.BLOCK_SIZE)
 
         # Create new maze and set player and goal
         self.initNewMaze()
@@ -104,7 +114,10 @@ class MazeEnv_base():
         self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
         
-        self.maze.gen_maze_2D()
+        if maze:  # If you using Custom Maze
+            self.maze.blocks = maze
+        else:
+            self.maze.gen_maze_2D()
 
         return self.maze.blocks
 
@@ -509,6 +522,7 @@ if __name__ == "__main__":
         done = False
 
         while not done:
+            env.render()
             action = choice([0, 1, 2, 3])
             state, reward, done, _= env.step(action)
 
