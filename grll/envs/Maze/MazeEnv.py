@@ -19,23 +19,24 @@ class MazeEnv_base():
 
     def __init__(
             self,
-            mazeSize: Tuple[int, int] = (9, 9),
+            mazeSize: Tuple[int, int] = (17, 17),  # without walls
             maze: np.array = None,  # Custom Maze, If it is None than create random Maze
         ):
 
         # If mazeSize and size of maze not matching
-        if maze and not mazeSize == maze.shape:
-            raise Value
+        if isinstance(maze, np.ndarray) and mazeSize != maze.shape:
+            raise ValueError("mazeSize and maze shape do not match!")
 
         self.mazeSize = mazeSize
 
         # Set display size
+        # +2 for walls
         self.displaySize = (
-                self.mazeSize[0]*self.BLOCK_SIZE,
-                self.mazeSize[1]*self.BLOCK_SIZE)
+                (self.mazeSize[0]+2)*self.BLOCK_SIZE,
+                (self.mazeSize[1]+2)*self.BLOCK_SIZE)
 
         # Create new maze and set player and goal
-        self.initNewMaze()
+        self.initNewMaze(maze)
 
         # When you have display set pygame screen as pygame.display
         # But, if you not set it as pygame.Surface which don't have to be displayed
@@ -47,9 +48,12 @@ class MazeEnv_base():
 
         self.isRender = False
 
-    def initNewMaze(self):
+    def initNewMaze(
+            self,
+            maze: np.ndarray = None  # Custom Maze
+            ):
         # set blocks and character = 2, goal = 3
-        self.blocks = self.makeMaze()
+        self.blocks = self.makeMaze(maze)
         self.blocks[self.blocks.shape[0]-2][self.blocks.shape[1]-2] = 2
         self.blocks[1][1] = 3
 
@@ -114,12 +118,21 @@ class MazeEnv_base():
         self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
         
-        if maze:  # If you using Custom Maze
-            self.maze.blocks = maze
+        if isinstance(maze, np.ndarray):  # If you are not using Custom Maze
+            self.maze.blocks = self.createWalls(maze)
         else:
             self.maze.gen_maze_2D()
 
         return self.maze.blocks
+
+    # Create walls from Custom Maze
+    @staticmethod
+    def createWalls(maze: np.ndarray) -> np.ndarray:
+        return np.pad(
+                maze,
+                pad_width=1,
+                mode='constant',
+                constant_values=1.)
 
     def loadImages(self):
         
@@ -225,6 +238,7 @@ class MazeEnv_base():
             if not self.isRender:
                 pygame.display.set_mode(self.displaySize, flags=pygame.SHOWN)
                 self.isRender = True
+                self.displaySetting()
                 self.init_draw()
             self.draw()
             pygame.display.update()
@@ -243,8 +257,16 @@ class MazeEnv_v0(MazeEnv_base):
     characterValue = 0.5
     goalValue = 0.3
 
-    def __init__(self):
-        super().__init__()
+    def __init__(
+            self,
+            mazeSize: Tuple[int, int] = (18, 18),
+            maze: np.array = None,  # Custom Maze, If it is None than create random Maze
+        ):
+
+        super().__init__(
+            mazeSize=mazeSize,
+            maze=maze,
+            )
 
         # Left, Right, Up, Down
         self.num_action = 4
@@ -342,9 +364,16 @@ class MazeEnv_v1(MazeEnv_v0):
 
     passedValue = 4  # To indicate road that character passed
 
-    def __init__(self):
+    def __init__(
+            self,
+            mazeSize: Tuple[int, int] = (18, 18),
+            maze: np.array = None,  # Custom Maze, If it is None than create random Maze
+            ):
 
-        super().__init__()
+        super().__init__(
+            mazeSize=mazeSize,
+            maze=maze,
+            )
 
     def step(self, action: Union[int, torch.Tensor]) \
             -> Tuple[np.ndarray, float, bool, torch.Tensor]:
@@ -426,9 +455,15 @@ class MazeEnv_v2(MazeEnv_v1):
 
     def __init__(
             self,
-            exploring_starts: bool):
+            exploringStarts: bool,
+            mazeSize: Tuple[int, int] = (18, 18),
+            maze: np.array = None,  # Custom Maze, If it is None than create random Maze
+            ):
 
-        super().__init__()
+        super().__init__(
+            mazeSize=mazeSize,
+            maze=maze,
+            )
 
         # min_reward depend on the maze size
         self.min_reward = -0.5 * \
@@ -438,7 +473,7 @@ class MazeEnv_v2(MazeEnv_v1):
         self.cumulative_reward = 0
 
         # Exploring Starts
-        self.exploring_starts = exploring_starts
+        self.exploringStarts = exploringStarts
 
     # Opposite wall and road
     def get_state(self):
@@ -495,7 +530,7 @@ class MazeEnv_v2(MazeEnv_v1):
 
         # Exploring starts
         # which means, start at random state
-        if self.exploring_starts:
+        if self.exploringStarts:
             possible_char_pos = np.transpose(np.where(self.blocks == 0))
             randCharPos = possible_char_pos[np.random.randint(possible_char_pos.shape[0])]
             self.blocks[randCharPos[0]][randCharPos[1]] = 2
@@ -511,9 +546,26 @@ class MazeEnv_v2(MazeEnv_v1):
 
 if __name__ == "__main__":
 
+    maze = np.array([
+        [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
+        [ 1.,  1.,  0.,  1.,  1.,  0.,  1.,  0.,  0.,  0.],
+        [ 0.,  0.,  1.,  0.,  1.,  0.,  1.,  1.,  1.,  0.],
+        [ 0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.],
+        [ 0.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.]
+    ])
+
     from random import choice 
 
-    env = MazeEnv_v2(exploring_starts=True)
+    env = MazeEnv_v2(
+            exploringStarts=True,
+            mazeSize=(10, 10),
+            maze=maze,
+            )
     running = True
 
     while True:
@@ -521,12 +573,11 @@ if __name__ == "__main__":
         state = env.reset()
         done = False
 
-        while not done:
+        for _ in range(1000):
             env.render()
             action = choice([0, 1, 2, 3])
             state, reward, done, _= env.step(action)
 
-            print(env.blocks)
-            print(reward)
-            print(done)
-            input()
+            # print(env.blocks)
+            # print(reward)
+            # print(done)
