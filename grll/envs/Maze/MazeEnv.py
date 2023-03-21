@@ -23,6 +23,10 @@ class MazeEnv_base():
             maze: np.array = None,  # Custom Maze, If it is None than create random Maze
         ):
 
+        if not isinstance(maze, np.ndarray) \
+                and (mazeSize[0]%2 == 0 or mazeSize[1]%2 == 0):
+            raise ValueError("Only odd numbers of size is possible, when creating a random maze")
+
         # If mazeSize and size of maze not matching
         if isinstance(maze, np.ndarray) and mazeSize != maze.shape:
             raise ValueError("mazeSize and maze shape do not match!")
@@ -32,8 +36,8 @@ class MazeEnv_base():
         # Set display size
         # +2 for walls
         self.displaySize = (
-                (self.mazeSize[0]+2)*self.BLOCK_SIZE,
-                (self.mazeSize[1]+2)*self.BLOCK_SIZE)
+                (self.mazeSize[0]+2)*(self.BLOCK_SIZE),
+                (self.mazeSize[1]+2)*(self.BLOCK_SIZE))
 
         # Create new maze and set player and goal
         self.initNewMaze(maze)
@@ -90,6 +94,7 @@ class MazeEnv_base():
             path.join(root_dir, "wall_13.jpg"): [1, 2, 2, 2],
             path.join(root_dir, "wall_14.jpg"): [2, 2, 2, 2],
             path.join(root_dir, "wall_15.jpg"): [2, 2, 1, 1],
+            path.join(root_dir, "wall_16.jpg"): [1, 1, 1, 1],
         }
 
         # =================================================================================
@@ -108,14 +113,15 @@ class MazeEnv_base():
         screen = pygame.Surface(disp_size)
         pygame.display.set_caption('Maze')
 
-        block_size = 20  # block size in pixels
+        block_size = self.BLOCK_SIZE  # block size in pixels
 
         # intialize a maze, given size (y, x)
-        self.maze = Maze(rect[2] // (block_size * 2) - 1, rect[3] // (block_size * 2) - 1)
+        self.maze = Maze(self.mazeSize[0] // 2 + 1, self.mazeSize[1] // 2 + 1)
         # if this is set, the maze generation process will be displayed in a window. otherwise not.
         self.maze.screen = screen
         screen.fill((0, 0, 0))
-        self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
+        # self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
+        self.maze.screen_block_size = block_size
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
         
         if isinstance(maze, np.ndarray):  # If you are not using Custom Maze
@@ -563,9 +569,9 @@ if __name__ == "__main__":
 
     env = MazeEnv_v2(
             exploringStarts=True,
-            mazeSize=(10, 10),
-            maze=maze,
-            )
+            mazeSize=(15, 15),
+            #maze=maze,
+            ) 
     running = True
 
     while True:

@@ -11,8 +11,31 @@ from grll.VB import DQN
 # 환경
 from grll.envs.Maze import MazeEnv_v2
 
-trainEnv = MazeEnv_v2(exploring_starts=True)
-testEnv = MazeEnv_v2(exploring_starts=False)
+# 미로 정의
+import numpy as np
+maze = np.array([
+    [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
+    [ 1.,  1.,  0.,  1.,  1.,  0.,  1.,  0.,  0.,  0.],
+    [ 0.,  0.,  1.,  0.,  1.,  0.,  1.,  1.,  1.,  0.],
+    [ 0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.],
+    [ 0.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.]
+])
+
+trainEnv = MazeEnv_v2(
+        exploringStarts=True,
+        mazeSize=(10, 10),
+        maze=maze
+        )
+testEnv = MazeEnv_v2(
+        exploringStarts=False,
+        mazeSize=(10, 10),
+        maze=maze
+        )
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
