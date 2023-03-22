@@ -334,13 +334,13 @@ class MazeEnv_v0(MazeEnv_base):
         charPos = self.get_char_pos()
         movePos = list(deepcopy(charPos))
         if action == 0:  # east
-            movePos[1] += 1
-        if action == 1:  # west
-            movePos[1] -= 1
-        if action == 2:  # south
-            movePos[0] += 1
-        if action == 3:  # north
-            movePos[0] -= 1
+            movepos[1] += 1
+        elif action == 1:  # west
+            movepos[1] -= 1
+        elif action == 2:  # south
+            movepos[0] += 1
+        elif action == 3:  # north
+            movepos[0] -= 1
         movePos = tuple(movePos)
 
         if self.blocks[movePos[0]][movePos[1]] == 0:
@@ -428,11 +428,11 @@ class MazeEnv_v1(MazeEnv_v0):
         movePos = list(deepcopy(charPos))
         if action == 0:  # east
             movePos[1] += 1
-        if action == 1:  # west
+        elif action == 1:  # west
             movePos[1] -= 1
-        if action == 2:  # south
+        elif action == 2:  # south
             movePos[0] += 1
-        if action == 3:  # north
+        elif action == 3:  # north
             movePos[0] -= 1
         movePos = tuple(movePos)
 
@@ -585,6 +585,7 @@ if __name__ == "__main__":
             mazeSize=(10, 10),
             maze=maze,
             ) 
+
     running = True
 
     while True:
@@ -599,6 +600,5 @@ if __name__ == "__main__":
             print(env.blocks)
             print(reward)
             print(done)
-            if env.blocked():
-                input()
+            input()
             state = env.reset()

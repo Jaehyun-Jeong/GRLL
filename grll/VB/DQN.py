@@ -227,7 +227,6 @@ class DQN(ValueBased):
                 self.trainedEpisodes += 1
 
                 # MAKE TRAIN DATA
-                # while not done:
                 for timesteps in range(self.maxTimesteps):
                     spentTimesteps += 1
                     self.trainedTimesteps += 1

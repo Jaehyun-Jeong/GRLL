@@ -4,7 +4,7 @@ import random
 
 # PyTorch
 import torch
-import torch.nn as nn
+import torch.nn.functional as F
 from torch.distributions import Normal
 
 # module
@@ -89,9 +89,6 @@ class DiscretePolicy(Policy):
         # so we have to add some small number in log function
         self.ups = 1e-7
 
-        # Stochastic action selection
-        self.softmax = nn.Softmax(dim=0)
-
         # Initialize Parameters
         self.useEps = False
         self.useStochastic = False
@@ -111,7 +108,7 @@ class DiscretePolicy(Policy):
             isTest: bool = False,
             ) -> list:
 
-        probs = actionValue
+        probs = F.softmax(actionValue, dim=0)
 
         if isTest:
             eps = 0
@@ -120,8 +117,6 @@ class DiscretePolicy(Policy):
 
         if random.random() >= eps:
             if self.useStochastic:
-                probs = self.softmax(probs)
-
                 a = probs.multinomial(num_samples=1)
                 a = a.data
                 action = a[0].cpu()
@@ -158,8 +153,7 @@ class DiscretePolicy(Policy):
             S: torch.Tensor,
             A: torch.Tensor) -> torch.Tensor:
 
-        return torch.log(
-                self.softmax(self.pi(actionValue, S, A)) + self.ups)
+        return F.log_softmax(self.pi(actionValue, S, A))
 
 
 class ContinuousPolicy(Policy):
