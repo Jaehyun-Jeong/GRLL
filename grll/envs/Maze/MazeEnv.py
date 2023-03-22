@@ -406,6 +406,17 @@ class MazeEnv_v1(MazeEnv_v0):
 
         return state
 
+    def blocked(self) -> bool:
+        charPos = self.get_char_pos()
+        if self.blocks[charPos[0]+1][charPos[1]] == 1 \
+                and self.blocks[charPos[0]-1][charPos[1]] == 1 \
+                and self.blocks[charPos[0]][charPos[1]+1] == 1 \
+                and self.blocks[charPos[0]][charPos[1]-1] == 1:
+            return True
+
+        else:
+            return False
+
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
         
@@ -500,7 +511,9 @@ class MazeEnv_v2(MazeEnv_v1):
         # Get reward
         moved, done, passed = self.move(action)
         hitWall = not moved
-        if done:
+        if self.blocked():
+            reward = self.min_reward - 1
+        elif done:
             reward = 1
         elif hitWall:
             reward = -0.75
@@ -569,8 +582,8 @@ if __name__ == "__main__":
 
     env = MazeEnv_v2(
             exploringStarts=True,
-            mazeSize=(15, 15),
-            #maze=maze,
+            mazeSize=(10, 10),
+            maze=maze,
             ) 
     running = True
 
@@ -580,10 +593,12 @@ if __name__ == "__main__":
         done = False
 
         for _ in range(1000):
-            env.render()
             action = choice([0, 1, 2, 3])
             state, reward, done, _= env.step(action)
 
-            # print(env.blocks)
-            # print(reward)
-            # print(done)
+            print(env.blocks)
+            print(reward)
+            print(done)
+            if env.blocked():
+                input()
+            state = env.reset()
