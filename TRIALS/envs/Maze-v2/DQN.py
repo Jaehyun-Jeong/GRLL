@@ -17,11 +17,12 @@ import numpy as np
 from copy import copy
 '''
 maze = np.array([
-    [0, 0, 1, 0, 0],
-    [1, 0, 1, 1, 0],
-    [1, 0, 1, 0, 0],
-    [1, 0, 0, 0, 1],
-    [1, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 1, 1, 0, 1, 0],
+    [0, 1, 0, 0, 1, 0],
+    [0, 0, 0, 0, 1, 0],
 ])
 '''
 maze =  np.array([
@@ -49,12 +50,8 @@ testEnv = MazeEnv_v2(
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
-'''
 lr = float(sys.argv[1])
 discount = float(sys.argv[2])
-'''
-lr = 0.002
-discount = 0.95
 
 DQN_model = ANN_Maze(num_states, num_actions)
 optimizer = optim.Adam(DQN_model.parameters(), lr=lr)
@@ -68,8 +65,8 @@ DeepQN = DQN(
     verbose=1,
     useTensorboard=True,
     maxTimesteps=int(1e100),
-    maxMemory=81*8, # 8 times of state size
-    numBatch=32,
+    maxMemory=100000, # 8 times of state size
+    numBatch=526,
     discount=discount,
     actionParams={
         # for DISCRETE
@@ -77,8 +74,8 @@ DeepQN = DQN(
         'exploring': 'epsilon',  # epsilon, None
         'exploringParams': {
             'start': 1,
-            'end': 0.1, 
-            'decay': 10000,
+            'end': 0.5, 
+            'decay': 100000,
         },
     }, tensorboardParams={
         'logdir': "../../runs/DQN_Maze_v2",
@@ -86,12 +83,12 @@ DeepQN = DQN(
     },
     epoch=1,
     gradientStepPer=1,
-    trainStarts=81*8,
+    trainStarts=10000,
 )
 
-for _ in range(100):
+for _ in range(200):
     DeepQN.train(
-            10000,
-            testPer=10000,
+            1000,
+            testPer=1000,
             testSize=1,)
     policy_diagram(testEnv, DeepQN)

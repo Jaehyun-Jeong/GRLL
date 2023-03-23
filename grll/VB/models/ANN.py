@@ -92,9 +92,15 @@ class ANN_Maze(nn.Module):
         super(ANN_Maze, self).__init__()
 
         self.layers = nn.Sequential(
-                nn.Linear(inputs, inputs),
+                nn.Linear(inputs, inputs*2),
                 nn.ReLU(),
-                nn.Linear(inputs, inputs),
+                nn.Linear(inputs*2, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs),
                 nn.ReLU(),
                 nn.Linear(inputs, outputs),
             )
