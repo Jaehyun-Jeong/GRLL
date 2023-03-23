@@ -32,4 +32,4 @@ DeepQN = DQN(
 )
 
 # TRAIN Agent
-DeepQN.train(trainTimesteps=1_000_000, testPer=10000)
+DeepQN.train(trainTimesteps=1_000_000, testPer=1000)
