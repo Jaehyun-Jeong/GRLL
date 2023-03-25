@@ -62,10 +62,10 @@ DeepQN = DQN(
     testEnv=testEnv,
     model=DQN_model,
     optimizer=optimizer,
-    verbose=1,
+    verbose=0,
     useTensorboard=True,
     maxTimesteps=int(1e100),
-    maxMemory=100000, # 8 times of state size
+    maxMemory=10000, # 8 times of state size
     numBatch=526,
     discount=discount,
     actionParams={
@@ -74,21 +74,21 @@ DeepQN = DQN(
         'exploring': 'epsilon',  # epsilon, None
         'exploringParams': {
             'start': 1,
-            'end': 0.5, 
-            'decay': 100000,
+            'end': 0.01, 
+            'decay': 30000,
         },
     }, tensorboardParams={
         'logdir': "../../runs/DQN_Maze_v2",
         'tag': f"Averaged Returns/ANN_Maze_lr={lr}_discount={discount}"
     },
-    epoch=1,
+    epoch=4,
     gradientStepPer=1,
-    trainStarts=10000,
+    trainStarts=1000,
+    updateTargetPer=10000,
 )
 
-for _ in range(200):
-    DeepQN.train(
-            1000,
-            testPer=1000,
-            testSize=1,)
-    policy_diagram(testEnv, DeepQN)
+DeepQN.train(
+        50000,
+        testPer=10,
+        testSize=1,)
+policy_diagram(testEnv, DeepQN)

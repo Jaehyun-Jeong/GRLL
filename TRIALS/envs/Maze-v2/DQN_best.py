@@ -10,37 +10,48 @@ from grll.VB import DQN
 
 # 환경
 from grll.envs.Maze import MazeEnv_v2
+from grll.envs.Maze.utils import policy_diagram
 
 # 미로 정의
 import numpy as np
+from copy import copy
+'''
 maze = np.array([
-    [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-    [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
-    [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],
-    [ 1.,  1.,  0.,  1.,  1.,  0.,  1.,  0.,  0.,  0.],
-    [ 0.,  0.,  1.,  0.,  1.,  0.,  1.,  1.,  1.,  0.],
-    [ 0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.],
-    [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-    [ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.],
-    [ 0.,  1.,  1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.],
-    [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.]
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 1, 1, 0, 1, 0],
+    [0, 1, 0, 0, 1, 0],
+    [0, 0, 0, 0, 1, 0],
+])
+'''
+maze =  np.array([
+    [ 0.,  1.,  0.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  1.,  1.,  0.,  1.],
+    [ 1.,  1.,  1.,  0.,  0.,  0.,  1.],
+    [ 0.,  0.,  0.,  0.,  1.,  1.,  0.],
+    [ 0.,  1.,  1.,  1.,  0.,  0.,  0.],
+    [ 0.,  1.,  0.,  0.,  0.,  0.,  0.],
+    [ 0.,  0.,  0.,  1.,  0.,  0.,  0.]
 ])
 
 trainEnv = MazeEnv_v2(
         exploringStarts=True,
-        mazeSize=(10, 10),
-        maze=maze
+        mazeSize=(7, 7),
+        maze=copy(maze)
         )
 testEnv = MazeEnv_v2(
         exploringStarts=False,
-        mazeSize=(10, 10),
-        maze=maze
+        mazeSize=(7, 7),
+        maze=copy(maze)
         )
+# testEnv.blocks = trainEnv.blocks
+
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
-lr = 0.002
-discount = 0.5
+lr = float(sys.argv[1])
+discount = float(sys.argv[2])
 
 DQN_model = ANN_Maze(num_states, num_actions)
 optimizer = optim.Adam(DQN_model.parameters(), lr=lr)
@@ -52,30 +63,28 @@ DeepQN = DQN(
     model=DQN_model,
     optimizer=optimizer,
     verbose=1,
-    useTensorboard=True,
     maxTimesteps=int(1e100),
     maxMemory=10000, # 8 times of state size
-    numBatch=12,
+    numBatch=526,
     discount=discount,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
         'exploring': 'epsilon',  # epsilon, None
         'exploringParams': {
-            'start': 0.9,
-            'end': 0.001,
-            'decay': 1000,
+            'start': 1,
+            'end': 0.01, 
+            'decay': 30000,
         },
-    }, tensorboardParams={
-        'logdir': "../../runs/DQN_Maze_v2_bests",
-        'tag': f"Maze_v2_candidates/lr={lr}_discount={discount}"
     },
     epoch=4,
-    gradientStepPer=4,
+    gradientStepPer=1,
     trainStarts=1000,
+    updateTargetPer=10000,
 )
 
 DeepQN.train(
-        10_000_000,
-        testPer=10,
+        100000,
+        testPer=5000,
         testSize=1,)
+policy_diagram(testEnv, DeepQN)
