@@ -84,8 +84,8 @@ DeepQN = DQN(
 )
 
 DeepQN.train(
-        100000,
-        testPer=10000,
+        10000,
+        testPer=100,
         testSize=1,)
 policy_diagram(testEnv, DeepQN)
 
