@@ -88,3 +88,5 @@ DeepQN.train(
         testPer=5000,
         testSize=1,)
 policy_diagram(testEnv, DeepQN)
+
+DeepQN.save("../../saved_models/MazeEnv_v2/DQN_Maze_v2_lr={lr}_discount={discount}")
