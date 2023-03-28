@@ -146,7 +146,7 @@ class ValueBased(RL):
                 action = self.value.get_action(
                         state,
                         isTest=True)
-
+                
                 next_state, reward, done, _ = self.testEnv.step(action)
 
                 cumulativeRewards += reward

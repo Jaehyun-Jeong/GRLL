@@ -262,7 +262,6 @@ class MazeEnv_base():
 class MazeEnv_v0(MazeEnv_base):
 
     characterValue = 0.5
-    goalValue = 0.3
 
     def __init__(
             self,
@@ -320,8 +319,6 @@ class MazeEnv_v0(MazeEnv_base):
         charPos = self.get_char_pos()
         charPosIdx = charPos[0]*self.blocks.shape[0] + charPos[1]
         state[charPosIdx] = self.characterValue
-
-        state[self.blocks.shape[0]+1] = self.goalValue
 
         return state
 
@@ -403,7 +400,6 @@ class MazeEnv_v1(MazeEnv_v0):
 
     def get_state(self):
         state = super().get_state()
-        state[state == self.passedValue] = 0.7
 
         return state
 
@@ -503,11 +499,14 @@ class MazeEnv_v2(MazeEnv_v1):
         state = super().get_state()
 
         # 0 were roads, 1 were walls
-        state[state == 0] = -1  # Temporarily, set walls to -1
-        state[state == 0.5] = -2
-        state[state > 0] = 0
+        state[state == self.passedValue] = 0  # Passed road to road
+        state[state == 3] = 0  # remove goal info
+        state[state == 2] = self.characterValue  # character to 0.5
+
+        # change Road to 1, and wall for 0
+        state[state == 0] = -1  # Temporarily, set roads to -1
+        state[state == 1] = 0
         state[state == -1] = 1
-        state[state == -2] = self.characterValue
 
         return state
 
@@ -571,7 +570,6 @@ class MazeEnv_v2(MazeEnv_v1):
         return self.get_state()
 
 
-
 if __name__ == "__main__":
 
     maze = np.array([
@@ -607,7 +605,7 @@ if __name__ == "__main__":
             state, reward, done, _= env.step(action)
 
             print(env.blocks)
+            print(state)
             print(reward)
             print(done)
             input()
-            state = env.reset()

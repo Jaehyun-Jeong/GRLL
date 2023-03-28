@@ -27,8 +27,11 @@ def policy_diagram(
             else:
                 env.blocks[env.blocks == 2] = 0  # character to road
                 env.blocks[row][col] = 2  # Set character in row, col
+
                 action = module.value.get_action(
                         env.get_state(),
                         isTest=True)
+                action = int(action) 
+
                 line += act_mark[action]
         print(line)
