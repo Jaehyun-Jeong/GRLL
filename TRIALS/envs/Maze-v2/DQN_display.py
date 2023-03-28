@@ -43,15 +43,16 @@ trainEnv = MazeEnv_v2(
 testEnv = MazeEnv_v2(
         exploringStarts=False,
         mazeSize=(7, 7),
-        maze=copy(maze)
+        maze=copy(maze),
+        displayMode=True,
         )
 # testEnv.blocks = trainEnv.blocks
 
-num_actions = trainEnv.num_action
-num_states = trainEnv.num_obs
-
 lr = float(sys.argv[1])
 discount = float(sys.argv[2])
+
+num_actions = trainEnv.num_action
+num_states = trainEnv.num_obs
 
 DQN_model = ANN_Maze(num_states, num_actions)
 optimizer = optim.Adam(DQN_model.parameters(), lr=lr)
@@ -62,31 +63,10 @@ DeepQN = DQN(
     testEnv=testEnv,
     model=DQN_model,
     optimizer=optimizer,
-    verbose=1,
-    maxTimesteps=int(1e100),
-    maxMemory=10000, # 8 times of state size
-    numBatch=526,
-    discount=discount,
-    actionParams={
-        # for DISCRETE
-        'algorithm': "greedy",  # greedy, stochastic
-        'exploring': 'epsilon',  # epsilon, None
-        'exploringParams': {
-            'start': 1,
-            'end': 0.01, 
-            'decay': 30000,
-        },
-    },
-    epoch=4,
-    gradientStepPer=1,
-    trainStarts=1000,
-    updateTargetPer=10000,
 )
 
-DeepQN.train(
-        100000,
-        testPer=100,
-        testSize=1,)
+DeepQN.load(f"../../saved_models/MazeEnv_v2/DQN_Maze_v2_lr={lr}_discount={discount}")
 policy_diagram(testEnv, DeepQN)
+DeepQN.isRender['test'] = True
 
-DeepQN.save(f"../../saved_models/MazeEnv_v2/DQN_Maze_v2_lr={lr}_discount={discount}")
+DeepQN.test(testSize=1)

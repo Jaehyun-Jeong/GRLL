@@ -10,6 +10,7 @@ from copy import deepcopy
 import torch
 from random import choice
 import numpy as np
+import time
 import pygame
 
 
@@ -475,6 +476,7 @@ class MazeEnv_v2(MazeEnv_v1):
             exploringStarts: bool,
             mazeSize: Tuple[int, int] = (18, 18),
             maze: np.array = None,  # Custom Maze, If it is None than create random Maze
+            displayMode: bool = False,
             ):
 
         super().__init__(
@@ -491,6 +493,10 @@ class MazeEnv_v2(MazeEnv_v1):
 
         # Exploring Starts
         self.exploringStarts = exploringStarts
+
+        # Display mode for displaying game
+        # 1. It slow down each move
+        self.displayMode = displayMode
 
     # Opposite wall and road
     def get_state(self):
@@ -527,6 +533,9 @@ class MazeEnv_v2(MazeEnv_v1):
         # If cumulative reward is smaller than min_reward, then end the game
         self.cumulative_reward += reward
         done = True if self.cumulative_reward < self.min_reward else done
+
+        if self.displayMode:
+            time.sleep(0.5)
 
         return next_state, reward, done, action
 
