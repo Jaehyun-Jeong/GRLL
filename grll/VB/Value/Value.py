@@ -2,6 +2,7 @@ from typing import Union, Dict
 
 import numpy as np
 from collections import deque
+from copy import deepcopy
 
 # PyTorch
 import torch
@@ -38,6 +39,9 @@ class Value():
                 'sigma': 1,
             }
         }
+        updateTargetPer:
+            It tells how often target model updates
+            If it is 10000, then update target model after 10000 training steps
     """
 
     def __init__(
@@ -51,6 +55,7 @@ class Value():
             'pNormValue': 2,
             'maxNorm': 1,
         },
+        updateTargetPer: int = 10000,
     ):
 
         # Initialize Parameter
@@ -59,6 +64,12 @@ class Value():
         # Load model and set to eval mod
         self.model = model.to(self.device)
         self.model.eval()
+
+        # Target model
+        # Every updateTargetPer update target model
+        self.updateTargetPer = updateTargetPer
+        # Create Target Model
+        self.targetModel = deepcopy(self.model)
 
         self.optimizer = optimizer
         self.clippingParams = clippingParams
@@ -129,21 +140,49 @@ class Value():
     def action_value(
             self,
             s: Union[torch.Tensor, np.ndarray],
+            isTarget: bool = False,
             ) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)  # .unsqueeze(0)
+
+        # If it's target model than compute by target model
+        ActionValue = self.model.forward(s) if not isTarget \
+            else self.targetModel.forward(s)
 
         ActionValue = self.model.forward(s)
         ActionValue = ActionValue.squeeze(0)
 
         return ActionValue
 
+    @torch.no_grad()
+    def target(
+            self,
+            s: Union[torch.Tensor, np.ndarray],  # Next States
+            r: Union[torch.Tensor, np.ndarray],  # Rewards
+            d: Union[torch.Tensor, np.ndarray],  # Is Episode Done
+            discount: int,
+            ) -> torch.Tensor:
+
+        notDone = torch.Tensor(~d).to(self.device)
+        nextMaxValue = self.max_value(
+                s,
+                isTarget=True)
+        target = r + discount * nextMaxValue * notDone
+
+        return target
+
     # get max Q-value
     def max_value(
             self,
-            s: Union[torch.Tensor, np.ndarray]):
+            s: Union[torch.Tensor, np.ndarray],
+            # If Below is True, then return target max value
+            isTarget: bool = False,
+            ):
 
-        value = self.action_value(s)
+        value = self.action_value(
+                s,
+                isTarget=isTarget,
+                )
 
         with torch.no_grad():
             maxValue = torch.max(torch.clone(value), dim=1).values
@@ -183,6 +222,10 @@ class Value():
                 isTest=isTest,
                 )
 
+    # Update target model
+    def update_target_model(self):
+        self.targetModel.load_state_dict(self.model.state_dict())
+
 
 class AveragedValue(Value):
 
@@ -198,6 +241,7 @@ class AveragedValue(Value):
             'maxNorm': 1,
         },
         numPrevModels: int = 10,
+        updateTargetPer: int = 10000,
     ):
 
         super().__init__(
@@ -206,7 +250,8 @@ class AveragedValue(Value):
                 optimizer=optimizer,
                 actionSpace=actionSpace,
                 actionParams=actionParams,
-                clippingParams=clippingParams)
+                clippingParams=clippingParams,
+                updateTargetPer=updateTargetPer)
 
         # save last K previously learned Q-networks
         self.prevModels: deque = deque([], maxlen=numPrevModels)
@@ -215,15 +260,22 @@ class AveragedValue(Value):
     @overrides(Value)
     def action_value(
             self,
-            s: Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+            s: Union[torch.Tensor, np.ndarray],
+            isTarget: bool = False) -> torch.Tensor:
 
         s = torch.Tensor(s).to(self.device)
 
-        values = self.model.forward(s)
-        # last model is equal to self.model
-        for model in list(self.prevModels)[:-1]:
-            values += model.forward(s)
+        # If it's target model than compute by target model
+        if isTarget:
+            actionValue = self.targetModel.forward(s)
+        else:
+            actionValue = self.model.forward(s)
+            # last model is equal to self.model
+            for model in list(self.prevModels)[:-1]:
+                actionValue += model.forward(s)
 
-        values = values / len(self.prevModels)
+            actionValue = actionValue / len(self.prevModels)
 
-        return values
+        actionValue = actionValue.squeeze(0)
+
+        return actionValue

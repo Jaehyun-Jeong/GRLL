@@ -155,7 +155,7 @@ class RL():
 
             # For exploring algorithms, print exploringRate
             # else print None
-            exploringRate = round(self.value.policy.exploration(timesteps), 4)\
+            exploringRate = round(self.value.policy.exploration(self.value.stepsDone), 4)\
                 if hasattr(self.value.policy, 'exploration') else None
 
             Result = [

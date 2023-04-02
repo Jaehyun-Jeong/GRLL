@@ -83,6 +83,31 @@ class ANN_V4(nn.Module):
         return value
 
 
+class ANN_Maze(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_Maze, self).__init__()
+
+        self.layers = nn.Sequential(
+                nn.Linear(inputs, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs),
+                nn.ReLU(),
+                nn.Linear(inputs, outputs),
+            )
+
+    def forward(self, x):
+
+        value = self.layers(x)
+
+        return value
+
+
 class ANN_Cal(nn.Module):
     def __init__(
             self,

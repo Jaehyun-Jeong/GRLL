@@ -9,9 +9,9 @@ from grll.VB.models import ANN_V2
 from grll.VB import DQN
 
 # 환경
-from grll.envs.Maze import MazeEnv_v0
-trainEnv = MazeEnv_v0()
-testEnv = MazeEnv_v0()
+from grll.envs.Maze import MazeEnv_v1
+trainEnv = MazeEnv_v1()
+testEnv = MazeEnv_v1()
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
@@ -26,7 +26,7 @@ DeepQN = DQN(
     optimizer=optimizer,
     verbose=1,
     useTensorboard=True,
-    maxTimesteps=1_000_000,
+    maxTimesteps=10000,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
@@ -40,6 +40,10 @@ DeepQN = DQN(
         'logdir': "../../runs/DQN_Maze_v0",
         'tag': "Averaged Returns/ANN_V2_lr=1e-4"
     },
+    isRender={
+        'train': True,
+        'test': True,
+    },
 )
 
 DeepQN.train(
@@ -47,4 +51,4 @@ DeepQN.train(
         testPer=50000,
         testSize=2,)
 
-DeepQN.save("../../saved_models/MazeEnv_v0/DQN_Maze_v0.obj")
+DeepQN.save("../../saved_models/MazeEnv_v1/DQN_Maze_v0.obj")

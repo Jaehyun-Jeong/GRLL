@@ -8,3 +8,4 @@
 **.mypy_cache/
 **runs/
 .vimspector.json
+***.sh

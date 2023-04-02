@@ -7,7 +7,6 @@ from collections import namedtuple, deque
 # PyTorch
 import torch
 from torch.nn import functional as F
-from torch.autograd import Variable
 
 from grll.VB.ValueBased import ValueBased
 from grll.VB.Value.Value import Value
@@ -87,6 +86,9 @@ class DQN(ValueBased):
         trainStarts:
             how many steps of the model
             to collect transitions for before learning starts
+        updateTargetPer:
+            It tells how often target model updates
+            If it is 10000, then update target model after 10000 training steps
     '''
 
     def __init__(
@@ -119,6 +121,7 @@ class DQN(ValueBased):
         gradientStepPer: int = 4,
         epoch: int = 1,
         trainStarts: int = 50000,
+        updateTargetPer: int = 10000,
     ):
 
         # Init Value Function, Policy
@@ -144,6 +147,7 @@ class DQN(ValueBased):
                 actionSpace=actionSpace,
                 actionParams=actionParams,
                 clippingParams=clippingParams,
+                updateTargetPer=updateTargetPer,
                 )
 
         # init parameters
@@ -193,17 +197,17 @@ class DQN(ValueBased):
                 S_t = np.array(S_t)
                 A_t = np.array(A_t)
                 done = np.array(done)
-                notDone = torch.Tensor(~done).to(self.device)
                 S_tt = np.array(S_tt)
                 R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
                 actionValue = self.value.pi(S_t, A_t)
-                nextMaxValue = self.value.max_value(S_tt)
+                targetValue = self.value.target(
+                        S_tt,
+                        R_tt,
+                        done,
+                        self.discount)
 
-                target = R_tt + self.discount * nextMaxValue * notDone
-                target = Variable(target)  # No grad
-
-                loss = F.mse_loss(target, actionValue)
+                loss = F.mse_loss(targetValue, actionValue)
                 loss = loss/lenLoss
 
                 self.value.step(loss)
@@ -227,7 +231,6 @@ class DQN(ValueBased):
                 self.trainedEpisodes += 1
 
                 # MAKE TRAIN DATA
-                # while not done:
                 for timesteps in range(self.maxTimesteps):
                     spentTimesteps += 1
                     self.trainedTimesteps += 1
@@ -249,6 +252,10 @@ class DQN(ValueBased):
 
                     # train
                     self.update_weight()
+                    
+                    if self.value.stepsDone % self.value.updateTargetPer == 0 \
+                            and self.value.stepsDone > 0:
+                        self.value.update_target_model()
 
                     # TEST
                     if spentTimesteps % testPer == 0:

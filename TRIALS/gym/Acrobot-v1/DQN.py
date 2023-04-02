@@ -10,8 +10,8 @@ import torch
 import torch.optim as optim
 
 # import model
-from module.VB.models import ANN_V2
-from module.VB import DQN
+from grll.VB.models import ANN_V2
+from grll.VB import DQN
 
 # Environment 
 import gym
@@ -31,9 +31,10 @@ DeepQN = DQN(
     maxMemory=100000,
     numBatch=64,
     verbose=1,
+    updateTargetPer=10000,
 )
 
 startTrainTime = datetime.now()
 
 # TRAIN Agent
-DeepQN.train(trainTimesteps=1000000, testPer=10000)
+DeepQN.train(trainTimesteps=1000000, testPer=1000)

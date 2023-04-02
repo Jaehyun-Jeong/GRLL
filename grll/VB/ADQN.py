@@ -7,6 +7,7 @@ from copy import deepcopy
 
 # PyTorch
 import torch
+import torch.nn.functional as F
 from torch.autograd import Variable
 
 from grll.VB.ValueBased import ValueBased
@@ -90,6 +91,9 @@ class ADQN(ValueBased):
         numPrevModels:
             ADQN averages last k models,
             this parameter determines how many models it save
+        updateTargetPer:
+            It tells how often target model updates
+            If it is 10000, then update target model after 10000 training steps
     '''
 
     def __init__(
@@ -178,6 +182,7 @@ class ADQN(ValueBased):
     # Update weights by using Actor Critic Method
     def update_weight(self):
         if self.is_trainable():
+            self.value.model.train()
             for _ in range(self.epoch):
 
                 # if memory is smaller then numBatch, then just use all data
@@ -202,14 +207,17 @@ class ADQN(ValueBased):
                 R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
                 actionValue = self.value.pi(S_t, A_t)
-                nextMaxValue = self.value.max_value(S_tt)
+                targetValue = self.value.target(
+                        S_tt,
+                        R_tt,
+                        done,
+                        self.discount)
 
-                target = R_tt + self.discount * nextMaxValue * notDone
-                target = Variable(target)  # No grad
-                loss = 1/2 * (target - actionValue).pow(2)
-                loss = torch.sum(loss)/lenLoss
+                loss = F.mse_loss(targetValue, actionValue)
+                loss = loss/lenLoss
 
                 self.value.step(loss)
+            self.value.model.eval()
 
     def train(
         self,

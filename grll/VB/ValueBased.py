@@ -108,9 +108,6 @@ class ValueBased(RL):
         self.epoch = epoch
         self.trainStarts = trainStarts
 
-        # Stochastic action selection
-        self.softmax = nn.Softmax(dim=0)
-
         # torch.log makes nan(not a number) error,
         # so we have to add some small number in log function
         self.ups = 1e-7
@@ -149,7 +146,7 @@ class ValueBased(RL):
                 action = self.value.get_action(
                         state,
                         isTest=True)
-
+                
                 next_state, reward, done, _ = self.testEnv.step(action)
 
                 cumulativeRewards += reward
