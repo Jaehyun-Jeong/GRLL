@@ -108,6 +108,59 @@ class ANN_Maze(nn.Module):
         return value
 
 
+class ANN_Car(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_Car, self).__init__()
+
+        self.layers = nn.Sequential(
+                nn.Linear(inputs, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs*2),
+                nn.ReLU(),
+                nn.Linear(inputs*2, inputs),
+                nn.ReLU(),
+                nn.Linear(inputs, outputs),
+            )
+
+    def forward(self, x):
+
+        value = self.layers(x)
+
+        return value
+
+
+class ANN_Cal(nn.Module):
+    def __init__(
+            self,
+            inputs: Union[torch.Tensor, int],
+            outputs: Union[torch.Tensor, int]) -> torch.Tensor:
+
+        super(ANN_Cal, self).__init__()
+
+        self.layers = nn.Sequential(
+                nn.Linear(inputs, 10),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(10),
+                nn.Linear(10, 20),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(20),
+                nn.Linear(20, 50),
+                nn.LeakyReLU(),
+                nn.BatchNorm1d(50),
+                nn.Linear(50, outputs),
+            )
+
+    def forward(self, x):
+
+        value = self.layers(x)
+
+        return value
+
+
 class ANN_Cal(nn.Module):
     def __init__(
             self,

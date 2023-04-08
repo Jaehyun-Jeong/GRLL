@@ -5,38 +5,23 @@ sys.path.append("../../../") # to import module
 import torch.optim as optim
 import torch.nn as nn
 
-class ANN_Car(nn.Module):
-    def __init__(self, inputs, outputs):
-        super(ANN_Car, self).__init__()
-
-        self.layers = nn.Sequential(
-                nn.Linear(inputs, 256),
-                nn.LeakyReLU(),
-                nn.BatchNorm1d(256),
-                nn.Linear(256, 256),
-                nn.LeakyReLU(),
-                nn.BatchNorm1d(256),
-                nn.Linear(256, outputs),
-            )
-
-    def forward(self, x):
-
-        value = self.layers(x)
-
-        return value
-
 # 작성자의 모듈
 from grll.VB import DQN
+from grll.VB.models import ANN_Car
 
 # 환경
 from grll.envs.Car import CarEnv_v0
 trainEnv = CarEnv_v0(difficulty=3)
 testEnv = CarEnv_v0(difficulty=3)
+
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
 
+lr = float(sys.argv[1])
+discount = float(sys.argv[2])
+
 DQN_model = ANN_Car(num_states, num_actions)
-optimizer = optim.Adam(DQN_model.parameters(), lr=1e-4)
+optimizer = optim.Adam(DQN_model.parameters(), lr=lr)
 
 
 # 작성자의 모듈 초기화
@@ -45,32 +30,35 @@ DeepQN = DQN(
     testEnv=testEnv,
     model=DQN_model,
     optimizer=optimizer,
-    verbose=1,
+    verbose=0,
     maxTimesteps=10000,
     maxMemory=10000,
-    numBatch=16,
-    discount=0.9,
+    numBatch=526,
+    discount=discount,
     actionParams={
         # for DISCRETE
         'algorithm': "greedy",  # greedy, stochastic
         'exploring': "epsilon",  # epsilon, None
         'exploringParams': {
-            'start': 0.95,
-            'end': 0.05,
-            'decay': 10000,
+            'start': 1,
+            'end': 0.01,
+            'decay': 30000,
         },
-    }, 
+    },
     useTensorboard=True,
     tensorboardParams={
         'logdir': "../../runs/DQN_Car_v0",
-        'tag': "Averaged Returns/ANN_V2_lr=1e-4"
+        'tag': f"Averaged Returns/ANN_Car_lr={lr}_discount={discount}"
     },
-    trainStarts=10000,
+    epoch=4,
+    gradientStepPer=1,
+    trainStarts=1000,
+    updateTargetPer=10000,
 )
 
 DeepQN.train(
-        1_000_000_000,
-        testPer=10000,
+        100000,
+        testPer=10,
         testSize=1,)
 
 DeepQN.save("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
