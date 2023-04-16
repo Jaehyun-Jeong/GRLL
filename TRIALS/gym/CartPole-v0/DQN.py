@@ -31,5 +31,10 @@ DeepQN = DQN(
     numBatch=32,
 )
 
+DQN.isRender = {
+        'train': False,
+        'test': True,
+        }
+
 # TRAIN Agent
 DeepQN.train(trainTimesteps=1_000_000, testPer=1000)
