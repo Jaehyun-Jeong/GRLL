@@ -14,9 +14,8 @@ import gym
 
 TRAIN_TIMESTEPS = 100000
 MAX_TIMESTEPS = 1000
-MAX_REPLAYMEMORY = 10000
 
-ALPHA = 0.0001 # learning rate
+ALPHA = 0.001 # learning rate
 GAMMA = 0.99 # discount rate
 
 gym_name = 'CartPole-v0'
@@ -40,7 +39,6 @@ params_dict = {
     'optimizer': optimizer, # torch optimizer
     'maxTimesteps': MAX_TIMESTEPS, # maximum timesteps agent take 
     'discount': GAMMA, # step-size for updating Q value
-    'maxMemory': MAX_REPLAYMEMORY,
     'verbose': 2,
 }
 

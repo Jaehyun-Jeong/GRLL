@@ -8,7 +8,6 @@ from copy import deepcopy
 # PyTorch
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 from grll.VB.ValueBased import ValueBased
 from grll.VB.Value.Value import AveragedValue
@@ -202,7 +201,6 @@ class ADQN(ValueBased):
                 S_t = np.array(S_t)
                 A_t = np.array(A_t)
                 done = np.array(done)
-                notDone = torch.Tensor(~done).to(self.device)
                 S_tt = np.array(S_tt)
                 R_tt = torch.Tensor(np.array(R_tt)).to(self.device)
 
@@ -233,7 +231,8 @@ class ADQN(ValueBased):
             spentTimesteps = 0  # spent timesteps after starting train
             while trainTimesteps > spentTimesteps:
 
-                state = self.trainEnv.reset()
+                # Second parameter is information
+                state, _ = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
 
@@ -248,7 +247,10 @@ class ADQN(ValueBased):
 
                     action = self.value.get_action(state)
 
-                    next_state, reward, done, _ = self.trainEnv.step(action)
+                    next_state, reward, terminal, truncated, _ \
+                        = self.trainEnv.step(action)
+                    done = terminal or truncated
+
                     self.replayMemory.push(
                             state,
                             action,

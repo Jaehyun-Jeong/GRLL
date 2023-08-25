@@ -1,8 +1,5 @@
 from typing import Union
 
-# PyTorch
-import torch.nn as nn
-
 from grll.RL import RL
 from grll.utils.utils import overrides
 
@@ -134,7 +131,8 @@ class ValueBased(RL):
 
         for _ in range(testSize):
 
-            state = self.testEnv.reset()
+            # Second parameter is information
+            state, _ = self.testEnv.reset()
             done = False
             cumulativeRewards = 0
             episodeLen = 0
@@ -146,8 +144,10 @@ class ValueBased(RL):
                 action = self.value.get_action(
                         state,
                         isTest=True)
-                
-                next_state, reward, done, _ = self.testEnv.step(action)
+
+                next_state, reward, terminal, truncated, _ \
+                    = self.testEnv.step(action)
+                done = terminal or truncated
 
                 cumulativeRewards += reward
                 episodeLen += 1
