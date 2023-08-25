@@ -177,7 +177,8 @@ class A2C(PolicyGradient):
             spentTimesteps = 0  # spent timesteps after starting train
             while trainTimesteps > spentTimesteps:
 
-                state = self.trainEnv.reset()
+                # Second parameter is information
+                state, _ = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
 
@@ -192,7 +193,9 @@ class A2C(PolicyGradient):
 
                     action = self.value.get_action(state)
 
-                    next_state, reward, done, _ = self.trainEnv.step(action)
+                    next_state, reward, terminal, truncated,  _ \
+                        = self.trainEnv.step(action)
+                    done = terminal or truncated
 
                     # trans means transition
                     trans = Transition(state, action, done, next_state, reward)

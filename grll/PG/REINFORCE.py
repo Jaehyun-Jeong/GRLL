@@ -186,7 +186,8 @@ class REINFORCE(PolicyGradient):
             while trainTimesteps > spentTimesteps:
 
                 Transitions = ReplayMemory(self.maxTimesteps)
-                state = self.trainEnv.reset()
+                # Second parameter is information
+                state, _ = self.trainEnv.reset()
                 done = False
                 self.trainedEpisodes += 1
 
@@ -201,7 +202,10 @@ class REINFORCE(PolicyGradient):
 
                     action = self.value.get_action(state)
 
-                    next_state, reward, done, _ = self.trainEnv.step(action)
+                    next_state, reward, terminal, truncated, _ \
+                        = self.trainEnv.step(action)
+                    done = terminal or truncated
+
                     Transitions.push(state, action, next_state, reward)
                     state = next_state
 

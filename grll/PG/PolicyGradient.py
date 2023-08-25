@@ -127,7 +127,8 @@ class PolicyGradient(RL):
 
         for _ in range(testSize):
 
-            state = self.testEnv.reset()
+            # Second parameter is information
+            state, _ = self.testEnv.reset()
             done = False
             cumulativeRewards = 0
             episodeLen = 0
@@ -140,7 +141,9 @@ class PolicyGradient(RL):
                         state,
                         isTest=True)
 
-                next_state, reward, done, _ = self.testEnv.step(action)
+                next_state, reward, terminal, truncated, _ \
+                    = self.testEnv.step(action)
+                done = terminal or truncated
 
                 cumulativeRewards += reward
                 episodeLen += 1
