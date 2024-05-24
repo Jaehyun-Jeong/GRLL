@@ -124,7 +124,7 @@ class MazeEnv_base():
         # self.maze.screen_block_size = np.min(rect[2:4] / np.flip(self.maze.block_size))
         self.maze.screen_block_size = block_size
         self.maze.screen_block_offset = rect[0:2] + (rect[2:4] - self.maze.screen_block_size * np.flip(self.maze.block_size)) // 2
-        
+
         if isinstance(maze, np.ndarray):  # If you are not using Custom Maze
             self.maze.blocks = self.createWalls(maze)
         else:
@@ -295,7 +295,10 @@ class MazeEnv_v0(MazeEnv_base):
         if pygame.display.get_active():
             pygame.display.set_mode(self.displaySize, flags=pygame.HIDDEN)
 
-        return self.get_state()
+        # Gymnasium info
+        info = {}
+
+        return self.get_state(), info
 
     def step(self, action: Union[int, torch.Tensor]) \
             -> Tuple[np.ndarray, float, bool, torch.Tensor]:
@@ -309,7 +312,10 @@ class MazeEnv_v0(MazeEnv_base):
 
         next_state = self.get_state()
 
-        return next_state, reward, done, action
+        # Gymnasium info
+        info = {}
+
+        return next_state, reward, done, done, info
 
     def get_state(self):
         state = self.blocks.flatten()
@@ -324,7 +330,7 @@ class MazeEnv_v0(MazeEnv_base):
 
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
-        
+
         if action not in [0, 1, 2, 3]:
             raise ValueError("Action is out of bound")
 
@@ -396,7 +402,10 @@ class MazeEnv_v1(MazeEnv_v0):
 
         next_state = self.get_state()
 
-        return next_state, reward, done, action
+        # Gymnasium info
+        info = {}
+
+        return next_state, reward, done, done, info
 
     def get_state(self):
         state = super().get_state()
@@ -416,7 +425,7 @@ class MazeEnv_v1(MazeEnv_v0):
 
     def move(
             self,action: Union[int, torch.Tensor, np.ndarray]) -> bool:
-        
+
         if action not in [0, 1, 2, 3]:
             raise ValueError("Action is out of bound")
 
@@ -536,7 +545,10 @@ class MazeEnv_v2(MazeEnv_v1):
         if self.displayMode:
             time.sleep(0.5)
 
-        return next_state, reward, done, action
+        # Gymnasium info
+        info = {}
+
+        return next_state, reward, done, done, info
 
     def reset(self) -> np.ndarray:
 
@@ -567,7 +579,10 @@ class MazeEnv_v2(MazeEnv_v1):
         if pygame.display.get_active():
             pygame.display.set_mode(self.displaySize, flags=pygame.HIDDEN)
 
-        return self.get_state()
+        # Gymnasium info
+        info = {}
+
+        return self.get_state(), info
 
 
 if __name__ == "__main__":
