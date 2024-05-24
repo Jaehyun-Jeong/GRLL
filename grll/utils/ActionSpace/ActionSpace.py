@@ -4,7 +4,7 @@ from random import choice
 
 # Check type of ActionSpace
 # Gym
-from gym.spaces import Discrete, Box
+from gymnasium.spaces import Discrete, Box
 
 from grll.utils.ActionSpace.gymConverter \
         import fromDiscrete, fromBox
