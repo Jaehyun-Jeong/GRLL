@@ -44,9 +44,9 @@ class ValueBased(RL):
             'logdir': Saved directory
             'tag':
         }
-        clippingParams={
-            'maxNorm': max value of gradients
-            'pNormValue': p value for p-norm
+        useCheckpoint: False means not using checkpoint
+        checkpointParams={
+            'metric': metric to save best.  # reward, episode
         }
         verbose: The verbosity level:
             0 no output,
@@ -76,6 +76,8 @@ class ValueBased(RL):
         isRender,
         useTensorboard,
         tensorboardParams,
+        useCheckpoint,
+        checkpointParams,
         verbose,
         gradientStepPer,
         epoch,
@@ -105,6 +107,12 @@ class ValueBased(RL):
         self.epoch = epoch
         self.trainStarts = trainStarts
 
+        # Checkpoint
+        if useCheckpoint:
+            self.bestScore = float('-inf')  # Init best to -inf
+        self.useCheckpoint = useCheckpoint
+        self.checkpointParams = checkpointParams
+
         # torch.log makes nan(not a number) error,
         # so we have to add some small number in log function
         self.ups = 1e-7
@@ -117,6 +125,25 @@ class ValueBased(RL):
                     else False
 
         return condition
+
+    def save_best(
+        self,
+        results: dict,
+    ):
+
+        metric = self.checkpointParams['metric']
+        savePath = self.checkpointParams['savePath']
+
+        recentScore = results[metric]
+
+        if self.bestScore < recentScore:
+            self.bestScore = recentScore
+            self.save(savePath)
+
+            # Print if best score changed
+            if self.verbose > 0:
+                print(f"Best {metric} updated to {self.bestScore} \
+                      and saved file to {savePath}")
 
     # Test to measure performance
     @overrides(RL)
@@ -162,6 +189,13 @@ class ValueBased(RL):
         if testSize > 0:
             meanEpisode = sum(episodesLen) / testSize
             meanReward = sum(rewards) / testSize  # Averaged Rewards
+
+            # checkpoint
+            if self.useCheckpoint:
+                self.save_best({
+                    'reward': meanReward,
+                    'episode': meanEpisode
+                })
 
             return meanReward, meanEpisode
         elif testSize == 0:

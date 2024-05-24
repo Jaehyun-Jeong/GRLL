@@ -76,6 +76,10 @@ class DQN(ValueBased):
             'maxNorm': max value of gradients
             'pNormValue': p value for p-norm
         }
+        useCheckpoint: False means not using checkpoint
+        checkpointParams={
+            'metric': metric to save best.  # reward, episode
+        }
         verbose: The verbosity level:
             0 no output,
             1 only train info,
@@ -117,11 +121,17 @@ class DQN(ValueBased):
             'pNormValue': 2,
             'maxNorm': 1,
         },
+        useCheckpoint: bool = False,
+        checkpointParams: Dict[str, str] = {
+            'savePath': "./savedModel.obj",
+            'metric': 'reward',
+        },
         verbose: int = 1,
         gradientStepPer: int = 4,
         epoch: int = 1,
         trainStarts: int = 50000,
         updateTargetPer: int = 10000,
+        saveBestReward: bool = False,
     ):
 
         # Init Value Function, Policy
@@ -141,14 +151,14 @@ class DQN(ValueBased):
                     "Only support Discrete ActionSpace for DQN!")
 
         value = Value(
-                model=model,
-                device=device,
-                optimizer=optimizer,
-                actionSpace=actionSpace,
-                actionParams=actionParams,
-                clippingParams=clippingParams,
-                updateTargetPer=updateTargetPer,
-                )
+            model=model,
+            device=device,
+            optimizer=optimizer,
+            actionSpace=actionSpace,
+            actionParams=actionParams,
+            clippingParams=clippingParams,
+            updateTargetPer=updateTargetPer,
+        )
 
         # init parameters
         super().__init__(
@@ -164,6 +174,8 @@ class DQN(ValueBased):
             isRender=isRender,
             useTensorboard=useTensorboard,
             tensorboardParams=tensorboardParams,
+            useCheckpoint=useCheckpoint,
+            checkpointParams=checkpointParams,
             verbose=verbose,
             gradientStepPer=gradientStepPer,
             epoch=epoch,
@@ -265,6 +277,7 @@ class DQN(ValueBased):
                     if spentTimesteps % testPer == 0:
 
                         meanReward, meanEpisode = self.test(testSize=testSize)
+
                         rewards.append(meanReward)
 
                         # TENSORBOARD
