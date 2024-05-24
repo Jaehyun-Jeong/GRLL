@@ -52,13 +52,15 @@ from GRLL.VB import ADQN
 
 ### RacingEnv
 
-<img src="/static/RacingEnv.png" align="right" width="40%"/>
+![](/static/RacingEnv.png)
 
 RacingEnv_v0: 5개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, 액셀, 브레이크 4개의 행동을 가진다.<br/>
 
 ### MazeEnv
 
-<img src="/static/MazeEnv.png" align="right" width="40%"/>
-[NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
+# <img src="/static/MazeEnv.png" align="right" width="40%"/>
+![](/static/MazeEnv.png)
+
+![NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
 
 MazeEnv_v0: 맵 전체의 벡터 정보를 state로 받고, 동서남북으로 움직이는 4개의 행동을 가진다.<br/>
