@@ -153,7 +153,7 @@ class DiscretePolicy(Policy):
             S: torch.Tensor,
             A: torch.Tensor) -> torch.Tensor:
 
-        return F.log_softmax(self.pi(actionValue, S, A))
+        return F.log_softmax(self.pi(actionValue, S, A), dim=0)
 
 
 class ContinuousPolicy(Policy):
