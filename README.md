@@ -54,14 +54,11 @@ from GRLL.VB import ADQN
 
 <img src="/static/RacingEnv.png" align="right" width="40%"/>
 
-RacingEnv_v0: 8개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, 가운데의 3개의 행동을 가진다.<br/>
-RacingEnv_v2: stacked grayscale image를 state로 받고, 오른쪽, 왼쪽, 가운데의 3개의 행동을 가진다.<br/>
-RacingEnv_v3: 자동차 주변의 이미지를 stacked graysacle하게 만든 다음, 이를 state로 받고, 오른쪽, 왼쪽, 가운데의 3개의 행동을 가진다.<br/>
-RacingEnv_v4: 자동차 주변의 이미지를 stacked graysacle하게 만든 다음, 이를 state로 받고, 액셀과 방향을 순서대로 list로 받는 6개의 행동을 가진다.<br/>
-예들들어, [0, 1]을 행동으로 주면, 엑샐은 밟지 않고, 방향은 가운데를 유지한다.
+RacingEnv_v0: 5개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, 액셀, 브레이크 4개의 행동을 가진다.<br/>
 
 ### MazeEnv
 
 <img src="/static/MazeEnv.png" align="right" width="40%"/>
+[NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
 
 MazeEnv_v0: 맵 전체의 벡터 정보를 state로 받고, 동서남북으로 움직이는 4개의 행동을 가진다.<br/>
