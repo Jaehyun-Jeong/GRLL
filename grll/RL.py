@@ -1,5 +1,6 @@
 from typing import Union
 
+from copy import deepcopy
 from datetime import datetime, timedelta
 import torch
 
@@ -155,8 +156,9 @@ class RL():
 
             # For exploring algorithms, print exploringRate
             # else print None
-            exploringRate = round(self.value.policy.exploration(self.value.stepsDone), 4)\
-                if hasattr(self.value.policy, 'exploration') else None
+            exploringRate = round(
+                self.value.policy.exploration(self.value.stepsDone), 4
+            ) if hasattr(self.value.policy, 'exploration') else None
 
             Result = [
                 "| Timesteps / Episode : "
@@ -219,10 +221,14 @@ class RL():
         save_dict = self.__dict__
 
         # belows are impossible to dump
-        save_dict.pop('tensorboardWriter', None)
-        save_dict.pop('trainEnv', None)
-        save_dict.pop('testEnv', None)
-        save_dict.pop('device', None)
+        # {'tensorboardWriter', 'trainEnv', 'testEnv', 'device'}
+        save_dict = {
+            k: self.__dict__[k] for k in self.__dict__.keys() - {
+                'tensorboardWriter', 'trainEnv', 'testEnv', 'device', 'value'
+            }
+        }
+
+        save_dict['value'] = deepcopy(self.value)
 
         # save model state dict
         save_dict['modelStateDict'] \
