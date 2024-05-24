@@ -18,31 +18,38 @@ class CarEnv_base():
     HEIGHT = 1080
 
     def __init__(
-            self,
-            difficulty: int):
+        self,
+        difficulty: int,
+        carSize: tuple = (60, 60),
+    ):
+
+        self.carSize = carSize
 
         if not difficulty in [1, 2, 3, 4, 5]:
             raise ValueError("Difficulty must be between 1 to 5!")
 
-        try:
-            self.screen = pygame.display.set_mode(
-                    (self.WIDTH, self.HEIGHT), pygame.HIDDEN)
-        except pygame.error:  # If there is no displaying device
-            self.screen = pygame.Surface(
-                    (self.WIDTH, self.HEIGHT))
+        self.screen = self.set_display_mode()
 
         # Set car in the map
-        self.car = Car()
+        self.car = Car(carSize)
 
         # Load game_map image
         map_img_path = path.join(path.dirname(path.abspath(__file__)), f'map{difficulty}.png')
         self.game_map = pygame.image.load(map_img_path).convert() # Convert Speeds Up A Lot
 
-        # count frame
-        self.counter = 0
-
         # isRender is needed for render option
         self.isRender = False
+
+    def set_display_mode(self):
+
+        try:
+            screen = pygame.display.set_mode(
+                    (self.WIDTH, self.HEIGHT), pygame.HIDDEN)
+        except pygame.error:  # If there is no displaying device
+            screen = pygame.Surface(
+                    (self.WIDTH, self.HEIGHT))
+
+        return screen
 
     def move(
             self,
@@ -56,7 +63,7 @@ class CarEnv_base():
             self.car.angle -= 10
         elif action == 2:
             # Slow Down
-            if(self.car.speed - 2 >= 12):
+            if(self.car.speed >= 14):
                 self.car.speed -= 2
         elif action == 3:
             # Speed Up
@@ -64,14 +71,12 @@ class CarEnv_base():
         else:
             raise ValueError("Action out of bound!")
 
-        self.counter += 1
-
     def get_state(self) -> np.ndarray:
         return np.array(self.car.get_data(), dtype=np.float32)
 
     def get_done(self) -> bool:
 
-        if (not self.car.is_alive() or self.counter == 30 * 40):
+        if not self.car.is_alive():
             return True
         else:
             return False
@@ -80,12 +85,15 @@ class CarEnv_base():
 class CarEnv_v0(CarEnv_base):
 
     def __init__(
-            self,
-            difficulty: int = 1):
+        self,
+        difficulty: int = 1,
+        carSize: tuple = (60, 60),
+    ):
 
         super().__init__(
-                difficulty=difficulty,
-                )
+            carSize=carSize,
+            difficulty=difficulty
+        )
 
         # Car have 4 movements
         # 0: Left
@@ -109,21 +117,32 @@ class CarEnv_v0(CarEnv_base):
         reward = self.car.get_reward()
 
         self.car.update(self.game_map)
-        
-        return next_state, reward, done, action
+
+        # Gymnasium info
+        info = {}
+
+        return next_state, reward, done, done, info
 
     def reset(self) -> np.ndarray:
 
-        self.car = Car()
-        self.car.update(self.game_map)
+        # Initialize pygame
+        pygame.init()
+
+        self.screen = self.set_display_mode()
 
         if pygame.display.get_active():
-            pygame.display.set_mode((self.WIDTH, self.HEIGHT), flags=pygame.HIDDEN)
-        
+            pygame.display.set_mode((self.width, self.height), flags=pygame.hidden)
+
+        self.car = Car(self.carSize)
+        self.car.update(self.game_map)
+
         # it makes render option work
         self.isRender = False
 
-        return self.get_state()
+        # Gymnasium info
+        info = {}
+
+        return self.get_state(), info
 
     def render(self):
         try:
@@ -156,7 +175,7 @@ if __name__ == "__main__":
         print(reward)
         print(done)
         print("====================================")
-        
+
         if done:
             break
 

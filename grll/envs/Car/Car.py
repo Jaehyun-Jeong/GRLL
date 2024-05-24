@@ -15,19 +15,22 @@ import pygame
 WIDTH = 1980
 HEIGHT = 1080
 
-CAR_SIZE_X = 60    
-CAR_SIZE_Y = 60
-
 BORDER_COLOR = (255, 255, 255, 255) # Color To Crash on Hit
 
 class Car:
 
-    def __init__(self):
+    def __init__(
+        self,
+        car_size: tuple = (60, 60)
+    ):
+
+        self.car_size_x, self.car_size_y = car_size
+
         # Load Car Sprite and Rotate
         car_img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'car.png')
         self.sprite = pygame.image.load(car_img_path).convert() # Convert Speeds Up A Lot
-        self.sprite = pygame.transform.scale(self.sprite, (CAR_SIZE_X, CAR_SIZE_Y))
-        self.rotated_sprite = self.sprite 
+        self.sprite = pygame.transform.scale(self.sprite, (self.car_size_x, self.car_size_y))
+        self.rotated_sprite = self.sprite
 
         # self.position = [690, 740] # Starting Position
         self.position = [830, 920] # Starting Position
@@ -36,7 +39,7 @@ class Car:
 
         self.speed_set = False # Flag For Default Speed Later on
 
-        self.center = [self.position[0] + CAR_SIZE_X / 2, self.position[1] + CAR_SIZE_Y / 2] # Calculate Center
+        self.center = [self.position[0] + self.car_size_x / 2, self.position[1] + self.car_size_y / 2] # Calculate Center
 
         self.radars = [] # List For Sensors / Radars
         self.drawing_radars = [] # Radars To Be Drawn
@@ -62,6 +65,7 @@ class Car:
         for point in self.corners:
             # If Any Corner Touches Border Color -> Crash
             # Assumes Rectangle
+
             if game_map.get_at((int(point[0]), int(point[1]))) == BORDER_COLOR:
                 self.alive = False
                 break
@@ -80,7 +84,7 @@ class Car:
         # Calculate Distance To Border And Append To Radars List
         dist = int(math.sqrt(math.pow(x - self.center[0], 2) + math.pow(y - self.center[1], 2)))
         self.radars.append([(x, y), dist])
-    
+
     def update(self, game_map):
         # Set The Speed To 20 For The First Time
         # Only When Having 4 Output Nodes With Speed Up and Down
@@ -98,18 +102,18 @@ class Car:
         # Increase Distance and Time
         self.distance += self.speed
         self.time += 1
-        
+
         # Same For Y-Position
         self.position[1] += math.sin(math.radians(360 - self.angle)) * self.speed
         self.position[1] = max(self.position[1], 20)
         self.position[1] = min(self.position[1], WIDTH - 120)
 
         # Calculate New Center
-        self.center = [int(self.position[0]) + CAR_SIZE_X / 2, int(self.position[1]) + CAR_SIZE_Y / 2]
+        self.center = [int(self.position[0]) + self.car_size_x / 2, int(self.position[1]) + self.car_size_y / 2]
 
         # Calculate Four Corners
         # Length Is Half The Side
-        length = 0.5 * CAR_SIZE_X
+        length = 0.5 * self.car_size_x
         left_top = [self.center[0] + math.cos(math.radians(360 - (self.angle + 30))) * length, self.center[1] + math.sin(math.radians(360 - (self.angle + 30))) * length]
         right_top = [self.center[0] + math.cos(math.radians(360 - (self.angle + 150))) * length, self.center[1] + math.sin(math.radians(360 - (self.angle + 150))) * length]
         left_bottom = [self.center[0] + math.cos(math.radians(360 - (self.angle + 210))) * length, self.center[1] + math.sin(math.radians(360 - (self.angle + 210))) * length]
@@ -140,7 +144,7 @@ class Car:
     def get_reward(self):
         # Calculate Reward (Maybe Change?)
         # return self.distance / 50.0
-        return self.distance / (CAR_SIZE_X / 2)
+        return self.distance / (self.car_size_x / 2)
 
     def rotate_center(self, image, angle):
         # Rotate The Rectangle
