@@ -58,7 +58,6 @@ RacingEnv_v0: 5개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, �
 
 ### MazeEnv
 
-# <img src="/static/MazeEnv.png" align="right" width="40%"/>
 ![](/static/MazeEnv.png)
 
 ![NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
