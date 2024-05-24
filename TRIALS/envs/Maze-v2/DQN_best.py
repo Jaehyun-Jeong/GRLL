@@ -73,7 +73,7 @@ DeepQN = DQN(
         'exploring': 'epsilon',  # epsilon, None
         'exploringParams': {
             'start': 1,
-            'end': 0.01, 
+            'end': 0.01,
             'decay': 30000,
         },
     },
@@ -84,7 +84,7 @@ DeepQN = DQN(
 )
 
 DeepQN.train(
-        10000,
+        50000,
         testPer=100,
         testSize=1,)
 policy_diagram(testEnv, DeepQN)

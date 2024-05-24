@@ -10,7 +10,7 @@ from grll.VB.models import ANN_V2
 from grll.VB import DQN
 
 # Environment 
-import gym
+import gymnasium as gym
 
 lr = 0.001
 
@@ -32,9 +32,9 @@ DeepQN = DQN(
 )
 
 DQN.isRender = {
-        'train': False,
-        'test': True,
-        }
+    'train': False,
+    'test': True,
+}
 
 # TRAIN Agent
 DeepQN.train(trainTimesteps=1_000_000, testPer=1000)

@@ -7,12 +7,12 @@ import torch.nn as nn
 
 # 작성자의 모듈
 from grll.VB import DQN
-from grll.VB.models import ANN_Car
+from grll.VB.models import ANN_V2
 
 # 환경
 from grll.envs.Car import CarEnv_v0
-trainEnv = CarEnv_v0(difficulty=3)
-testEnv = CarEnv_v0(difficulty=3)
+trainEnv = CarEnv_v0(carSize=(30, 30), difficulty=4)
+testEnv = CarEnv_v0(carSize=(30, 30), difficulty=4)
 
 num_actions = trainEnv.num_action
 num_states = trainEnv.num_obs
@@ -20,7 +20,7 @@ num_states = trainEnv.num_obs
 lr = float(sys.argv[1])
 discount = float(sys.argv[2])
 
-DQN_model = ANN_Car(num_states, num_actions)
+DQN_model = ANN_V2(num_states, num_actions)
 optimizer = optim.Adam(DQN_model.parameters(), lr=lr)
 
 
@@ -30,7 +30,7 @@ DeepQN = DQN(
     testEnv=testEnv,
     model=DQN_model,
     optimizer=optimizer,
-    verbose=0,
+    verbose=1,
     maxTimesteps=10000,
     maxMemory=10000,
     numBatch=526,
@@ -45,10 +45,15 @@ DeepQN = DQN(
             'decay': 30000,
         },
     },
-    useTensorboard=True,
+    useTensorboard=False,
     tensorboardParams={
         'logdir': "../../runs/DQN_Car_v0",
-        'tag': f"Averaged Returns/ANN_Car_lr={lr}_discount={discount}"
+        'tag': f"Averaged Returns/ANN_V2_lr={lr}_discount={discount}"
+    },
+    useCheckpoint=True,
+    checkpointParams={
+        'savePath': "../../saved_models/CarEnv_v0/DQN_Car_v0.obj",
+        'metric': 'episode'
     },
     epoch=4,
     gradientStepPer=1,
@@ -57,8 +62,7 @@ DeepQN = DQN(
 )
 
 DeepQN.train(
-        100000,
-        testPer=10,
-        testSize=1,)
-
-DeepQN.save("../../saved_models/CarEnv_v0/DQN_Car_v0.obj")
+    200000,
+    testPer=10,
+    testSize=1
+)

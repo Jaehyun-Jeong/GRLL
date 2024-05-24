@@ -36,15 +36,15 @@ maze =  np.array([
 ])
 
 trainEnv = MazeEnv_v2(
-        exploringStarts=True,
-        mazeSize=(7, 7),
-        maze=copy(maze)
-        )
+    exploringStarts=True,
+    mazeSize=(7, 7),
+    maze=copy(maze)
+)
 testEnv = MazeEnv_v2(
-        exploringStarts=False,
-        mazeSize=(7, 7),
-        maze=copy(maze)
-        )
+    exploringStarts=False,
+    mazeSize=(7, 7),
+    maze=copy(maze)
+)
 # testEnv.blocks = trainEnv.blocks
 
 num_actions = trainEnv.num_action
@@ -62,8 +62,8 @@ DeepQN = DQN(
     testEnv=testEnv,
     model=DQN_model,
     optimizer=optimizer,
-    verbose=0,
-    useTensorboard=True,
+    verbose=1,
+    useTensorboard=False,
     maxTimesteps=int(1e100),
     maxMemory=10000, # 8 times of state size
     numBatch=526,
@@ -74,7 +74,7 @@ DeepQN = DQN(
         'exploring': 'epsilon',  # epsilon, None
         'exploringParams': {
             'start': 1,
-            'end': 0.01, 
+            'end': 0.01,
             'decay': 30000,
         },
     }, tensorboardParams={
