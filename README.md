@@ -64,12 +64,12 @@ If you have downloaded the pygame module, you can use the following two environm
 
 ![](/static/RacingEnv.png)
 
+[NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
+
 RacingEnv_v0: Receives the lengths of 5 sensors as the state and has four actions: right, left, acceleration, and brake.<br/>
 
 ### MazeEnv
 
 ![](/static/MazeEnv.png)
-
-[NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
 
 MazeEnv_v0: Receives vector information of the entire map as the state and has four actions to move north, south, east, and west.<br/>
