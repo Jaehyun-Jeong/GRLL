@@ -11,46 +11,46 @@
 
 ## Usage
 
-아래는 OpenAI의 gym으로 테스트한 예제이다.
-
+Below is an example tested using OpenAI's gym.
 ```python
 import torch.optim as optim
 
-# 만들어진 모듈과 기본으로 제공하는 뉴럴넷 모델을 임포트
+# Import the implemented module and the default neural network model
 from grll.PG.models import ANN_V2
 from grll.PG import A2C
 
-# 환경
+# Environment
 import gymnasium as gym
 env = gym.make('CartPole-v0')
 
-# 뉴럴넷을 생성
+# Create the neural network
 num_actions = env.action_space.n
 num_states = env.observation_space.shape[0]
 A2C_model = ANN_V2(num_states, num_actions)
 
-# Optimizer를 생성
+# Create the optimizer
 optimizer = optim.Adam(A2C_model.parameters(), lr=1e-4)
 
-# 강화학습 클래스 초기화
+# Initialize the reinforcement learning class
 advantage_AC = A2C(
     env=env,
     model=A2C_model,
     optimizer=optimizer,
 )
 
-# 학습진행
+# Train the model
 advantage_AC.train(trainTimesteps=1000000)
 
-# 클래스 저장
+# Save the class
 ADeepQLearning.save("./saved_models/test.obj")
+
 ```
 
-만약 다른 알고리즘을 사용하고 싶다면 다음과 같이 작성하면 된다.<br/>
+If you want to use a different algorithm, you can write it like this:<br/>
 ```python
 from GRLL.PG import REINFORCE
 """
-또는
+Or
 from GRLL.VB import DQN
 from GRLL.VB import ADQN
 """
@@ -58,13 +58,13 @@ from GRLL.VB import ADQN
 
 ## Custom Environment
 
-만약 pygame 모듈을 다운로드 했다면 다음 두 가지 환경을 사용할 수 있다.
+If you have downloaded the pygame module, you can use the following two environments.
 
 ### RacingEnv
 
 ![](/static/RacingEnv.png)
 
-RacingEnv_v0: 5개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, 액셀, 브레이크 4개의 행동을 가진다.<br/>
+RacingEnv_v0: Receives the lengths of 5 sensors as the state and has four actions: right, left, acceleration, and brake.<br/>
 
 ### MazeEnv
 
@@ -72,4 +72,4 @@ RacingEnv_v0: 5개의 센서 길이값을 state로 받고, 오른쪽, 왼쪽, �
 
 [NeuralNine](https://www.youtube.com/watch?v=Cy155O5R1Oo&t=527s&ab_channel=NeuralNine)
 
-MazeEnv_v0: 맵 전체의 벡터 정보를 state로 받고, 동서남북으로 움직이는 4개의 행동을 가진다.<br/>
+MazeEnv_v0: Receives vector information of the entire map as the state and has four actions to move north, south, east, and west.<br/>
